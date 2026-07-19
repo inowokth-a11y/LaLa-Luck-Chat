@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ดวงของฉัน</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@600;700;900&family=Noto+Sans+Thai:wght@400;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  :root{
+    --marble-bg: #f4f0e6; --marble-vein: #e2d8c3;
+    --gold: #b8860b; --gold-bright: #d4a72c;
+    --ink: #2b2620; --ink-dim: #6b6255; --card-bg: #fffdf8;
+    --good: #2f6b3f; --bad: #a83a1e; --neutral: #6b6255;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,0.5), transparent 40%),
+      radial-gradient(ellipse at 80% 90%, rgba(216,196,150,0.35), transparent 45%),
+      linear-gradient(160deg, var(--marble-bg) 0%, var(--marble-vein) 55%, var(--marble-bg) 100%);
+    background-attachment:fixed; color:var(--ink); font-family:'Noto Sans Thai',sans-serif; min-height:100vh;
+  }
+  .wrap{ max-width:480px; margin:0 auto; padding:24px 16px 50px; }
+  h1{ font-family:'Noto Serif Thai',serif; font-weight:900; font-size:1.4rem; text-align:center; margin:4px 0; }
+  .sub{ text-align:center; color:var(--ink-dim); font-size:0.76rem; margin-bottom:18px; }
+
+  .facet-panel{
+    position:relative; background: var(--card-bg);
+    clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+    padding: 20px 18px; margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(80,60,20,0.10), 0 1px 0 rgba(255,255,255,0.8) inset;
+  }
+  .facet-panel::before{
+    content:""; position:absolute; inset:0;
+    clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+    padding:2px; background: linear-gradient(135deg, var(--gold-bright), var(--gold) 40%, #e8d18a 60%, var(--gold-bright));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+  }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:0.76rem; font-weight:600; color:var(--ink-dim); margin-bottom:5px; }
+  .field input, .field select{
+    width:100%; padding:11px 12px; border-radius:2px; border:1px solid rgba(43,38,32,0.18);
+    background:#fffef9; font-family:'Noto Sans Thai',sans-serif; font-size:0.9rem; color:var(--ink);
+  }
+  .row2{ display:flex; gap:10px; } .row2 > .field{ flex:1; }
+  .submit-btn{
+    width:100%; padding:15px; margin-top:6px; border:none; border-radius:2px; cursor:pointer;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color:#fffdf8;
+    font-family:'Noto Serif Thai',serif; font-weight:900; font-size:1rem; box-shadow: 0 6px 16px rgba(184,134,11,0.35);
+  }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:16px; }
+  .tab-btn{
+    flex:1; padding:10px 4px; text-align:center; border-radius:2px; cursor:pointer;
+    font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.78rem;
+    background:rgba(255,255,255,0.5); border:1px solid rgba(43,38,32,0.15); color:var(--ink-dim);
+  }
+  .tab-btn.active{ background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color:#fffdf8; border-color:transparent; }
+
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  .luck-gauge{ text-align:center; margin:6px 0 14px; }
+  .luck-number{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:2.4rem; }
+  .luck-bar-track{ height:9px; background:rgba(43,38,32,0.1); border-radius:5px; overflow:hidden; margin-top:8px; }
+  .luck-bar-fill{ height:100%; border-radius:5px; transition: width 0.6s ease; }
+  .luck-label{ font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.92rem; margin-top:6px; }
+
+  .detail-grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:12px; }
+  .detail-item{ background:rgba(184,134,11,0.05); border-left:3px solid var(--gold); padding:8px 10px; border-radius:2px; }
+  .detail-item.full{ grid-column:1/-1; }
+  .detail-item .lbl{ font-size:0.66rem; color:var(--ink-dim); display:block; margin-bottom:2px; }
+  .detail-item .val{ font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.85rem; }
+
+  .flag-box{ margin-top:12px; padding:10px 12px; border-radius:2px; font-size:0.8rem; line-height:1.7; }
+  .flag-box.hit{ background:rgba(168,58,30,0.08); border-left:3px solid var(--bad); color:var(--bad); }
+  .flag-box.clear{ background:rgba(47,107,63,0.06); border-left:3px solid var(--good); color:var(--good); }
+  .flag-box.neutral{ background:rgba(107,98,85,0.08); border-left:3px solid var(--neutral); color:var(--ink-dim); }
+
+  .grade-badge{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.8rem;
+    padding:6px 18px; border-radius:4px; color:#fffdf8;
+  }
+
+  .taksa-table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:0.8rem; }
+  .taksa-table td{ padding:6px 8px; border-bottom:1px solid rgba(43,38,32,0.08); }
+  .taksa-table td:first-child{ font-family:'Noto Serif Thai',serif; font-weight:700; color:var(--ink-dim); }
+  .taksa-table tr.sri td{ background:rgba(47,107,63,0.08); }
+  .taksa-table tr.kalakini td{ background:rgba(168,58,30,0.08); }
+
+  .caveat{ font-size:0.68rem; color:var(--ink-dim); text-align:center; margin-top:14px; line-height:1.7; border-top:1px solid rgba(43,38,32,0.1); padding-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ดวงของฉัน</h1>
+  <div class="sub">Logic 8-11 — วัน · เดือน · ปี · วันเกิด (ทักษาจร)</div>
+
+  <form id="profileForm">
+    <div class="facet-panel">
+      <div class="field"><label>วันเกิด</label><input type="date" id="birthDate" required></div>
+      <div class="field"><label>เวลาเกิด</label><input type="time" id="birthTime" required></div>
+      <div class="field">
+        <label>จังหวัดเกิด</label>
+        <select id="province">
+          <option value="bangkok" selected>กรุงเทพมหานคร</option>
+          <option value="chiangmai">เชียงใหม่</option>
+          <option value="khonkaen">ขอนแก่น</option>
+          <option value="nakhonratchasima">นครราชสีมา</option>
+          <option value="ubonratchathani">อุบลราชธานี</option>
+          <option value="phuket">ภูเก็ต</option>
+          <option value="songkhla">สงขลา</option>
+          <option value="chonburi">ชลบุรี</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="submit-btn">🔮 คำนวณดวงทั้งหมด</button>
+  </form>
+
+  <div id="resultArea" style="display:none;">
+    <div class="tabs">
+      <div class="tab-btn active" data-tab="daily">วันนี้</div>
+      <div class="tab-btn" data-tab="monthly">เดือนนี้</div>
+      <div class="tab-btn" data-tab="yearly">ปีนี้</div>
+      <div class="tab-btn" data-tab="taksa">วันเกิด</div>
+    </div>
+
+    <div class="tab-panel active" id="panel-daily">
+      <div class="facet-panel">
+        <div class="luck-gauge">
+          <div class="luck-number" id="dLuckNumber">-</div>
+          <div class="luck-bar-track"><div class="luck-bar-fill" id="dLuckBar"></div></div>
+          <div class="luck-label" id="dLuckLabel">-</div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="lbl">ลัคนา</span><span class="val" id="dLagna">-</span></div>
+          <div class="detail-item"><span class="lbl">ดวงจันทร์วันนี้</span><span class="val" id="dMoon">-</span></div>
+          <div class="detail-item full"><span class="lbl">มุมสัมพันธ์</span><span class="val" id="dAspect">-</span></div>
+        </div>
+        <div class="flag-box" id="dKalakiniBox"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="panel-monthly">
+      <div class="facet-panel">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="lbl">อาทิตย์อยู่ราศี</span><span class="val" id="mSunSign">-</span></div>
+          <div class="detail-item"><span class="lbl">ตกภพ</span><span class="val" id="mHouse">-</span></div>
+          <div class="detail-item full"><span class="lbl">ธีมเดือนนี้</span><span class="val" id="mTheme">-</span></div>
+        </div>
+        <div class="flag-box" id="mValenceBox"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="panel-yearly">
+      <div class="facet-panel" style="text-align:center;">
+        <div class="grade-badge" id="yGrade">-</div>
+        <div class="luck-label" id="yLabel" style="margin-top:8px;">-</div>
+        <div class="detail-grid" style="text-align:left;">
+          <div class="detail-item"><span class="lbl">พฤหัสบดีอยู่ราศี</span><span class="val" id="yJupiter">-</span></div>
+          <div class="detail-item"><span class="lbl">เสาร์อยู่ราศี</span><span class="val" id="ySaturn">-</span></div>
+        </div>
+        <div class="caveat" style="text-align:center; margin-top:10px;">ตำแหน่งพฤหัส/เสาร์ใช้ค่าเฉลี่ยวงโคจร แม่นระดับราศี ไม่แม่นระดับองศา</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="panel-taksa">
+      <div class="facet-panel">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="lbl">อายุปีนี้</span><span class="val" id="tAge">-</span></div>
+          <div class="detail-item"><span class="lbl">บริวารจรปีนี้</span><span class="val" id="tBarivarn">-</span></div>
+        </div>
+        <table class="taksa-table" id="taksaTable"></table>
+        <div class="caveat" style="text-align:center;">"Age_Element" ในสเปกเดิมยังไม่ชัดเจนว่าหมายถึงอะไรแน่ — ไม่ได้ทำเพราะไม่อยากเดาสูตรเอง แสดงแค่สถานะทักษาจรที่มีที่มาชัดเจน</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================ Shared: Suriyayart + Sun/Moon
+const ZODIAC_ORDER = ["เมษ","พฤษภ","มิถุน","กรกฎ","สิงห์","กันย์","ตุลย์","พิจิก","ธนู","มังกร","กุมภ์","มีน"];
+const ANTO_NATEE = { "เมษ":150,"พฤษภ":160,"มิถุน":175,"กรกฎ":183,"สิงห์":178,"กันย์":168,
+                      "ตุลย์":168,"พิจิก":178,"ธนู":183,"มังกร":175,"กุมภ์":160,"มีน":150 };
+const THAI_STANDARD_MERIDIAN = 105.0;
+const PROVINCES = {
+  bangkok: {lat:13.75, lon:100.50}, chiangmai: {lat:18.79, lon:98.98},
+  khonkaen: {lat:16.44, lon:102.83}, nakhonratchasima: {lat:14.98, lon:102.10},
+  ubonratchathani: {lat:15.23, lon:104.86}, phuket: {lat:7.89, lon:98.40},
+  songkhla: {lat:7.20, lon:100.60}, chonburi: {lat:13.36, lon:100.98},
+};
+function rad(d){ return d*Math.PI/180; } function deg(r){ return r*180/Math.PI; }
+
+function julianDay(dtUTC) {
+  let y = dtUTC.getUTCFullYear(), m = dtUTC.getUTCMonth()+1;
+  const d = dtUTC.getUTCDate() + (dtUTC.getUTCHours() + dtUTC.getUTCMinutes()/60 + dtUTC.getUTCSeconds()/3600)/24;
+  if (m <= 2) { y -= 1; m += 12; }
+  const A = Math.floor(y/100), B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + B - 1524.5;
+}
+function solarEclipticLongitude(jd) {
+  const T = (jd - 2451545.0) / 36525.0;
+  const L0 = (280.46646 + 36000.76983*T + 0.0003032*T*T) % 360;
+  const M = rad((357.52911 + 35999.05029*T - 0.0001537*T*T) % 360);
+  const C = (1.914602 - 0.004817*T - 0.000014*T*T)*Math.sin(M) + (0.019993 - 0.000101*T)*Math.sin(2*M) + 0.000289*Math.sin(3*M);
+  const trueLong = L0 + C;
+  const omega = rad(125.04 - 1934.136*T);
+  const apparent = trueLong - 0.00569 - 0.00478*Math.sin(omega);
+  return ((apparent % 360) + 360) % 360;
+}
+function solarDeclination(eclLonDeg, jd) {
+  const T = (jd - 2451545.0) / 36525.0;
+  const eps0 = 23.439291 - 0.0130042*T;
+  return deg(Math.asin(Math.sin(rad(eps0))*Math.sin(rad(eclLonDeg))));
+}
+function trueSunriseUTC(dateOnlyUTC, latDeg, lonDeg) {
+  const noonUTC = new Date(Date.UTC(dateOnlyUTC.getUTCFullYear(), dateOnlyUTC.getUTCMonth(), dateOnlyUTC.getUTCDate(), 12, 0, 0));
+  noonUTC.setTime(noonUTC.getTime() - (lonDeg/15)*3600*1000);
+  const jdNoon = julianDay(noonUTC);
+  const lam = solarEclipticLongitude(jdNoon);
+  const decl = rad(solarDeclination(lam, jdNoon));
+  const lat = rad(latDeg);
+  let cosH0 = (Math.sin(rad(-0.833)) - Math.sin(lat)*Math.sin(decl)) / (Math.cos(lat)*Math.cos(decl));
+  cosH0 = Math.max(-1, Math.min(1, cosH0));
+  const H0deg = deg(Math.acos(cosH0));
+  const T = (jdNoon - 2451545.0) / 36525.0;
+  const L0 = rad((280.46646 + 36000.76983*T) % 360);
+  const M = rad((357.52911 + 35999.05029*T) % 360);
+  const e = 0.016708634 - 0.000042037*T;
+  const y = Math.pow(Math.tan(rad(23.4393/2)), 2);
+  const eot = 4*deg(y*Math.sin(2*L0) - 2*e*Math.sin(M) + 4*e*y*Math.sin(M)*Math.cos(2*L0) - 0.5*y*y*Math.sin(4*L0) - 1.25*e*e*Math.sin(2*M));
+  const solarNoonOffsetMin = 720 - 4*lonDeg - eot;
+  const sunriseMin = solarNoonOffsetMin - 4*H0deg;
+  const base = new Date(Date.UTC(dateOnlyUTC.getUTCFullYear(), dateOnlyUTC.getUTCMonth(), dateOnlyUTC.getUTCDate()));
+  base.setTime(base.getTime() + sunriseMin*60*1000);
+  return base;
+}
+function getZodiacSign(lonDeg) { return ZODIAC_ORDER[Math.floor(lonDeg / 30) % 12]; }
+
+function calculateLagna(birthDateStr, birthTimeStr, lat, lon, utcOffset=7) {
+  const correctionMin = (lon - THAI_STANDARD_MERIDIAN) * 4;
+  const [y,mo,da] = birthDateStr.split('-').map(Number);
+  const [hh,mm] = birthTimeStr.split(':').map(Number);
+  const birthCivil = new Date(y, mo-1, da, hh, mm, 0);
+  const birthTrueLocal = new Date(birthCivil.getTime() + correctionMin*60*1000);
+  const dateOnlyUTC = new Date(Date.UTC(y, mo-1, da));
+  const sunriseUTC = trueSunriseUTC(dateOnlyUTC, lat, lon);
+  const sunriseCivil = new Date(sunriseUTC.getTime() + utcOffset*3600*1000);
+  const jdSunrise = julianDay(sunriseUTC);
+  const sunLongAtSunrise = solarEclipticLongitude(jdSunrise);
+  const sunSign = getZodiacSign(sunLongAtSunrise);
+  const degIntoSign = sunLongAtSunrise % 30;
+  const remainingTimeInSunSign = ((30-degIntoSign)/30) * ANTO_NATEE[sunSign];
+  let elapsedMin = (birthTrueLocal - sunriseCivil) / 60000;
+  if (elapsedMin < 0) elapsedMin += 24*60;
+  let remainder = elapsedMin - remainingTimeInSunSign;
+  let lagnaSign, signIdx = ZODIAC_ORDER.indexOf(sunSign);
+  if (remainder < 0) { lagnaSign = sunSign; }
+  else {
+    while (true) {
+      signIdx = (signIdx + 1) % 12;
+      const candidate = ZODIAC_ORDER[signIdx], value = ANTO_NATEE[candidate];
+      if (remainder < value) { lagnaSign = candidate; break; }
+      remainder -= value;
+    }
+  }
+  return { lagnaSign, sunSign, correctionMin };
+}
+
+function moonEclipticLongitude(jd) {
+  const T = (jd - 2451545.0) / 36525.0;
+  const Lp = ((218.3164477 + 481267.88123421*T - 0.0015786*T*T) % 360 + 360) % 360;
+  const D  = ((297.8501921 + 445267.1114034*T - 0.0018819*T*T) % 360 + 360) % 360;
+  const M  = ((357.5291092 + 35999.0502909*T - 0.0001536*T*T) % 360 + 360) % 360;
+  const Mp = ((134.9633964 + 477198.8675055*T + 0.0087414*T*T) % 360 + 360) % 360;
+  const F  = ((93.2720950 + 483202.0175233*T - 0.0036539*T*T) % 360 + 360) % 360;
+  const Dr=rad(D), Mr=rad(M), Mpr=rad(Mp), Fr=rad(F);
+  const dL = 6.288774*Math.sin(Mpr) + 1.274027*Math.sin(2*Dr-Mpr) + 0.658314*Math.sin(2*Dr)
+    + 0.213618*Math.sin(2*Mpr) - 0.185116*Math.sin(Mr) - 0.114332*Math.sin(2*Fr)
+    + 0.058793*Math.sin(2*Dr-2*Mpr) + 0.057066*Math.sin(2*Dr-Mr-Mpr) + 0.053322*Math.sin(2*Dr+Mpr)
+    + 0.045758*Math.sin(2*Dr-Mr) - 0.040923*Math.sin(Mr-Mpr) - 0.034720*Math.sin(Dr)
+    - 0.030383*Math.sin(Mr+Mpr) + 0.015327*Math.sin(2*Dr-2*Fr) - 0.012528*Math.sin(Mpr+2*Fr);
+  return ((Lp + dL) % 360 + 360) % 360;
+}
+function getMoonSign(dtUTC) { return getZodiacSign(moonEclipticLongitude(julianDay(dtUTC))); }
+
+// Mean-motion Jupiter/Saturn (approximate, whole-sign accuracy only)
+function jupiterLongitude(jd){ const days = jd - 2451545.0; return ((34.35 + (360/4332.59)*days) % 360 + 360) % 360; }
+function saturnLongitude(jd){ const days = jd - 2451545.0; return ((50.08 + (360/10759.22)*days) % 360 + 360) % 360; }
+
+// ============================================================ Kalakini (Taksa)
+const TAKSA_FIXED_ORDER = [1,2,3,4,7,5,8,6];
+const PLANET_NAME_TH = {1:"อาทิตย์",2:"จันทร์",3:"อังคาร",4:"พุธ",5:"พฤหัสบดี",6:"ศุกร์",7:"เสาร์",8:"ราหู"};
+const JS_DAY_TO_PLANET = {0:1,1:2,2:3,3:4,4:5,5:6,6:7};
+const PLANET_RULED_SIGNS = { 1:["สิงห์"],2:["กรกฎ"],3:["เมษ","พิจิก"],4:["มิถุน","กันย์"],5:["ธนู","มีน"],6:["พฤษภ","ตุลย์"],7:["มังกร","กุมภ์"],8:[] };
+function getKalakiniPlanet(birthPlanetNum){ const idx = TAKSA_FIXED_ORDER.indexOf(birthPlanetNum); return TAKSA_FIXED_ORDER[(idx+7)%8]; }
+
+const ASPECT_RULES = { 0:{name:"ทับ (Conjunct)",score:1}, 4:{name:"ตรีโกณ (Trine)",score:3}, 8:{name:"ตรีโกณ (Trine)",score:3}, 6:{name:"เล็ง (Opposition)",score:-2} };
+
+function dailyPrediction(lagnaSign, moonSign, birthPlanetNum) {
+  const lagnaIdx = ZODIAC_ORDER.indexOf(lagnaSign), moonIdx = ZODIAC_ORDER.indexOf(moonSign);
+  const distance = ((moonIdx - lagnaIdx) % 12 + 12) % 12;
+  const aspect = ASPECT_RULES[distance];
+  let aspectName = aspect ? aspect.name : "กลาง (ไม่มีมุมพิเศษ)";
+  let total = 5 + (aspect ? aspect.score : 0);
+  let kalakini = null;
+  if (birthPlanetNum) {
+    const kPlanet = getKalakiniPlanet(birthPlanetNum);
+    const ruledSigns = PLANET_RULED_SIGNS[kPlanet];
+    if (!ruledSigns.length) kalakini = { triggered: null, planet: PLANET_NAME_TH[kPlanet], note: "ราหูไม่มีเรือนคงที่ — ตรวจสอบไม่ได้" };
+    else { const hit = ruledSigns.includes(moonSign); kalakini = { triggered: hit, planet: PLANET_NAME_TH[kPlanet], ruledSigns }; if (hit) total -= 3; }
+  }
+  return { lagnaSign, moonSign, distance, aspectName, kalakini, luckScore: Math.max(0, Math.min(10, total)) };
+}
+
+// ============================================================ Logic 9: Houses
+const HOUSE_NAMES = ["ตนุ","กดุมภะ","สหัชชะ","พันธุ","ปุตตะ","อริ","ปัตนิ","มรณะ","ศุภะ","กัมมะ","ลาภะ","วินาศ"];
+const HOUSE_THEME = {
+  "ตนุ":"ตัวตน สุขภาพโดยรวม การแสดงออก", "กดุมภะ":"การเงิน รายได้ การค้าขาย",
+  "สหัชชะ":"พี่น้อง เพื่อนสนิท การเดินทางใกล้ การสื่อสาร", "พันธุ":"ครอบครัว บ้าน ที่ดิน รากฐานชีวิต",
+  "ปุตตะ":"ความคิดสร้างสรรค์ บุตรหลาน การเสี่ยงโชค ความบันเทิง", "อริ":"อุปสรรค ศัตรู โรคภัย ความขัดแย้ง",
+  "ปัตนิ":"คู่ครอง หุ้นส่วน คู่สัญญา ธุรกิจร่วม", "มรณะ":"การเปลี่ยนแปลงใหญ่ การสูญเสีย มรดก จุดเริ่มใหม่",
+  "ศุภะ":"โชคลาภ การเดินทางไกล ความสงบสุข", "กัมมะ":"การงาน อาชีพ ตำแหน่งหน้าที่",
+  "ลาภะ":"ผลกำไร สิ่งที่ได้มาโดยไม่คาดหมาย ความสำเร็จ", "วินาศ":"ความสูญเสีย รายจ่ายแฝง การพักผ่อน/ปิดวงจร",
+};
+const HOUSE_VALENCE = { "ตนุ":1,"กดุมภะ":0,"สหัชชะ":0,"พันธุ":1,"ปุตตะ":1,"อริ":-1,"ปัตนิ":0,"มรณะ":-1,"ศุภะ":1,"กัมมะ":1,"ลาภะ":1,"วินาศ":-1 };
+function getHouseOfSign(lagnaSign, targetSign){
+  const lagnaIdx = ZODIAC_ORDER.indexOf(lagnaSign), targetIdx = ZODIAC_ORDER.indexOf(targetSign);
+  return HOUSE_NAMES[((targetIdx - lagnaIdx) % 12 + 12) % 12];
+}
+function monthlyPrediction(lagnaSign, onDate){
+  const dtUTC = new Date(Date.UTC(onDate.getFullYear(), onDate.getMonth(), onDate.getDate(), 12, 0, 0));
+  const sunSign = getZodiacSign(solarEclipticLongitude(julianDay(dtUTC)));
+  const house = getHouseOfSign(lagnaSign, sunSign);
+  return { sunSign, house, theme: HOUSE_THEME[house], valence: HOUSE_VALENCE[house] };
+}
+
+// ============================================================ Logic 10: Yearly
+function wholeSignRelation(lagnaSign, planetSign){
+  const dist = ((ZODIAC_ORDER.indexOf(planetSign) - ZODIAC_ORDER.indexOf(lagnaSign)) % 12 + 12) % 12;
+  if (dist === 0) return "ทับลัคนา";
+  if (dist === 4 || dist === 8) return "ตรีโกณลัคนา";
+  if (dist === 6) return "เล็งลัคนา";
+  return "ไม่มีมุมพิเศษ";
+}
+function yearlyPrediction(lagnaSign, onDate){
+  const dtUTC = new Date(Date.UTC(onDate.getFullYear(), onDate.getMonth(), onDate.getDate(), 12, 0, 0));
+  const jd = julianDay(dtUTC);
+  const jupSign = getZodiacSign(jupiterLongitude(jd)), satSign = getZodiacSign(saturnLongitude(jd));
+  const jupRel = wholeSignRelation(lagnaSign, jupSign), satRel = wholeSignRelation(lagnaSign, satSign);
+  let grade = "B", label = "ปีปกติ";
+  if (satRel === "เล็งลัคนา") { grade="D"; label="ปีชง / ปีเงา — ควรระมัดระวังเป็นพิเศษ"; }
+  else if (jupRel === "ทับลัคนา" || jupRel === "ตรีโกณลัคนา") { grade="A"; label="ปีทอง — โอกาสเปิดกว้าง"; }
+  else if (satRel === "ทับลัคนา") { grade="C"; label="ปีหนัก — ต้องใช้ความอดทนและวินัย"; }
+  return { jupSign, satSign, jupRel, satRel, grade, label };
+}
+
+// ============================================================ Logic 11: Taksa jr
+const TAKSA_HOUSE_NAMES = ["บริวาร","อายุ","เดช","ศรี","มูละ","อุตสาหะ","มนตรี","กาลกิณี"];
+function birthdayPrediction(birthDateObj, currentDateObj, birthPlanetNum){
+  let age = currentDateObj.getFullYear() - birthDateObj.getFullYear();
+  const bMD = birthDateObj.getMonth()*100+birthDateObj.getDate(), cMD = currentDateObj.getMonth()*100+currentDateObj.getDate();
+  if (cMD < bMD) age -= 1;
+  const natalIdx = TAKSA_FIXED_ORDER.indexOf(birthPlanetNum);
+  const rotation = ((age % 8) + 8) % 8;
+  const barivarnIdx = (natalIdx + rotation) % 8;
+  const taksaJr = {};
+  TAKSA_HOUSE_NAMES.forEach((name, offset) => { taksaJr[name] = PLANET_NAME_TH[TAKSA_FIXED_ORDER[(barivarnIdx+offset)%8]]; });
+  return { age, barivarnPlanet: PLANET_NAME_TH[TAKSA_FIXED_ORDER[barivarnIdx]], taksaJr };
+}
+
+// ============================================================ UI wiring
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('profileForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const birthDateStr = document.getElementById('birthDate').value;
+  const birthTimeStr = document.getElementById('birthTime').value;
+  const coords = PROVINCES[document.getElementById('province').value];
+  const [y,mo,da] = birthDateStr.split('-').map(Number);
+  const jsDay = new Date(y, mo-1, da).getDay();
+  const birthPlanet = JS_DAY_TO_PLANET[jsDay];
+
+  const { lagnaSign } = calculateLagna(birthDateStr, birthTimeStr, coords.lat, coords.lon);
+  const now = new Date();
+
+  // --- Daily ---
+  const moonSign = getMoonSign(now);
+  const daily = dailyPrediction(lagnaSign, moonSign, birthPlanet);
+  document.getElementById('dLagna').textContent = lagnaSign;
+  document.getElementById('dMoon').textContent = moonSign;
+  document.getElementById('dAspect').textContent = daily.aspectName;
+  document.getElementById('dLuckNumber').textContent = daily.luckScore + ' / 10';
+  const dFill = document.getElementById('dLuckBar');
+  dFill.style.width = (daily.luckScore*10) + '%';
+  dFill.style.background = daily.luckScore>=7 ? 'var(--good)' : daily.luckScore<=3 ? 'var(--bad)' : 'var(--gold)';
+  document.getElementById('dLuckLabel').textContent = daily.luckScore>=7 ? 'วันนี้ดวงดีเป็นพิเศษ' : daily.luckScore<=3 ? 'วันนี้ควรระมัดระวังเป็นพิเศษ' : 'วันนี้ราบรื่นตามปกติ';
+  const dkbox = document.getElementById('dKalakiniBox');
+  if (daily.kalakini && daily.kalakini.triggered === true) { dkbox.className='flag-box hit'; dkbox.innerHTML=`⚠️ วันนี้ดวงจันทร์เข้าราศีกาลกิณี (${daily.kalakini.planet}) — ระวังเป็นพิเศษ`; }
+  else if (daily.kalakini && daily.kalakini.triggered === false) { dkbox.className='flag-box clear'; dkbox.innerHTML=`✅ วันนี้ไม่ติดกาลกิณี (${daily.kalakini.planet})`; }
+  else { dkbox.className='flag-box neutral'; dkbox.innerHTML=`ℹ️ ${daily.kalakini ? daily.kalakini.note : ''}`; }
+
+  // --- Monthly ---
+  const monthly = monthlyPrediction(lagnaSign, now);
+  document.getElementById('mSunSign').textContent = monthly.sunSign;
+  document.getElementById('mHouse').textContent = monthly.house;
+  document.getElementById('mTheme').textContent = monthly.theme;
+  const mvbox = document.getElementById('mValenceBox');
+  if (monthly.valence > 0) { mvbox.className='flag-box clear'; mvbox.innerHTML='✅ ภพนี้เป็นภพดี — เดือนนี้เอื้อต่อเรื่องนี้'; }
+  else if (monthly.valence < 0) { mvbox.className='flag-box hit'; mvbox.innerHTML='⚠️ ภพนี้เป็นภพหนัก — ควรระวังเรื่องนี้เป็นพิเศษ'; }
+  else { mvbox.className='flag-box neutral'; mvbox.innerHTML='ℹ️ ภพกลาง ๆ ไม่เด่นด้านบวกหรือลบ'; }
+
+  // --- Yearly ---
+  const yearly = yearlyPrediction(lagnaSign, now);
+  document.getElementById('yGrade').textContent = yearly.grade;
+  document.getElementById('yGrade').style.background = yearly.grade==='A' ? 'var(--good)' : yearly.grade==='D' ? 'var(--bad)' : 'var(--gold)';
+  document.getElementById('yLabel').textContent = yearly.label;
+  document.getElementById('yJupiter').textContent = `${yearly.jupSign} (${yearly.jupRel})`;
+  document.getElementById('ySaturn').textContent = `${yearly.satSign} (${yearly.satRel})`;
+
+  // --- Taksa jr ---
+  const taksa = birthdayPrediction(new Date(y, mo-1, da), now, birthPlanet);
+  document.getElementById('tAge').textContent = taksa.age + ' ปี';
+  document.getElementById('tBarivarn').textContent = taksa.barivarnPlanet;
+  const table = document.getElementById('taksaTable');
+  table.innerHTML = TAKSA_HOUSE_NAMES.map(h => {
+    const cls = h==='ศรี' ? 'sri' : h==='กาลกิณี' ? 'kalakini' : '';
+    return `<tr class="${cls}"><td>${h}</td><td>${taksa.taksaJr[h]}</td></tr>`;
+  }).join('');
+
+  document.getElementById('resultArea').style.display = 'block';
+  document.getElementById('resultArea').scrollIntoView({behavior:'smooth'});
+});
+</script>
+</body>
+</html>

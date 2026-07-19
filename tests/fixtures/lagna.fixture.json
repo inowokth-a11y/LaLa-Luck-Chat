@@ -1,0 +1,173 @@
+{
+  "bangkok_1990_08_15_1830": {
+    "lagna_sign": "ธนู",
+    "sun_sign_at_sunrise": "สิงห์",
+    "sun_longitude_at_sunrise_deg": 141.886,
+    "true_sunrise_civil_time": "06:04",
+    "birth_time_corrected": "18:12",
+    "local_time_correction_min": -18.0,
+    "calculation_trace": [
+      {
+        "step": "start_in_sun_sign",
+        "sign": "สิงห์",
+        "remaining_time_in_sun_sign": 48.14,
+        "elapsed_since_sunrise": 727.13
+      },
+      {
+        "step": "subtract",
+        "sign": "กันย์",
+        "value": 168,
+        "remainder_before": 678.99
+      },
+      {
+        "step": "subtract",
+        "sign": "ตุลย์",
+        "value": 168,
+        "remainder_before": 510.99
+      },
+      {
+        "step": "subtract",
+        "sign": "พิจิก",
+        "value": 178,
+        "remainder_before": 342.99
+      },
+      {
+        "step": "subtract",
+        "sign": "ธนู",
+        "value": 183,
+        "remainder_before": 164.99
+      }
+    ],
+    "validation_status": "UNVERIFIED — no worked example found in source tome; spot-check before production use"
+  },
+  "chiangmai_2000_01_01_0600": {
+    "lagna_sign": "กันย์",
+    "sun_sign_at_sunrise": "มังกร",
+    "sun_longitude_at_sunrise_deg": 279.861,
+    "true_sunrise_civil_time": "06:56",
+    "birth_time_corrected": "05:35",
+    "local_time_correction_min": -24.1,
+    "calculation_trace": [
+      {
+        "step": "start_in_sun_sign",
+        "sign": "มังกร",
+        "remaining_time_in_sun_sign": 117.48,
+        "elapsed_since_sunrise": 1359.22
+      },
+      {
+        "step": "subtract",
+        "sign": "กุมภ์",
+        "value": 160,
+        "remainder_before": 1241.74
+      },
+      {
+        "step": "subtract",
+        "sign": "มีน",
+        "value": 150,
+        "remainder_before": 1081.74
+      },
+      {
+        "step": "subtract",
+        "sign": "เมษ",
+        "value": 150,
+        "remainder_before": 931.74
+      },
+      {
+        "step": "subtract",
+        "sign": "พฤษภ",
+        "value": 160,
+        "remainder_before": 781.74
+      },
+      {
+        "step": "subtract",
+        "sign": "มิถุน",
+        "value": 175,
+        "remainder_before": 621.74
+      },
+      {
+        "step": "subtract",
+        "sign": "กรกฎ",
+        "value": 183,
+        "remainder_before": 446.74
+      },
+      {
+        "step": "subtract",
+        "sign": "สิงห์",
+        "value": 178,
+        "remainder_before": 263.74
+      },
+      {
+        "step": "subtract",
+        "sign": "กันย์",
+        "value": 168,
+        "remainder_before": 85.74
+      }
+    ],
+    "validation_status": "UNVERIFIED — no worked example found in source tome; spot-check before production use"
+  },
+  "bangkok_1985_03_20_0300_presunrise": {
+    "lagna_sign": "พิจิก",
+    "sun_sign_at_sunrise": "มีน",
+    "sun_longitude_at_sunrise_deg": 359.301,
+    "true_sunrise_civil_time": "06:22",
+    "birth_time_corrected": "02:42",
+    "local_time_correction_min": -18.0,
+    "calculation_trace": [
+      {
+        "step": "start_in_sun_sign",
+        "sign": "มีน",
+        "remaining_time_in_sun_sign": 3.5,
+        "elapsed_since_sunrise": 1219.69
+      },
+      {
+        "step": "subtract",
+        "sign": "เมษ",
+        "value": 150,
+        "remainder_before": 1216.19
+      },
+      {
+        "step": "subtract",
+        "sign": "พฤษภ",
+        "value": 160,
+        "remainder_before": 1066.19
+      },
+      {
+        "step": "subtract",
+        "sign": "มิถุน",
+        "value": 175,
+        "remainder_before": 906.19
+      },
+      {
+        "step": "subtract",
+        "sign": "กรกฎ",
+        "value": 183,
+        "remainder_before": 731.19
+      },
+      {
+        "step": "subtract",
+        "sign": "สิงห์",
+        "value": 178,
+        "remainder_before": 548.19
+      },
+      {
+        "step": "subtract",
+        "sign": "กันย์",
+        "value": 168,
+        "remainder_before": 370.19
+      },
+      {
+        "step": "subtract",
+        "sign": "ตุลย์",
+        "value": 168,
+        "remainder_before": 202.19
+      },
+      {
+        "step": "subtract",
+        "sign": "พิจิก",
+        "value": 178,
+        "remainder_before": 34.19
+      }
+    ],
+    "validation_status": "UNVERIFIED — no worked example found in source tome; spot-check before production use"
+  }
+}

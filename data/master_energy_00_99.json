@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "00",
+    "name": "🧘‍♂️ ผู้ปลีกวิเวก (The Secluded One)",
+    "essence": "ผู้ที่ค้นพบความแข็งแกร่งและปัญญาผ่านการแยกตัวออกจากโลกภายนอก เพื่อสำรวจจักรวาลภายในตนเอง",
+    "figure": "ฤษี",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/00.jpg",
+    "figure_bio": "ไม่ใช่บุคคลเดียว แต่เป็นชื่อเรียกนักบวช/ผู้แสวงหาความจริงที่ปลีกวิเวกในป่า ปรากฏในตำนานฮินดูและพุทธหลายเรื่อง เชื่อกันว่าฤษีคือผู้ค้นพบมนตร์และความรู้ผ่านการบำเพ็ญตบะอันยาวนาน",
+    "figure_category": "role_title",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "01",
+    "name": "🎖️ วีรบุรุษผู้ถูกลืม (The Unsung Hero)",
+    "essence": "ผู้นำที่เปี่ยมด้วยความสามารถและสร้างผลงานที่โดดเด่น แต่กลับไม่ได้รับการยอมรับหรือเครดิตที่คู่ควร",
+    "figure": "นิโคลา เทสลา",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/01.jpg",
+    "figure_bio": "วิศวกรไฟฟ้าชาวเซอร์เบีย-อเมริกัน (1856-1943) ผู้บุกเบิกระบบไฟฟ้ากระแสสลับที่ใช้กันทั่วโลกทุกวันนี้ มีความคิดล้ำยุคจำนวนมากที่คนร่วมสมัยเข้าใจยาก และมักถูกจดจำในฐานะอัจฉริยะผู้โดดเดี่ยว",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "02",
+    "name": "💔 คนใจอ่อน (The Soft-Hearted)",
+    "essence": "ผู้ที่ขับเคลื่อนด้วยความเมตตาสงสาร มีความเห็นอกเห็นใจสูง แต่ก็เปราะบางทางอารมณ์และอ่อนไหวต่อความทุกข์ของผู้อื่น",
+    "figure": "พระนางซีตา",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/02.jpg",
+    "figure_bio": "ตัวละครหลักในมหากาพย์รามายณะของอินเดีย ชายาของพระราม ถูกลักพาตัวโดยทศกัณฐ์ เป็นสัญลักษณ์ของความซื่อสัตย์และความอดทนในวัฒนธรรมฮินดู",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "03",
+    "name": "😠 อัจฉริยะหัวร้อน (The Hot-headed Genius)",
+    "essence": "ผู้ที่มีสติปัญญาเฉียบแหลมและมีความคิดที่ก้าวล้ำ แต่ถูกบดบังด้วยอารมณ์ที่รุนแรงและความใจร้อน",
+    "figure": "ไมเคิล แองเจลโล(Michelangelo)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/03.jpg",
+    "figure_bio": "ศิลปินยุคเรอเนสซองส์ชาวอิตาลี (1475-1564) ผู้วาดเพดานโบสถ์ซิสทีนและปั้นรูปแกะสลัก David เป็นตัวอย่างของอัจฉริยะที่ทุ่มเทให้งานศิลปะจนแทบไม่สนใจชีวิตส่วนตัว",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "04",
+    "name": "🕵️ นักสืบหาความลับ (The Secret Investigator)",
+    "essence": "ผู้ที่เกิดมาพร้อมกับสัญชาตญาณในการสืบเสาะหาความจริง มีความสามารถในการมองเห็นสิ่งที่ซ่อนเร้นและเปิดเผยความลับ",
+    "figure": "เอดการ์ อัลลัน โพ (Edgar Allan Poe)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/04.jpg",
+    "figure_bio": "นักเขียนชาวอเมริกัน (1809-1849) บิดาแห่งเรื่องสั้นแนวสยองขวัญและนักสืบสมัยใหม่ ชีวิตเต็มไปด้วยความสูญเสียและความยากลำบาก ซึ่งสะท้อนอยู่ในงานเขียนที่ลึกลับมืดหม่นของเขา",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "05",
+    "name": "🚶‍♂️ นักเดินทางผู้มีเหตุผล (The Rational Traveler)",
+    "essence": "ผู้ที่ใช้ชีวิตผ่านการเดินทางและการเรียนรู้ โดยมีเหตุผลและความเชื่อมั่นในตนเองเป็นเข็มทิศนำทาง",
+    "figure": "โอดิสสิอุส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/05.jpg",
+    "figure_bio": "วีรบุรุษในมหากาพย์กรีกโบราณเรื่อง Odyssey ของโฮเมอร์ ขึ้นชื่อเรื่องไหวพริบและกลอุบาย (เช่นม้าไม้เมืองทรอย) ต้องเดินทางกลับบ้านนานถึง 10 ปีหลังสงครามทรอยจบลง",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "06",
+    "name": "🎭 คนเจ้าเสน่ห์ผู้ผิดหวัง (The Disappointed Charmer)",
+    "essence": "ผู้ที่มีเสน่ห์ดึงดูดใจผู้คนอย่างเป็นธรรมชาติ แต่กลับต้องเผชิญกับความผิดหวังในเรื่องความรักและการเงินอยู่เสมอ",
+    "figure": "มาร์ค แอนโทนี (Mark Antony)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/06.jpg",
+    "figure_bio": "แม่ทัพและนักการเมืองโรมัน (83-30 ปีก่อนคริสตกาล) พันธมิตรคนสำคัญของจูเลียส ซีซาร์ และเป็นที่รู้จักจากความรักอันโด่งดังกับคลีโอพัตราแห่งอียิปต์ ก่อนพ่ายแพ้ในสงครามกลางเมืองและจบชีวิตตนเอง",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "07",
+    "name": "💪 นักสู้ผู้ฝ่าฟัน (The Struggling Fighter)",
+    "essence": "ผู้ที่ถูกลิขิตให้ชีวิตต้องเผชิญหน้ากับอุปสรรคและความท้าทายอย่างต่อเนื่อง แต่ก็มีความแข็งแกร่งที่จะต่อสู้และก้าวข้ามไปได้",
+    "figure": "เฮอร์คิวลิส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/07.jpg",
+    "figure_bio": "วีรบุรุษที่แข็งแกร่งที่สุดในเทพปกรณัมกรีก บุตรของเทพซุส ต้องทำภารกิจอันโหดหิน 12 ประการ (Twelve Labors) เพื่อไถ่บาป เป็นสัญลักษณ์ของพลังและความอดทนสุดขีด",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "08",
+    "name": "🎲 นักเสี่ยงโชค (The Gambler)",
+    "essence": "ผู้ที่รักความตื่นเต้นและกล้าได้กล้าเสีย มีความสุขกับการใช้ชีวิตบนความเสี่ยงเพื่อผลตอบแทนที่ยิ่งใหญ่",
+    "figure": "จาโกโม คาสโนวา (Giacomo Casanova)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/08.jpg",
+    "figure_bio": "นักผจญภัยและนักเขียนชาวเวนิส (1725-1798) มีชีวิตที่หลากหลายทั้งนักการทูต นักการพนัน และคนรัก ชื่อของเขากลายเป็นคำสามัญที่หมายถึง 'ชายเจ้าชู้' ในภาษาหลายภาษาจนถึงทุกวันนี้",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "09",
+    "name": "🔮 ผู้มีญาณทิพย์ (The Clairvoyant)",
+    "essence": "ผู้ที่มีสัมผัสที่หกและสัญชาตญาณที่เฉียบคม สามารถเชื่อมต่อกับโลกที่มองไม่เห็นและรับรู้ถึงพลังงานลี้ลับ",
+    "figure": "เทพีไพเธีย",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/09.jpg",
+    "figure_bio": "ไม่ใช่บุคคลเดียว แต่เป็น 'ตำแหน่ง' นักบวชหญิงประจำวิหารอพอลโลที่เดลฟี ประเทศกรีซ ผู้ทำหน้าที่เป็นปากเสียงคำทำนายจากเทพอพอลโลตั้งแต่ราว 800 ปีก่อนคริสตกาล จนถึง ค.ศ. 393 มีหลายคนหมุนเวียนทำหน้าที่นี้ตลอดพันกว่าปี",
+    "figure_category": "role_title",
+    "figure_bio_verified": true
+  },
+  {
+    "id": "10",
+    "name": "🚀 ผู้ริเริ่มแห่งความสำเร็จ (The Successful Initiator)",
+    "essence": "ผู้นำที่สมบูรณ์แบบซึ่งยืนอยู่ ณ จุดเริ่มต้นใหม่ที่เต็มไปด้วยโอกาสและความสำเร็จ เป็นผู้ที่สามารถเปลี่ยนวิสัยทัศน์ให้กลายเป็นความจริง",
+    "figure": "อเล็กซานเดอร์มหาราช",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/10.jpg",
+    "figure_bio": "กษัตริย์แห่งมาซิโดเนีย (356-323 ปีก่อนคริสตกาล) ผู้พิชิตดินแดนกว้างใหญ่ตั้งแต่กรีซจรดอินเดียก่อนอายุ 30 ปี ไม่เคยแพ้สงครามแม้แต่ครั้งเดียวตลอดชีวิต",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "11",
+    "name": "🌀 ผู้มีลางสังหรณ์ (The Premonitioner)",
+    "essence": "ผู้ที่มีพลังแห่งสัญชาตญาณและการหยั่งรู้ที่เฉียบคมเป็นสองเท่า สามารถสร้างแรงบันดาลใจและมองเห็นในสิ่งที่คนอื่นมองไม่เห็น",
+    "figure": "โจนออฟอาร์ค",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/11.jpg",
+    "figure_bio": "หญิงชาวฝรั่งเศส (1412-1431) ผู้อ้างว่าได้รับสัญญาณจากพระเจ้าให้นำทัพฝรั่งเศสต่อสู้กับอังกฤษในสงครามร้อยปี ถูกจับและเผาทั้งเป็นข้อหาศาสนา ต่อมาได้รับการยกย่องเป็นนักบุญ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "12",
+    "name": "🥀 ศิลปินผู้เปราะบาง (The Fragile Artist)",
+    "essence": "ผู้ที่เรียนรู้และเติบโตผ่านประสบการณ์ มีความสามารถในการปรับตัวและสร้างสมดุลในสถานการณ์ที่ขัดแย้ง",
+    "figure": "วินเซนต์ แวนโกะ",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/12.jpg",
+    "figure_bio": "จิตรกรชาวดัตช์ (1853-1890) ผู้สร้างผลงานเอกอย่าง Starry Night แต่ขายภาพได้เพียงภาพเดียวขณะมีชีวิต ต่อสู้กับปัญหาสุขภาพจิตตลอดชีวิตก่อนจะเสียชีวิตด้วยวัย 37 ปี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "13",
+    "name": "🎤 นักพูดผู้สร้างสรรค์ (The Creative Orator)",
+    "essence": "ผู้ที่ต้องเผชิญหน้ากับการเปลี่ยนแปลงครั้งใหญ่ที่ไม่คาดคิด เพื่อรื้อถอนโครงสร้างเก่าและสร้างสรรค์สิ่งใหม่ที่ดีกว่าเดิม",
+    "figure": "Georges Danton",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/13.jpg",
+    "figure_bio": "นักปฏิวัติฝรั่งเศส (1759-1794) หนึ่งในผู้นำคนสำคัญช่วงต้นของการปฏิวัติฝรั่งเศส มีวาทศิลป์เร่าร้อน แต่ภายหลังถูกอดีตพันธมิตรกล่าวหาและถูกประหารด้วยกิโยตินเช่นเดียวกับที่เขาเคยส่งคนอื่นไป",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "14",
+    "name": "🌐 นักสื่อสารยุคใหม่ (The Modern Communicator)",
+    "essence": "ผู้รักอิสระที่ต้องเรียนรู้ที่จะควบคุมตนเองและจัดการความเสี่ยง เพื่อไม่ให้หลงทางไปกับสิ่งยั่วยุทางโลก",
+    "figure": "เฮอร์มีส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/14.jpg",
+    "figure_bio": "เทพผู้สื่อสารในเทพปกรณัมกรีก บุตรของซุส ทำหน้าที่นำสารระหว่างเทพกับมนุษย์ ขึ้นชื่อเรื่องความเฉลียวฉลาด รวดเร็ว และเจ้าเล่ห์ เป็นเทพแห่งการค้าและนักเดินทางด้วย",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "15",
+    "name": "✈️ นักเดินทางผู้มีเป้าหมาย (The Purposeful Traveler)",
+    "essence": "ผู้มีเสน่ห์ดึงดูดและปัญญาลึกซึ้ง ให้ความสำคัญกับความรัก ครอบครัว และการช่วยเหลือผู้อื่น",
+    "figure": "ไอเนียส (Aeneas)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/15.jpg",
+    "figure_bio": "วีรบุรุษในมหากาพย์ Aeneid ของกวีโรมัน Virgil หนีจากเมืองทรอยที่ถูกทำลาย เดินทางข้ามทะเลจนไปตั้งรกรากในอิตาลี ถือเป็นบรรพบุรุษในตำนานของชาวโรมัน",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "16",
+    "name": "🏡 ผู้สร้างครอบครัว (The Family Builder)",
+    "essence": "ผู้ที่ต้องเผชิญกับการสูญเสียและความผิดหวัง เพื่อนำไปสู่การทบทวนตนเองและการเติบโตทางจิตวิญญาณ",
+    "figure": "โจคาสตา (Jocasta)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/16.jpg",
+    "figure_bio": "ตัวละครในตำนานกรีก ราชินีแห่งธีบส์ มารดา (และภายหลังกลายเป็นภรรยาโดยไม่รู้ตัว) ของโออีดิปุส เมื่อความจริงเปิดเผย นางจบชีวิตตนเองด้วยความสิ้นหวัง เป็นสัญลักษณ์ของโศกนาฏกรรมที่หนีไม่พ้นชะตากรรม",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "17",
+    "name": "🧠 นักปราชญ์ (The Sage)",
+    "essence": "ผู้ที่มีความมั่นใจและพลังงานสูง สามารถทำงานใหญ่ให้สำเร็จได้ด้วยการผสมผสานระหว่างความกล้าหาญและสติปัญญา",
+    "figure": "กษัตริย์โซโลมอน (King Solomon)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/17.jpg",
+    "figure_bio": "กษัตริย์แห่งอิสราเอลโบราณ ปรากฏในคัมภีร์ไบเบิลว่าเป็นผู้ทรงปัญญาที่สุด ขึ้นชื่อจากการตัดสินคดีความอันชาญฉลาด (เช่นคดีแม่สองคนแย่งลูก) และการสร้างวิหารแห่งเยรูซาเล็ม",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "18",
+    "name": "🌋 ผู้กล้าบ้าบิ่น (The Daredevil)",
+    "essence": "ผู้ที่ต้องเรียนรู้บทเรียนเรื่องการใช้อำนาจและการควบคุมอารมณ์ เพื่อก้าวข้ามความขัดแย้งและรู้จักการให้อภัย",
+    "figure": "อะคิลลีส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/18.jpg",
+    "figure_bio": "นักรบที่เก่งกาจที่สุดในมหากาพย์ Iliad ของโฮเมอร์ แม่จุ่มตัวเขาในแม่น้ำสติกซ์ให้อยู่ยงคงกระพันทั้งตัว ยกเว้นส้นเท้าที่จับไว้ จุดอ่อนเดียวที่ทำให้เขาเสียชีวิตในสงครามทรอย ที่มาของคำว่า Achilles heel",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "19",
+    "name": "✨ ผู้มีเมตตา (The Benevolent)",
+    "essence": "ผู้นำที่มีวิสัยทัศน์และต้องพึ่งพาตนเองเพื่อสร้างชื่อเสียงและความสำเร็จ ซึ่งมักจะได้รับโชคจากแดนไกล",
+    "figure": "พระเจ้าอโศกมหาราช",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/19.jpg",
+    "figure_bio": "จักรพรรดิแห่งราชวงศ์เมารยะของอินเดีย (ครองราชย์ 268-232 ปีก่อนคริสตกาล) หลังทำสงครามนองเลือดจนพิชิตแคว้นกลิงคะ พระองค์สำนึกผิดและหันมานับถือพุทธศาสนา เผยแผ่ธรรมะไปทั่วอนุทวีปอินเดีย",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "20",
+    "name": "🧩 ผู้ประสานงาน (The Coordinator)",
+    "essence": "ผู้ที่แสวงหาความสมดุลและความร่วมมือ มีความสามารถในการสร้างความสัมพันธ์ใหม่ๆ แต่ก็อาจลังเลและต้องพึ่งพาผู้อื่น",
+    "figure": "Psyche (ไซคี)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/20.jpg",
+    "figure_bio": "มนุษย์หญิงในตำนานกรีกที่งดงามจนเทพีอโฟรไดท์อิจฉา ต้องผ่านบททดสอบยากลำบากหลายอย่างเพื่อพิสูจน์รักแท้กับเทพคิวปิด ท้ายที่สุดได้กลายเป็นอมตะ ชื่อของนางเป็นที่มาของคำว่า psyche หรือจิตวิญญาณ",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "21",
+    "name": "🌟 ดาวเด่น (The Shining Star)",
+    "essence": "ผู้ที่มีพลังแห่งการแสดงออก ความคิดสร้างสรรค์ และการสื่อสาร สามารถสร้างความสุขและแรงบันดาลใจให้ผู้อื่น",
+    "figure": "เทพอพอลโล",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/21.jpg",
+    "figure_bio": "เทพแห่งดวงอาทิตย์ ดนตรี บทกวี และคำทำนายในเทพปกรณัมกรีก เป็นเจ้าของวิหารที่เดลฟีซึ่งเป็นที่ตั้งของออราเคิลอันโด่งดัง ถือเป็นเทพที่หล่อเหลาและมีความสามารถรอบด้านที่สุดองค์หนึ่ง",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "22",
+    "name": "🌪️ ผู้เปลี่ยนแปลงโลก (The World Changer)",
+    "essence": "ผู้ที่มีพลังในการสร้างสรรค์ที่ยิ่งใหญ่ มีเสน่ห์ อ่อนโยน และสามารถสร้างความสำเร็จที่จับต้องได้ โดยเฉพาะงานที่เกี่ยวกับศิลปะและความงาม",
+    "figure": "ลีโอนาร์โด ดา วินชี",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/22.jpg",
+    "figure_bio": "ศิลปินและนักประดิษฐ์ยุคเรอเนสซองส์ชาวอิตาลี (1452-1519) ผู้วาดภาพ Mona Lisa และ The Last Supper พร้อมร่างแบบเครื่องบิน เฮลิคอปเตอร์ และกายวิภาคมนุษย์ล้ำยุคไปหลายร้อยปี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "23",
+    "name": "💖 ผู้มีเสน่ห์ (The Charmer)",
+    "essence": "ผู้รักการผจญภัยและการเปลี่ยนแปลง มีความสามารถในการสื่อสารและปรับตัวเข้ากับสิ่งใหม่ๆ ได้อย่างยอดเยี่ยม",
+    "figure": "Cleopatra",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/23.jpg",
+    "figure_bio": "ฟาโรห์องค์สุดท้ายแห่งอียิปต์โบราณ (69-30 ปีก่อนคริสตกาล) ขึ้นชื่อเรื่องสติปัญญา ไหวพริบทางการเมือง และความสัมพันธ์กับจูเลียส ซีซาร์และมาร์ค แอนโทนี พยายามรักษาเอกราชของอียิปต์จากโรมจนวาระสุดท้าย",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "24",
+    "name": "🛠️ นักปฏิบัติ (The Practitioner)",
+    "essence": "ผู้ที่มีเมตตามหานิยม ให้ความสำคัญกับความรับผิดชอบ ครอบครัว และการดูแลผู้อื่น สามารถสร้างความมั่นคงและหาเงินเก่ง",
+    "figure": "เทพีเดเมเทอร์",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/24.jpg",
+    "figure_bio": "เทพีแห่งการเกษตรและความอุดมสมบูรณ์ในเทพปกรณัมกรีก เมื่อลูกสาวเพอร์เซโฟนีถูกลักพาตัวไปยังยมโลก นางโศกเศร้าจนพืชพันธุ์ทั่วโลกเหี่ยวเฉา กลายเป็นที่มาของตำนานฤดูกาล",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "25",
+    "name": "🎓 นักวิชาการ (The Scholar)",
+    "essence": "ผู้ที่แสวงหาความจริงผ่านการวิเคราะห์และการค้นคว้า มีจิตวิญญาณที่ลึกซึ้ง และมักได้รับการสนับสนุนจากสตรี",
+    "figure": "Peter Abelard",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/25.jpg",
+    "figure_bio": "นักปรัชญาและนักเทววิทยาชาวฝรั่งเศส (1079-1142) มีชื่อเสียงด้านตรรกศาสตร์ และเป็นที่จดจำจากความรักต้องห้ามกับเอโลอีส ลูกศิษย์ของตน ซึ่งจบลงด้วยโศกนาฏกรรม",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "26",
+    "name": "⚖️ ผู้พิพากษา (The Judge)",
+    "essence": "ผู้ที่มีอำนาจในการจัดการธุรกิจและการเงิน สามารถสร้างความสำเร็จและความมั่นคงได้ด้วยวาจาที่เป็นทรัพย์",
+    "figure": "เทพพลูตอส (Plutus)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/26.jpg",
+    "figure_bio": "เทพแห่งความมั่งคั่งในเทพปกรณัมกรีก ตามตำนานถูกเทพซุสทำให้ตาบอดเพื่อแจกจ่ายทรัพย์สมบัติอย่างไม่เลือกที่รักมักที่ชัง ไม่ใช่ให้เฉพาะคนดีเท่านั้น",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "27",
+    "name": "🙏 ผู้เสียสละ (The Altruist)",
+    "essence": "ผู้ที่ทำงานเพื่อมนุษยธรรม มีความเสียสละ แต่ก็ต้องเผชิญกับปัญหาการเงินและความรัก",
+    "figure": "เจ้าชายมิชกิน (Prince Myshkin)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/27.jpg",
+    "figure_bio": "ไม่ใช่บุคคลจริง แต่เป็นตัวละครเอกในนิยาย The Idiot (1869) ของฟีโอดอร์ ดอสโตเยฟสกี นักเขียนรัสเซีย เป็นชายผู้มีจิตใจบริสุทธิ์และซื่อสัตย์เกินกว่าสังคมจะเข้าใจ จนถูกมองว่าบ้า",
+    "figure_category": "fictional",
+    "figure_bio_verified": true
+  },
+  {
+    "id": "28",
+    "name": "🦁 ผู้นำที่กล้าหาญ (The Courageous Leader)",
+    "essence": "ผู้นำที่แข็งแกร่งในด้านการเงินและการจัดการ สามารถสร้างความสำเร็จที่ยิ่งใหญ่และยั่งยืนได้",
+    "figure": "ลอเรนโซ เดอ เมดิชี (Lorenzo de' Medici)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/28.jpg",
+    "figure_bio": "ผู้ปกครองเมืองฟลอเรนซ์ (1449-1492) ในยุคทองของเรอเนสซองส์อิตาลี ได้รับฉายา Lorenzo ผู้ยิ่งใหญ่ จากการอุปถัมภ์ศิลปินและนักคิดระดับตำนานอย่างมิเคลันเจโลและบอตติเชลลี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "29",
+    "name": "🙏 ผู้ศรัทธาที่เมตตา (The Merciful Believer)",
+    "essence": "ผู้มีญาณหยั่งรู้และความสามารถทางศิลปะ ใช้ความอ่อนไหวของตนเองในการให้คำปรึกษาและช่วยเหลือผู้อื่น",
+    "figure": "พระถังซัมจั๋ง",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/29.jpg",
+    "figure_bio": "อ้างอิงจากพระภิกษุจีนตัวจริงชื่อ เสวียนจั้ง (Xuanzang, ค.ศ. 602-664) ผู้เดินทางไปอินเดียเพื่อศึกษาและนำพระคัมภีร์พุทธศาสนากลับมาแปล เรื่องราวการเดินทางถูกแต่งเติมเป็นวรรณกรรมดัง ไซอิ๋ว ในภายหลัง",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "30",
+    "name": "💡 นักคิดนักพูด (The Thinker-Speaker)",
+    "essence": "ผู้ที่มีความคิดสร้างสรรค์และการสื่อสารที่สมบูรณ์แบบ สามารถสร้างผลงานที่ยิ่งใหญ่และมีความสุขในชีวิต",
+    "figure": "Oscar Wilde",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/30.jpg",
+    "figure_bio": "นักเขียนและกวีชาวไอริช (1854-1900) ขึ้นชื่อเรื่องไหวพริบเฉียบคมและบทสนทนาแสบสัน ผลงานเด่นคือ The Picture of Dorian Gray ชีวิตในบั้นปลายพลิกผันจากคดีอื้อฉาวจนต้องโทษจำคุก",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "31",
+    "name": "👑 ราชาผู้สร้างสรรค์ (The Creative King)",
+    "essence": "ผู้นำที่เริ่มต้นโครงการสร้างสรรค์ด้วยการสื่อสารที่ชัดเจน แต่ชีวิตมักมีการเปลี่ยนแปลงอย่างฉับพลัน",
+    "figure": "กษัตริย์อาเธอร์",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/31.jpg",
+    "figure_bio": "กษัตริย์ในตำนานของอังกฤษ ผู้นำอัศวินโต๊ะกลมและครอบครองดาบวิเศษเอ็กซ์คาลิเบอร์ แม้ไม่มีหลักฐานประวัติศาสตร์ยืนยันตัวตนจริง แต่ตำนานของเขาเป็นสัญลักษณ์ของความยุติธรรมและอัศวินภาพมาหลายศตวรรษ",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "32",
+    "name": "💖 ทูตสันถวไมตรี (The Goodwill Ambassador)",
+    "essence": "ผู้มีเสน่ห์และกล้าหาญ สามารถทำงานร่วมกับผู้อื่นเพื่อสร้างสรรค์สิ่งใหม่ๆ และมักมีรายได้ที่ดีมาก",
+    "figure": "เซอร์ แลนสล็อต (Sir Lancelot)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/32.jpg",
+    "figure_bio": "อัศวินที่เก่งกาจที่สุดในตำนานโต๊ะกลมของกษัตริย์อาเธอร์ แต่ความรักต้องห้ามกับราชินีกวินิเวียร์นำไปสู่ความแตกแยกและการล่มสลายของอาณาจักรคาเมล็อตในที่สุด",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "33",
+    "name": "✨ ปรมาจารย์ผู้เมตตา (The Compassionate Master)",
+    "essence": "นักสู้ตัวจริงที่มีความแข็งแกร่ง กล้าหาญ และจริงจังกับชีวิต แต่ก็อาจทำให้หาคู่ครองได้ยาก",
+    "figure": "โมเสส (Moses)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/33.jpg",
+    "figure_bio": "ศาสดาสำคัญในศาสนายิว คริสต์ และอิสลาม ตามคัมภีร์เล่าว่าท่านนำชาวอิสราเอลออกจากการเป็นทาสในอียิปต์ และรับบัญญัติสิบประการจากพระเจ้าบนภูเขาซีนาย",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "34",
+    "name": "⚔️ นักรบผู้ชาญฉลาด (The Wise Warrior)",
+    "essence": "ผู้ที่สร้างรากฐานที่มั่นคงผ่านการสื่อสารที่ตรงไปตรงมาและการทำงานหนัก แต่ก็อาจนำไปสู่ความขัดแย้ง",
+    "figure": "เทพีอาธีนา",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/34.jpg",
+    "figure_bio": "เทพีแห่งปัญญาและสงครามที่มีกลยุทธ์ในเทพปกรณัมกรีก กำเนิดจากศีรษะของเทพซุสโดยตรง เป็นเทพผู้อุปถัมภ์กรุงเอเธนส์ ขึ้นชื่อเรื่องความเฉลียวฉลาดมากกว่าพละกำลัง",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "35",
+    "name": "🗺️ นักสำรวจ (The Adventurer)",
+    "essence": "ผู้มีอำนาจและบารมี รักการผจญภัยและการเปลี่ยนแปลง มักได้รับการอุปถัมภ์จากผู้ใหญ่",
+    "figure": "คริสโตเฟอร์ โคลัมบัส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/35.jpg",
+    "figure_bio": "นักเดินเรือชาวอิตาลี (1451-1506) ผู้นำคณะสำรวจข้ามมหาสมุทรแอตแลนติกจนไปถึงทวีปอเมริกาในปี 1492 แม้จริงๆ ตั้งใจจะหาเส้นทางไปเอเชีย เหตุการณ์นี้เปลี่ยนประวัติศาสตร์โลกไปตลอดกาล",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "36",
+    "name": "💝 ผู้ให้ (The Giver)",
+    "essence": "ผู้ที่มีเสน่ห์เป็นทรัพย์ สามารถใช้การเจรจาเพื่อสร้างความสำเร็จ ให้ความสำคัญกับครอบครัวและความสามัคคี",
+    "figure": "Abigail Adams",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/36.jpg",
+    "figure_bio": "สุภาพสตรีหมายเลขหนึ่งคนที่สองของสหรัฐฯ (1744-1818) ภรรยาประธานาธิบดีจอห์น อดัมส์ เป็นที่จดจำจากจดหมายนับพันฉบับที่แสดงวิสัยทัศน์ทางการเมืองอันเฉียบคม และเรียกร้องสิทธิสตรีตั้งแต่ยุคก่อตั้งประเทศ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "37",
+    "name": "📖 นักปราชญ์ผู้สันโดษ (The Solitary Scholar)",
+    "essence": "ผู้ที่ต้องเผชิญกับความลำบากและอุปสรรค เพื่อนำไปสู่การพัฒนาตนเองและการค้นพบทางจิตวิญญาณ",
+    "figure": "ขงจื๊อ",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/37.jpg",
+    "figure_bio": "นักปรัชญาจีนโบราณ (551-479 ปีก่อนคริสตกาล) ผู้วางรากฐานจริยธรรมและการปกครองที่มีอิทธิพลต่อเอเชียตะวันออกมานานกว่า 2,000 ปี เน้นเรื่องความกตัญญู มารยาท และการปกครองด้วยคุณธรรม",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "38",
+    "name": "💼 นักธุรกิจผู้กล้าได้กล้าเสีย (The Risk-Taking Businessman)",
+    "essence": "ผู้ที่รักความครึกครื้นและงานรื่นเริง สามารถใช้การสื่อสารเพื่อสร้างความสำเร็จทางธุรกิจ แต่ต้องระวังเรื่องการใช้เงิน",
+    "figure": "โฮเวิร์ด ฮิวส์",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/38.jpg",
+    "figure_bio": "นักธุรกิจ นักบิน และผู้สร้างภาพยนตร์ชาวอเมริกัน (1905-1976) หนึ่งในคนรวยที่สุดในโลกยุคนั้น แต่บั้นปลายชีวิตกลายเป็นคนสันโดษที่ทุกข์ทรมานจากโรคย้ำคิดย้ำทำอย่างรุนแรง",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "39",
+    "name": "🌟 ผู้ใจบุญ (The Philanthropist)",
+    "essence": "ผู้ที่ใช้การสื่อสารเพื่อช่วยเหลือผู้อื่นและสร้างแรงบันดาลใจ สามารถเอาชนะการแข่งขันและมีชื่อเสียง แต่ก็อาจเจอกับทุกขลาภ",
+    "figure": "แอนดรูว์ คาร์เนกี",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/39.jpg",
+    "figure_bio": "นักอุตสาหกรรมเหล็กกล้าชาวสก็อต-อเมริกัน (1835-1919) จากเด็กยากจนสู่หนึ่งในคนรวยที่สุดในประวัติศาสตร์ ก่อนบริจาคทรัพย์สินเกือบทั้งหมดเพื่อสร้างห้องสมุดและมูลนิธิการกุศลทั่วโลก",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "40",
+    "name": "🔬 นักวิทยาศาสตร์ (The Scientist)",
+    "essence": "การสร้างรากฐานที่ยั่งยืนผ่านการค้นคว้าหาความจริงและนวัตกรรม",
+    "figure": "มารี คูรี",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/40.jpg",
+    "figure_bio": "นักวิทยาศาสตร์ชาวโปแลนด์-ฝรั่งเศส (1867-1934) ผู้ค้นพบธาตุเรเดียมและโพโลเนียม เป็นผู้หญิงคนแรกที่ได้รับรางวัลโนเบล และเป็นคนเดียวที่ได้รับรางวัลโนเบลถึง 2 สาขาต่างกัน (ฟิสิกส์และเคมี)",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "41",
+    "name": "🏛️ ผู้นำผู้สร้างสรรค์ (The Creative Founder)",
+    "essence": "การเป็นผู้นำที่มั่นคงและน่าเชื่อถือในการริเริ่มสิ่งใหม่",
+    "figure": "Henry Ford",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/41.jpg",
+    "figure_bio": "ผู้ก่อตั้งบริษัทฟอร์ด มอเตอร์ (1863-1947) ผู้ปฏิวัติการผลิตรถยนต์ด้วยสายพานลำเลียง ทำให้รถยนต์ราคาถูกลงจนคนทั่วไปเป็นเจ้าของได้ เปลี่ยนวิถีชีวิตคนอเมริกันไปตลอดกาล",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "42",
+    "name": "🤝 หุ้นส่วนผู้ภักดี (The Loyal Partner)",
+    "essence": "การสร้างความสมดุลและความร่วมมือที่มั่นคงและมีระเบียบ",
+    "figure": "เทพฮิฟีสตัส (Hephaestus)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/42.jpg",
+    "figure_bio": "เทพแห่งการช่างและไฟในเทพปกรณัมกรีก ขาพิการแต่มีฝีมือเป็นเลิศในการตีเหล็กและสร้างสรรค์สิ่งประดิษฐ์ ทำงานอยู่ในโรงตีเหล็กใต้ภูเขาไฟ เป็นเทพที่ขยันที่สุดในบรรดาเทพโอลิมปัส",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "43",
+    "name": "📢 นักสื่อสารผู้หนักแน่น (The Firm Communicator)",
+    "essence": "การสร้างสรรค์ผลงานที่มีคุณภาพผ่านการสื่อสารที่ชัดเจน",
+    "figure": "วินสตัน เชอร์ชิลล์",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/43.jpg",
+    "figure_bio": "นายกรัฐมนตรีอังกฤษ (1874-1965) ผู้นำสหราชอาณาจักรฝ่าวิกฤตสงครามโลกครั้งที่ 2 ขึ้นชื่อเรื่องสุนทรพจน์ทรงพลังที่ปลุกขวัญกำลังใจชาวอังกฤษในยามคับขันที่สุด",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "44",
+    "name": "🏰 จอมคนผู้สร้างเมือง (The Master Builder)",
+    "essence": "การสร้างรากฐานที่ยิ่งใหญ่ แต่ต้องแบกรับความกดดันมหาศาล",
+    "figure": "จักรพรรดิออกัสตัส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/44.jpg",
+    "figure_bio": "จักรพรรดิองค์แรกของโรม (63 ปีก่อนคริสตกาล-ค.ศ. 14) ผู้ยุติสงครามกลางเมืองและเปิดยุคสันติภาพโรมัน (Pax Romana) ที่ยาวนานกว่า 200 ปี วางรากฐานการปกครองที่ส่งผลถึงยุโรปมาจนถึงปัจจุบัน",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "45",
+    "name": "🧭 นักบุกเบิกผู้ยืดหยุ่น (The Flexible Pioneer)",
+    "essence": "การสร้างรากฐานที่ปรับเปลี่ยนได้ผ่านการเดินทางและการเรียนรู้",
+    "figure": "เลฟ เอริกสัน",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/45.jpg",
+    "figure_bio": "นักสำรวจชาวไวกิ้ง (ราว ค.ศ. 970-1020) เชื่อกันว่าเป็นชาวยุโรปคนแรกที่เดินทางไปถึงทวีปอเมริกาเหนือ ก่อนโคลัมบัสเกือบ 500 ปี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "46",
+    "name": "❤️ ผู้พิทักษ์ที่มั่นคง (The Stable Guardian)",
+    "essence": "การดูแลครอบครัวอย่างมั่นคงและรับผิดชอบ เป็นที่พึ่งที่แข็งแกร่ง",
+    "figure": "เฮกเตอร์",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/46.jpg",
+    "figure_bio": "เจ้าชายและนักรบผู้กล้าหาญที่สุดแห่งเมืองทรอยในมหากาพย์ Iliad ต่อสู้ปกป้องบ้านเมืองจนวาระสุดท้าย ก่อนพ่ายแพ้ต่ออะคิลลีสในการดวลตัวต่อตัวอันโด่งดัง เป็นสัญลักษณ์ของเกียรติยศและความรับผิดชอบ",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "47",
+    "name": "🧘 ปราชญ์ผู้สันโดษ (The Solitary Sage)",
+    "essence": "การค้นพบความจริงผ่านการศึกษาเชิงลึกและการพัฒนาจิตวิญญาณ",
+    "figure": "เล่าจื๊อ",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/47.jpg",
+    "figure_bio": "นักปรัชญาจีนโบราณ ผู้ให้กำเนิดแนวคิดเต๋า (Taoism) เน้นการปล่อยวางและอยู่กับธรรมชาติอย่างสมดุล ผลงานสำคัญคือคัมภีร์เต้าเต๋อจิงที่ยังคงมีอิทธิพลถึงปัจจุบัน",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "48",
+    "name": "📈 นักบริหารมือทอง (The Golden Executive)",
+    "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนผ่านการจัดการที่มีประสิทธิภาพ",
+    "figure": "ไครซัส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/48.jpg",
+    "figure_bio": "กษัตริย์แห่งลิเดีย (ราว 595-546 ปีก่อนคริสตกาล) ขึ้นชื่อเรื่องความร่ำรวยมหาศาลจนเป็นที่มาของสำนวน รวยเท่าไครซัส แต่สุดท้ายพ่ายแพ้สงครามต่อจักรวรรดิเปอร์เซีย",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "49",
+    "name": "🕊️ ผู้ให้ที่หนักแน่น (The Steadfast Giver)",
+    "essence": "การอุทิศตนเพื่อสังคมอย่างมั่นคง แต่อย่างลืมฟังเสียงของตัวเอง",
+    "figure": "ฟลอเรนซ์ ไนติงเกล",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/49.jpg",
+    "figure_bio": "พยาบาลชาวอังกฤษ (1820-1910) ผู้บุกเบิกการพยาบาลสมัยใหม่ระหว่างสงครามไครเมีย ได้ฉายาสุภาพสตรีแห่งดวงประทีปจากการดูแลทหารบาดเจ็บยามค่ำคืน วางรากฐานวิชาชีพพยาบาลทั่วโลก",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "50",
+    "name": "⛵ นักเดินทางผู้อิสระ (The Independent Voyager)",
+    "essence": "การเริ่มต้นชีวิตใหม่ผ่านการเดินทางและการเปลี่ยนแปลงที่ไร้ขีดจำกัด",
+    "figure": "ซินแบด",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/50.jpg",
+    "figure_bio": "ตัวละครกะลาสีในนิทานพันหนึ่งราตรี (Arabian Nights) ผจญภัยข้ามทะเลเจ็ดครั้ง เผชิญสัตว์ประหลาดและดินแดนมหัศจรรย์ เป็นตัวแทนของนักผจญภัยผู้กล้าเสี่ยงเพื่อทรัพย์สมบัติและประสบการณ์ใหม่",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "51",
+    "name": "🦁 ผู้นำนักผจญภัย (The Adventurous Leader)",
+    "essence": "การเป็นผู้นำในสถานการณ์ใหม่ๆ ที่ไม่แน่นอน",
+    "figure": "ฌออากีม มูราต์ (Joachim Murat)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/51.jpg",
+    "figure_bio": "แม่ทัพม้าชาวฝรั่งเศส (1767-1815) หนึ่งในนายพลคนสำคัญของนโปเลียน ขึ้นชื่อเรื่องความกล้าบ้าบิ่นในสนามรบ ภายหลังได้เป็นกษัตริย์แห่งเนเปิลส์ก่อนถูกประหารชีวิต",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "52",
+    "name": "🤝 หุ้นส่วนผู้ยืดหยุ่น (The Flexible Partner)",
+    "essence": "การสร้างความสมดุลและความร่วมมือที่ยืดหยุ่นและปรับตัวเก่ง",
+    "figure": "Sun Quan (ซุนกวน)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/52.jpg",
+    "figure_bio": "ผู้ปกครองแคว้นง่อในยุคสามก๊กของจีน (ค.ศ. 182-252) ขึ้นชื่อเรื่องความสุขุมรอบคอบและการใช้คนเป็น สามารถรักษาแคว้นง่อให้มั่นคงท่ามกลางสงครามแย่งชิงอำนาจตลอดยุคสามก๊ก",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "53",
+    "name": "🎨 ศิลปินนักเดินทาง (The Traveling Artist)",
+    "essence": "การใช้ความคิดสร้างสรรค์และการสื่อสารที่หลากหลายผ่านการเดินทาง",
+    "figure": "พอล โกแกง",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/53.jpg",
+    "figure_bio": "จิตรกรชาวฝรั่งเศส (1848-1903) ทิ้งชีวิตนายธนาคารเพื่อตามความฝันด้านศิลปะ เดินทางไปตาฮีตีเพื่อค้นหาแรงบันดาลใจใหม่ สร้างสรรค์ผลงานสีสันจัดจ้านที่แหวกขนบศิลปะยุโรปยุคนั้น",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "54",
+    "name": "🧱 ผู้สร้างที่ยืดหยุ่น (The Flexible Builder)",
+    "essence": "การสร้างรากฐานที่ปรับเปลี่ยนได้ผ่านการทำงานหนักและการปรับตัว",
+    "figure": "เดดาลัส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/54.jpg",
+    "figure_bio": "ช่างฝีมือและนักประดิษฐ์ผู้ชาญฉลาดในตำนานกรีก ผู้สร้างเขาวงกตแห่งเกาะครีต และปีกขี้ผึ้งให้ตนเองกับอิคารัสลูกชายบินหนีจากเกาะ เป็นสัญลักษณ์ของอัจฉริยภาพที่มาพร้อมโศกนาฏกรรม",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "55",
+    "name": "🌪️ นักปฏิวัติ (The Revolutionary)",
+    "essence": "การเปลี่ยนแปลงครั้งยิ่งใหญ่ที่มาพร้อมกับอิสระสูงสุด",
+    "figure": "สปาร์ตาคัส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/55.jpg",
+    "figure_bio": "ทาสนักสู้กลาดิเอเตอร์ (ราว 111-71 ปีก่อนคริสตกาล) ผู้นำการก่อกบฏทาสครั้งใหญ่ที่สุดต่อจักรวรรดิโรมัน แม้สุดท้ายพ่ายแพ้ แต่ชื่อของเขากลายเป็นสัญลักษณ์แห่งการต่อสู้เพื่ออิสรภาพตลอดกาล",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "56",
+    "name": "❤️ ผู้ดูแลที่ยืดหยุ่น (The Flexible Caregiver)",
+    "essence": "การดูแลผู้อื่นอย่างมีประสิทธิภาพโดยไม่ทิ้งความเป็นอิสระ",
+    "figure": "มาเรีย มอนเตสซอรี่ (Maria Montessori)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/56.jpg",
+    "figure_bio": "แพทย์และนักการศึกษาชาวอิตาลี (1870-1952) ผู้บุกเบิกวิธีการศึกษาแบบมอนเตสซอรี่ที่เน้นให้เด็กเรียนรู้ด้วยตนเองตามธรรมชาติ เป็นหนึ่งในผู้หญิงคนแรกที่จบแพทย์ในอิตาลี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "57",
+    "name": "🔮 ปราชญ์ผู้ลึกลับ (The Mystic Sage)",
+    "essence": "การค้นพบความจริงทางจิตวิญญาณผ่านการเดินทางและการค้นคว้า",
+    "figure": "นอสตราดามุส",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/57.jpg",
+    "figure_bio": "หมอและนักพยากรณ์ชาวฝรั่งเศส (1503-1566) ผู้เขียนบทกวีทำนายอนาคตนับพันบทที่คลุมเครือจนตีความได้หลายทาง ชื่อของเขายังถูกอ้างถึงเวลามีเหตุการณ์ใหญ่เกิดขึ้นในโลกจนถึงทุกวันนี้",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "58",
+    "name": "📊 นักลงทุนผู้ปรับตัว (The Adaptive Investor)",
+    "essence": "การสร้างความสำเร็จทางธุรกิจที่ยืดหยุ่นและปรับตัวตามความเสี่ยง",
+    "figure": "Sima Yi (สุมาอี้)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/58.jpg",
+    "figure_bio": "ขุนนางและนักยุทธศาสตร์คนสำคัญของแคว้นวุยในยุคสามก๊ก (ค.ศ. 179-251) ขึ้นชื่อเรื่องความอดทนและการวางแผนระยะยาว ท้ายที่สุดตระกูลของเขาได้รวบอำนาจจนสถาปนาราชวงศ์จิ้นได้สำเร็จ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "59",
+    "name": "🙏 ผู้ให้ผู้รักอิสระ (The Free-spirited Giver)",
+    "essence": "การอุทิศตนเพื่อสังคมอย่างยืดหยุ่นและไม่ยึดติด",
+    "figure": "จอห์นนี่ แอปเปิ้ลซีด",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/59.jpg",
+    "figure_bio": "ชื่อในตำนานของ John Chapman (1774-1845) ชาวอเมริกันผู้เดินทางปลูกต้นแอปเปิลไปทั่วภาคกลางของสหรัฐฯ กลายเป็นตำนานพื้นบ้านสัญลักษณ์ของผู้ให้และผู้บุกเบิกที่ใจดี",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "60",
+    "name": "🏡 ผู้พิทักษ์ครอบครัว (The Family Guardian)",
+    "essence": "การอุทิศตนเพื่อความรัก ครอบครัว และการบริการอย่างสมบูรณ์แบบ",
+    "figure": "เทพีฟริกก์",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/60.jpg",
+    "figure_bio": "ราชินีแห่งเทพในเทพปกรณัมนอร์ส มเหสีของเทพโอดิน เป็นเทพีแห่งการแต่งงาน ความเป็นแม่ และรอบรู้ชะตากรรมของทุกคนแต่ไม่เคยเปิดเผยให้ใครรู้ล่วงหน้า",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "61",
+    "name": "👑 ผู้นำผู้เปี่ยมรัก (The Loving Leader)",
+    "essence": "การเป็นผู้นำที่ใช้ความรักและความใส่ใจในการริเริ่มโครงการเพื่อสังคม",
+    "figure": "สมเด็จพระราชินีนาถวิกตอเรีย",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/61.jpg",
+    "figure_bio": "ราชินีแห่งสหราชอาณาจักร (1819-1901) ครองราชย์ยาวนานถึง 63 ปี ยุคสมัยของพระองค์ (Victorian Era) เป็นช่วงที่จักรวรรดิอังกฤษเรืองอำนาจสูงสุดและมีการปฏิวัติอุตสาหกรรมครั้งใหญ่",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "62",
+    "name": "⚖️ ผู้ประสานสัมพันธ์ (The Relationship Mediator)",
+    "essence": "การสร้างความสมดุลและความร่วมมือที่เปี่ยมด้วยความรับผิดชอบ",
+    "figure": "เนวิลล์ เชมเบอร์ลิน (Neville Chamberlain)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/62.jpg",
+    "figure_bio": "นายกรัฐมนตรีอังกฤษ (1869-1940) เป็นที่จดจำจากนโยบายประนีประนอมกับฮิตเลอร์ก่อนสงครามโลกครั้งที่ 2 ซึ่งภายหลังถูกมองว่าล้มเหลว ก่อนเชอร์ชิลล์จะเข้ามารับตำแหน่งต่อ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "63",
+    "name": "🎤 นักสื่อสารผู้ชอบดูแล (The Caring Communicator)",
+    "essence": "การใช้การสื่อสารด้วยความรักเพื่อสร้างสรรค์ผลงานเพื่อสังคม",
+    "figure": "เอวา เปรอง (Eva Perón)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/63.jpg",
+    "figure_bio": "สุภาพสตรีหมายเลขหนึ่งของอาร์เจนตินา (1919-1952) หรือที่รู้จักในชื่อเอวิตา จากเด็กยากจนสู่สัญลักษณ์ทางการเมืองที่ประชาชนรักใคร่ ต่อสู้เพื่อสิทธิสตรีและคนยากไร้จนวาระสุดท้ายของชีวิต",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "64",
+    "name": "🏛️ สถาปนิกของครอบครัว (The Family Architect)",
+    "essence": "การสร้างรากฐานที่มั่นคงให้กับครอบครัวผ่านการทำงานหนัก",
+    "figure": "มาร์คัส ออเรลิอุส (Marcus Aurelius)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/64.jpg",
+    "figure_bio": "จักรพรรดิโรมัน (ค.ศ. 121-180) และนักปรัชญาสายสโตอิก ผู้เขียนบันทึกส่วนตัว Meditations ที่ยังคงเป็นหนังสือปรัชญาชีวิตที่มีคนอ่านทั่วโลกจนถึงปัจจุบัน",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "65",
+    "name": "✈️ นักเดินทางผู้มีความรับผิดชอบ (The Responsible Traveler)",
+    "essence": "การสร้างสมดุลระหว่างอิสระและความรับผิดชอบผ่านการเดินทาง",
+    "figure": "อิบน์ บัตตูตา (Ibn Battuta)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/65.jpg",
+    "figure_bio": "นักเดินทางชาวโมร็อกโก (1304-1369) เดินทางไปทั่วโลกมุสลิมและไกลกว่านั้นรวมระยะทางกว่า 120,000 กิโลเมตร มากกว่ามาร์โคโปโลเสียอีก บันทึกการเดินทางของเขาเป็นหลักฐานสำคัญทางประวัติศาสตร์",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "66",
+    "name": "❤️ ผู้ให้ที่ยิ่งใหญ่ (The Great Giver)",
+    "essence": "การดูแลผู้อื่นอย่างไม่มีเงื่อนไข แต่ต้องเรียนรู้ที่จะรักตนเอง",
+    "figure": "เจ้าแม่กวนอิม (Guan Yin)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/66.jpg",
+    "figure_bio": "พระโพธิสัตว์แห่งความเมตตาในพุทธศาสนามหายาน เป็นที่เคารพนับถืออย่างกว้างขวางในเอเชียตะวันออก เชื่อกันว่าท่านสดับฟังเสียงร้องขอความช่วยเหลือของสรรพสัตว์ทุกหนแห่ง",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "67",
+    "name": "🧘 ปราชญ์ผู้มีความรับผิดชอบ (The Responsible Sage)",
+    "essence": "การใช้ปัญญาในการวิเคราะห์ความสัมพันธ์และการพัฒนาจิตวิญญาณ",
+    "figure": "เพลโต (Plato)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/67.jpg",
+    "figure_bio": "นักปรัชญากรีกโบราณ (ราว 428-348 ปีก่อนคริสตกาล) ลูกศิษย์ของโสกราตีสและอาจารย์ของอริสโตเติล ก่อตั้งสถาบัน Academy ผลงาน Republic ของเขายังคงเป็นรากฐานของปรัชญาการเมืองตะวันตก",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "68",
+    "name": "🏰 เจ้าแห่งอาณาจักร (The Empire Lord)",
+    "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนโดยมีความรับผิดชอบเป็นที่ตั้ง",
+    "figure": "เมเยอร์ อัมเชล ร็อธไชลด์ (Mayer Amschel Rothschild)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/68.jpg",
+    "figure_bio": "นายธนาคารชาวเยอรมัน (1744-1812) ผู้ก่อตั้งตระกูลร็อธไชลด์ที่กลายเป็นหนึ่งในตระกูลที่ร่ำรวยและทรงอิทธิพลที่สุดในประวัติศาสตร์การเงินยุโรป ด้วยเครือข่ายธนาคารข้ามประเทศที่บุกเบิกเป็นรายแรกๆ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "69",
+    "name": "🙏 นักบุญผู้เสียสละ (The Sacrificial Saint)",
+    "essence": "การอุทิศตนเพื่อสังคมอย่างยั่งยืน แต่ต้องระวังความอ่อนไหว",
+    "figure": "พระเยซูแห่งนาซาเร็ธ (Jesus of Nazareth)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/69.jpg",
+    "figure_bio": "ศาสดาสำคัญของศาสนาคริสต์ ตามความเชื่อคือพระบุตรของพระเจ้าผู้เสียสละตนเองเพื่อไถ่บาปมวลมนุษย์ คำสอนเรื่องความรักและการให้อภัยของพระองค์มีอิทธิพลต่ออารยธรรมโลกมานานกว่า 2,000 ปี",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "70",
+    "name": "🌌 ผู้แสวงหาสัจธรรม (The Truth Seeker)",
+    "essence": "การค้นพบความจริงที่สมบูรณ์ผ่านการศึกษาเชิงลึกและการพัฒนาจิตวิญญาณ",
+    "figure": "พระพุทธเจ้า",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/70.jpg",
+    "figure_bio": "เจ้าชายสิทธัตถะผู้สละราชสมบัติเพื่อแสวงหาทางพ้นทุกข์ จนตรัสรู้เป็นพระสัมมาสัมพุทธเจ้าและวางรากฐานพุทธศาสนา คำสอนเรื่องอริยสัจ 4 และมรรค 8 ยังคงเป็นหลักธรรมสำคัญของชาวพุทธทั่วโลก",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "71",
+    "name": "👨‍🔬 ผู้นำนักวิจัย (The Research Leader)",
+    "essence": "การเป็นผู้นำในการค้นคว้าและสร้างนวัตกรรม แต่ต้องควบคุมความหยิ่ง",
+    "figure": "เซอร์ ไอแซก นิวตัน (Isaac Newton)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/71.jpg",
+    "figure_bio": "นักวิทยาศาสตร์ชาวอังกฤษ (1643-1727) ผู้ค้นพบกฎแรงโน้มถ่วงและกฎการเคลื่อนที่ 3 ข้อ วางรากฐานฟิสิกส์คลาสสิกที่ใช้อธิบายจักรวาลมานานหลายร้อยปี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "72",
+    "name": "🔬 นักวิเคราะห์ความสัมพันธ์ (The Relational Analyst)",
+    "essence": "การสร้างความสมดุลและความร่วมมือผ่านการวิเคราะห์อย่างมีเหตุผล",
+    "figure": "บรูตัส (Brutus)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/72.jpg",
+    "figure_bio": "นักการเมืองโรมัน (85-42 ปีก่อนคริสตกาล) หนึ่งในผู้ลอบสังหารจูเลียส ซีซาร์ เพื่อนสนิทที่ตนเชื่อว่ากำลังทำลายสาธารณรัฐ วลี Et tu, Brute? กลายเป็นสัญลักษณ์ของการทรยศจากคนใกล้ตัว",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "73",
+    "name": "✍️ นักเขียนเชิงวิเคราะห์ (The Analytical Writer)",
+    "essence": "การใช้ความคิดสร้างสรรค์ในการสื่อสารเชิงลึกและการค้นพบความจริง",
+    "figure": "ฮอร์เฮ หลุยส์ บอร์เกส (Jorge Luis Borges)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/73.jpg",
+    "figure_bio": "นักเขียนชาวอาร์เจนตินา (1899-1986) เจ้าของงานเขียนแนวเขาวงกตและปรัชญาที่ผสานความจริงกับจินตนาการ มีอิทธิพลอย่างสูงต่อวรรณกรรมโลกยุคหลัง แม้ตาบอดในบั้นปลายชีวิตแต่ยังคงสร้างสรรค์งานต่อเนื่อง",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "74",
+    "name": "🏗️ สถาปนิกนักวิเคราะห์ (The Analytical Architect)",
+    "essence": "การสร้างรากฐานที่มั่นคงผ่านการทำงานหนักและการค้นคว้าอย่างมีระบบ",
+    "figure": "วิตรูวิอุส (Vitruvius)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/74.jpg",
+    "figure_bio": "สถาปนิกและวิศวกรโรมัน (ราวศตวรรษที่ 1 ก่อนคริสตกาล) ผู้เขียนตำรา De Architectura ที่วางหลักการสถาปัตยกรรมไว้ 3 ข้อคือ ความมั่นคง ประโยชน์ใช้สอย และความงาม เป็นแรงบันดาลใจให้ภาพ Vitruvian Man ของดาวินชี",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "75",
+    "name": "🗺️ นักสำรวจผู้ใฝ่รู้ (The Inquisitive Explorer)",
+    "essence": "การเดินทางเพื่อการเรียนรู้และค้นคว้าอย่างอิสระ แต่ต้องสร้างความมั่นคง",
+    "figure": "ชาร์ลส์ ดาร์วิน (Charles Darwin)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/75.jpg",
+    "figure_bio": "นักธรรมชาติวิทยาชาวอังกฤษ (1809-1882) ผู้เสนอทฤษฎีวิวัฒนาการผ่านการคัดเลือกโดยธรรมชาติในหนังสือ On the Origin of Species เปลี่ยนความเข้าใจของมนุษยชาติต่อกำเนิดของสิ่งมีชีวิตไปตลอดกาล",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "76",
+    "name": "❤️ ผู้ดูแลผู้เปี่ยมด้วยปัญญา (The Wise Caregiver)",
+    "essence": "การดูแลผู้อื่นอย่างมีเหตุผล แต่ต้องระวังการแบกรับความกังวล",
+    "figure": "ไครอน (Chiron)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/76.jpg",
+    "figure_bio": "เซนทอร์ (ครึ่งคนครึ่งม้า) ผู้ทรงปัญญาในเทพปกรณัมกรีก ต่างจากเซนทอร์ตนอื่นที่ดุร้าย ไครอนเป็นครูผู้สอนวีรบุรุษหลายคนรวมถึงอะคิลลีส แม้เป็นอมตะแต่ยอมสละชีวิตเพื่อไถ่โทษให้โพรมีธีอุส",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "77",
+    "name": "🦉 ปราชญ์ผู้หยั่งรู้ (The Oracle Sage)",
+    "essence": "การเข้าถึงปัญญาญาณที่ลึกซึ้ง แต่ต้องระวังความโดดเดี่ยว",
+    "figure": "เมอร์ลิน (Merlin)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/77.jpg",
+    "figure_bio": "พ่อมดในตำนานกษัตริย์อาเธอร์ ที่ปรึกษาผู้ทรงปัญญาและมีพลังเวทมนตร์ เป็นผู้ช่วยให้อาเธอร์ขึ้นครองบัลลังก์และก่อตั้งอาณาจักรคาเมล็อต สัญลักษณ์ของภูมิปัญญาและการมองการณ์ไกล",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "78",
+    "name": "📈 นักบริหารผู้มีวิสัยทัศน์ (The Visionary Executive)",
+    "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนผ่านการวิเคราะห์ที่มีประสิทธิภาพ",
+    "figure": "ตระกูลเมดิชี (Medici Family)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/78.jpg",
+    "figure_bio": "ตระกูลนายธนาคารผู้ทรงอิทธิพลที่สุดในฟลอเรนซ์ยุคเรอเนสซองส์ (ศตวรรษที่ 15-18) อุปถัมภ์ศิลปินและนักคิดระดับตำนานจำนวนมาก มีบทบาทสำคัญในการจุดประกายยุคฟื้นฟูศิลปวิทยาของยุโรป",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "79",
+    "name": "🙏 นักบุญผู้มีปัญญา (The Wise Saint)",
+    "essence": "การอุทิศตนเพื่อสังคมอย่างยั่งยืนโดยใช้ปัญญา แต่ต้องระวังความอ่อนไหว",
+    "figure": "Thich Nhat Hanh (ติช นัท ฮันห์)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/79.jpg",
+    "figure_bio": "พระภิกษุชาวเวียดนาม (1926-2022) ผู้เผยแพร่แนวคิดการมีสติในปัจจุบันขณะ (mindfulness) ไปทั่วโลกตะวันตก ได้รับการเสนอชื่อชิงรางวัลโนเบลสาขาสันติภาพจากมาร์ติน ลูเธอร์ คิง จูเนียร์",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "80",
+    "name": "🏰 เจ้าแห่งอาณาจักร (The Empire Lord)",
+    "essence": "การสร้างความสำเร็จทางธุรกิจและการจัดการการเงินอย่างสมบูรณ์แบบ",
+    "figure": "มันซา มูซา (Mansa Musa)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/80.jpg",
+    "figure_bio": "จักรพรรดิแห่งอาณาจักรมาลีในแอฟริกาตะวันตก (ครองราชย์ราว ค.ศ. 1312-1337) ได้รับการยกย่องว่าอาจร่ำรวยที่สุดในประวัติศาสตร์มนุษยชาติ โด่งดังจากการแจกทองคำมหาศาลระหว่างการแสวงบุญไปเมกกะ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "81",
+    "name": "👑 จักรพรรดิผู้ทรงอำนาจ (The Powerful Emperor)",
+    "essence": "การเป็นผู้นำที่แข็งแกร่งในการเริ่มต้นธุรกิจและสร้างความสำเร็จ",
+    "figure": "สุลัยมานผู้เกรียงไกร (Suleiman the Magnificent)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/81.jpg",
+    "figure_bio": "สุลต่านแห่งจักรวรรดิออตโตมัน (ครองราชย์ 1520-1566) ยุคของพระองค์คือยุคทองของออตโตมันทั้งด้านการทหาร กฎหมาย และศิลปวัฒนธรรม ชาวยุโรปเรียกพระองค์ว่าผู้เกรียงไกรด้วยความเกรงขาม",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "82",
+    "name": "🤝 ทูตผู้ทรงอิทธิพล (The Influential Ambassador)",
+    "essence": "การสร้างความร่วมมือที่ทรงอำนาจเพื่อความสำเร็จที่ยิ่งใหญ่",
+    "figure": "จางเหลียง (Zhang Liang)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/82.jpg",
+    "figure_bio": "นักยุทธศาสตร์คนสำคัญในยุคปลายราชวงศ์ฉินของจีน (ราว 250-186 ปีก่อนคริสตกาล) ผู้ช่วยหลิวปังก่อตั้งราชวงศ์ฮั่น ขึ้นชื่อเรื่องสติปัญญาและการวางแผนเบื้องหลังที่ทำให้ได้รับสมญาว่าผู้วางแผนในเต็นท์ ชนะศึกไกลพันลี้",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "83",
+    "name": "📣 ผู้ทรงอิทธิพลทางความคิด (The Influencer)",
+    "essence": "การใช้การสื่อสารและความคิดสร้างสรรค์เพื่อสร้างความสำเร็จและอำนาจ",
+    "figure": "พี.ที. บาร์นัม (P.T. Barnum)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/83.jpg",
+    "figure_bio": "นักธุรกิจบันเทิงชาวอเมริกัน (1810-1891) ผู้ก่อตั้งคณะละครสัตว์ Barnum & Bailey Circus ขึ้นชื่อเรื่องกลยุทธ์การตลาดและการโหมโฆษณาเกินจริง เป็นบิดาแห่งวงการโชว์บิสเนสสมัยใหม่",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "84",
+    "name": "🏛️ สถาปนิกผู้ทรงอำนาจ (The Powerful Architect)",
+    "essence": "การสร้างรากฐานที่แข็งแกร่งและทรงอำนาจผ่านการทำงานหนัก",
+    "figure": "อิมโฮเทป (Imhotep)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/84.jpg",
+    "figure_bio": "สถาปนิก แพทย์ และนักบวชอียิปต์โบราณ (ราว 2650-2600 ปีก่อนคริสตกาล) ผู้ออกแบบปิรามิดขั้นบันไดแห่งซัคคารา หนึ่งในอาคารหินขนาดใหญ่แห่งแรกของโลก ภายหลังได้รับการเทิดทูนเป็นเทพแห่งการแพทย์",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "85",
+    "name": "🌪️ นักปฏิวัติผู้ทรงอำนาจ (The Powerful Revolutionary)",
+    "essence": "การสร้างอำนาจจากการปรับตัวและการเดินทางเพื่อเรียนรู้",
+    "figure": "นโปเลียน โบนาปาร์ต (Napoleon Bonaparte)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/85.jpg",
+    "figure_bio": "จักรพรรดิฝรั่งเศส (1769-1821) นักการทหารอัจฉริยะผู้พิชิตยุโรปเกือบทั้งหมด จากนายทหารชั้นผู้น้อยสู่จักรพรรดิ ก่อนพ่ายแพ้และถูกเนรเทศไปเสียชีวิตที่เกาะเซนต์เฮเลนา",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "86",
+    "name": "❤️ ผู้ดูแลผู้ทรงอิทธิพล (The Influential Caregiver)",
+    "essence": "การดูแลผู้อื่นอย่างมีประสิทธิภาพเพื่อสร้างความสัมพันธ์ที่ดี",
+    "figure": "คอร์เนเลีย แอฟริกานา (Cornelia Africana)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/86.jpg",
+    "figure_bio": "สตรีโรมันผู้สูงศักดิ์ (ราว 190-100 ปีก่อนคริสตกาล) ลูกสาวแม่ทัพผู้พิชิตฮันนิบาล ได้รับการยกย่องเป็นแบบอย่างของมารดาโรมันในอุดมคติ ผู้อบรมบุตรชายให้เป็นนักปฏิรูปสังคมคนสำคัญ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "87",
+    "name": "🦉 ปราชญ์ผู้ทรงอำนาจ (The Powerful Sage)",
+    "essence": "การใช้ปัญญาในการค้นหาความจริงเพื่อสร้างอำนาจจากภายใน",
+    "figure": "จอห์น ดี (John Dee)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/87.jpg",
+    "figure_bio": "นักคณิตศาสตร์ นักดาราศาสตร์ และที่ปรึกษาราชสำนักอังกฤษ (1527-1608/9) ในสมัยพระราชินีเอลิซาเบธที่ 1 สนใจทั้งวิทยาศาสตร์และไสยศาสตร์ พยายามติดต่อกับทูตสวรรค์ผ่านพิธีกรรมลึกลับ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "88",
+    "name": "💎 จักรพรรดิแห่งความมั่งคั่ง (The Emperor of Wealth)",
+    "essence": "การสร้างอาณาจักรธุรกิจที่ต้องใช้อำนาจสมบูรณ์และระวังความโลภ",
+    "figure": "กษัตริย์ไมดาส (King Midas)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/88.jpg",
+    "figure_bio": "กษัตริย์ในตำนานกรีกผู้ขอพรให้ทุกสิ่งที่แตะต้องกลายเป็นทองคำ แต่กลับพบว่าแม้แต่อาหารและลูกสาวก็กลายเป็นทองไปด้วย เป็นนิทานสอนใจเรื่องความโลภที่นำมาซึ่งความทุกข์",
+    "figure_category": "legendary",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "89",
+    "name": "🙏 ผู้นำผู้เสียสละ (The Sacrificial Leader)",
+    "essence": "การใช้อำนาจเพื่อการให้และการทำงานเพื่อสังคมอย่างยั่งยืน",
+    "figure": "อับราฮัม ลินคอล์น (Abraham Lincoln)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/89.jpg",
+    "figure_bio": "ประธานาธิบดีสหรัฐฯ คนที่ 16 (1809-1865) ผู้นำประเทศฝ่าสงครามกลางเมืองและประกาศเลิกทาส จากเด็กยากจนในกระท่อมไม้ซุงสู่ผู้นำที่ยิ่งใหญ่ที่สุดคนหนึ่งของอเมริกา ก่อนถูกลอบสังหารในปีสุดท้ายของสงคราม",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "90",
+    "name": "🕊️ นักบุญผู้ให้ (The Giving Saint)",
+    "essence": "การอุทิศตนเพื่อมนุษยธรรมและการให้ที่ยิ่งใหญ่",
+    "figure": "นักบุญฟรานซิสแห่งอัสซีซี (Saint Francis of Assisi)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/90.jpg",
+    "figure_bio": "นักบวชคาทอลิกชาวอิตาลี (1181/82-1226) จากลูกชายพ่อค้าผู้มั่งคั่งสู่ผู้สละทุกสิ่งเพื่อใช้ชีวิตเรียบง่าย รักสัตว์และธรรมชาติ เป็นผู้ก่อตั้งคณะฟรานซิสกัน และเป็นนักบุญอุปถัมภ์สิ่งแวดล้อม",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "91",
+    "name": "👑 ผู้นำผู้เปี่ยมเมตตา (The Compassionate Leader)",
+    "essence": "การเป็นผู้นำที่เสียสละในการเริ่มต้นโครงการเพื่อสังคม",
+    "figure": "พระเจ้าไซรัสมหาราช (Cyrus the Great)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/91.jpg",
+    "figure_bio": "ผู้ก่อตั้งจักรวรรดิเปอร์เซีย (ครองราชย์ 559-530 ปีก่อนคริสตกาล) ขึ้นชื่อเรื่องการปกครองที่ให้เกียรติวัฒนธรรมท้องถิ่นของดินแดนที่พิชิตมา และปล่อยชาวยิวที่ถูกจับเป็นเชลยกลับบ้าน",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "92",
+    "name": "🤝 ทูตแห่งสันติภาพ (The Ambassador of Peace)",
+    "essence": "การสร้างความสมดุลและความร่วมมือเพื่อสังคมด้วยความเมตตา",
+    "figure": "อาริสติด บรียอง (Aristide Briand)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/92.jpg",
+    "figure_bio": "นักการเมืองฝรั่งเศส (1862-1932) ดำรงตำแหน่งนายกรัฐมนตรีถึง 11 สมัย ได้รับรางวัลโนเบลสาขาสันติภาพจากความพยายามผลักดันความปรองดองระหว่างฝรั่งเศสกับเยอรมนีหลังสงครามโลกครั้งที่ 1",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "93",
+    "name": "🎨 ศิลปินเพื่อสังคม (The Social Artist)",
+    "essence": "การใช้ความคิดสร้างสรรค์และการสื่อสารเพื่อช่วยเหลือและให้กำลังใจ",
+    "figure": "วิกตอร์ อูโก (Victor Hugo)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/93.jpg",
+    "figure_bio": "นักเขียนชาวฝรั่งเศส (1802-1885) ผู้ประพันธ์ Les Misérables และ The Hunchback of Notre-Dame งานเขียนของเขามักสะท้อนความอยุติธรรมทางสังคมและเรียกร้องความเห็นอกเห็นใจต่อผู้ยากไร้",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "94",
+    "name": "🏡 ผู้สร้างชุมชน (The Community Builder)",
+    "essence": "การสร้างรากฐานที่มั่นคงให้กับสังคมผ่านการทำงานหนักและการดูแล",
+    "figure": "เจน แอดดัมส์ (Jane Addams)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/94.jpg",
+    "figure_bio": "นักปฏิรูปสังคมชาวอเมริกัน (1860-1935) ผู้บุกเบิกงานสังคมสงเคราะห์สมัยใหม่ ก่อตั้ง Hull House เพื่อช่วยเหลือผู้อพยพยากไร้ในชิคาโก เป็นผู้หญิงอเมริกันคนแรกที่ได้รับรางวัลโนเบลสาขาสันติภาพ",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "95",
+    "name": "🦋 นักเดินทางผู้ใจบุญ (The Philanthropic Traveler)",
+    "essence": "การเดินทางเพื่อการเรียนรู้และช่วยเหลือผู้อื่นอย่างอิสระ",
+    "figure": "เดวิด ลิฟวิงสโตน (David Livingstone)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/95.jpg",
+    "figure_bio": "นักสำรวจและมิชชันนารีชาวสก็อต (1813-1873) ผู้สำรวจแอฟริกากลางอย่างกว้างขวาง ค้นพบน้ำตกวิกตอเรีย ต่อต้านการค้าทาส เรื่องราวการตามหาตัวเขาที่หายสาบสูญกลายเป็นตำนาน Dr. Livingstone, I presume?",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "96",
+    "name": "❤️ ผู้ดูแลผู้เสียสละ (The Sacrificial Caregiver)",
+    "essence": "การดูแลผู้อื่นอย่างมีประสิทธิภาพ แต่ต้องระวังการแบกรับภาระ",
+    "figure": "นักบุญเวโรนิกา (Saint Veronica)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/96.jpg",
+    "figure_bio": "ตามตำนานคริสต์ศาสนา (ไม่ปรากฏในพระคัมภีร์ไบเบิลหลัก) เป็นสตรีผู้เช็ดพระพักตร์พระเยซูระหว่างทางแบกกางเขน แล้วภาพพระพักตร์ปรากฏบนผ้าที่ใช้เช็ดอย่างอัศจรรย์ เป็นสัญลักษณ์ของความเมตตากรุณา",
+    "figure_category": "religious",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "97",
+    "name": "🧠 นักจิตวิทยาเพื่อสังคม (The Social Psychologist)",
+    "essence": "การใช้ปัญญาในการค้นหาความจริงทางจิตวิญญาณเพื่อช่วยเหลือผู้อื่น",
+    "figure": "คาร์ล โรเจอร์ส (Carl Rogers)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/97.jpg",
+    "figure_bio": "นักจิตวิทยาชาวอเมริกัน (1902-1987) ผู้บุกเบิกแนวคิดจิตบำบัดแบบยึดผู้รับบริการเป็นศูนย์กลาง (person-centered therapy) เน้นการรับฟังอย่างเข้าใจและไม่ตัดสิน มีอิทธิพลอย่างสูงต่อวงการจิตวิทยาการปรึกษาสมัยใหม่",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "98",
+    "name": "📈 ผู้จัดการเพื่อสังคม (The Social Manager)",
+    "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนโดยมีเป้าหมายเพื่อสังคม",
+    "figure": "โรเบิร์ต โอเวน (Robert Owen)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/98.jpg",
+    "figure_bio": "นักอุตสาหกรรมและนักปฏิรูปสังคมชาวเวลส์ (1771-1858) ผู้บุกเบิกแนวคิดสังคมนิยมยุคแรก ปรับปรุงสภาพความเป็นอยู่ของคนงานในโรงงาน และก่อตั้งชุมชนทดลองเพื่อความเท่าเทียม",
+    "figure_category": "historical",
+    "figure_bio_verified": false
+  },
+  {
+    "id": "99",
+    "name": "🌍 ผู้อุทิศตนเพื่อโลก (The World Philanthropist)",
+    "essence": "การให้และการเสียสละที่ยิ่งใหญ่เพื่อมวลมนุษยชาติ",
+    "figure": "โพรมีธีอุส (Prometheus)",
+    "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/99.jpg",
+    "figure_bio": "ไททันในเทพปกรณัมกรีกผู้ขโมยไฟจากเทพเจ้ามามอบให้มนุษยชาติ ฝ่าฝืนคำสั่งเทพซุส ถูกลงโทษให้ถูกล่ามโซ่ไว้บนภูเขาให้นกอินทรีจิกกินตับทุกวันชั่วนิรันดร์ เป็นสัญลักษณ์ของการเสียสละเพื่อผู้อื่น",
+    "figure_category": "mythological",
+    "figure_bio_verified": false
+  }
+]

@@ -1,0 +1,418 @@
+{
+  "cases": [
+    {
+      "input": "ช่วงนี้ทนไม่ไหวแล้ว อยากตาย",
+      "expected": {
+        "logic_id": -1,
+        "logic_name": "Safety Refusal",
+        "confidence": 1.0,
+        "method": "safety_keyword",
+        "response_mode": "chat",
+        "intercepted": true,
+        "matched_keywords": [
+          "อยากตาย",
+          "ทนไม่ไหว"
+        ],
+        "crisis_resource_message": "หากคุณกำลังรู้สึกทุกข์ใจมากๆ หรือมีความคิดทำร้ายตัวเอง อยากให้คุณลองติดต่อ สายด่วนสุขภาพจิต 1323 (โทรฟรี ตลอด 24 ชม.) หรือสมาคมสะมาริตันส์แห่งประเทศไทย 02-713-6791 นะคะ มีคนพร้อมรับฟังคุณอยู่เสมอ 💛 อาจารย์ลาลาขอหยุดการทำนายไว้ก่อน เพราะอยากให้คุณได้รับความช่วยเหลือที่เหมาะสมกว่านี้"
+      }
+    },
+    {
+      "input": "เมื่อคืนฝันแล้วตื่นมาอยากฆ่าตัวตาย",
+      "expected": {
+        "logic_id": -1,
+        "logic_name": "Safety Refusal",
+        "confidence": 1.0,
+        "method": "safety_keyword",
+        "response_mode": "chat",
+        "intercepted": true,
+        "matched_keywords": [
+          "ฆ่าตัวตาย"
+        ],
+        "crisis_resource_message": "หากคุณกำลังรู้สึกทุกข์ใจมากๆ หรือมีความคิดทำร้ายตัวเอง อยากให้คุณลองติดต่อ สายด่วนสุขภาพจิต 1323 (โทรฟรี ตลอด 24 ชม.) หรือสมาคมสะมาริตันส์แห่งประเทศไทย 02-713-6791 นะคะ มีคนพร้อมรับฟังคุณอยู่เสมอ 💛 อาจารย์ลาลาขอหยุดการทำนายไว้ก่อน เพราะอยากให้คุณได้รับความช่วยเหลือที่เหมาะสมกว่านี้"
+      }
+    },
+    {
+      "input": "เมื่อคืนฝันเห็นงู หมายความว่าอะไร",
+      "expected": {
+        "logic_id": 4,
+        "logic_name": "ทำนายฝัน",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "อยากรู้ดวงวันนี้หน่อย",
+      "expected": {
+        "logic_id": 8,
+        "logic_name": "ดวงรายวัน",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "ดวงเดือนนี้เป็นยังไงบ้าง",
+      "expected": {
+        "logic_id": 9,
+        "logic_name": "ดวงรายเดือน",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "ดวงปีนี้ดีไหม",
+      "expected": {
+        "logic_id": 10,
+        "logic_name": "ดวงรายปี",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "อยากตั้งชื่อบริษัทใหม่",
+      "expected": {
+        "logic_id": 19,
+        "logic_name": "ตั้งชื่อและตราสัญลักษณ์",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "เบอร์โทร 0812345678 ดีไหม",
+      "expected": {
+        "logic_id": 2,
+        "logic_name": "เช็คเลขวัตถุ/ทะเบียน/เบอร์โทร",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "เลขทะเบียน กก 1234 ดีไหม",
+      "expected": {
+        "logic_id": 2,
+        "logic_name": "เช็คเลขวัตถุ/ทะเบียน/เบอร์โทร",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "คนนี้เข้ากับบ้านฉันไหม",
+      "expected": {
+        "logic_id": 18,
+        "logic_name": "กาลชะตาและสรรพสิ่ง (ทั่วไป)",
+        "confidence": 0.5,
+        "method": "fallback_no_keyword_match",
+        "response_mode": "chat",
+        "note": "STUB: ควรเรียก Claude classification จริงตรงนี้ ไม่ใช่ fallback ตรงๆ"
+      }
+    },
+    {
+      "input": "ขอเลขเสี่ยงทายหน่อย",
+      "expected": {
+        "logic_id": 21,
+        "logic_name": "เสี่ยงทายผูกบริบท",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "อยากรู้รหัสชีวิตของตัวเอง",
+      "expected": {
+        "logic_id": 1,
+        "logic_name": "พลังงานส่วนบุคคล",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "ฤกษ์ไหนดีสำหรับย้ายบ้าน",
+      "expected": {
+        "logic_id": 3,
+        "logic_name": "ฤกษ์ยามและทิศมงคล",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "วันเกิดฉันปีชงไหม",
+      "expected": {
+        "logic_id": 11,
+        "logic_name": "วันเกิด/ทักษาจร",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "กินอะไรดีให้เสริมดวง",
+      "expected": {
+        "logic_id": 12,
+        "logic_name": "อาหารและสุขภาพ",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "กิจกรรมเสริมดวงมีอะไรบ้าง",
+      "expected": {
+        "logic_id": 16,
+        "logic_name": "กิจกรรมและการเรียนรู้",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "อยากรู้เนื้อคู่",
+      "expected": {
+        "logic_id": 17,
+        "logic_name": "ความรักและความสมพงศ์",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "ฝันว่าได้เบอร์โทรใหม่",
+      "expected": {
+        "logic_id": 2,
+        "logic_name": "เช็คเลขวัตถุ/ทะเบียน/เบอร์โทร",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "chat"
+      }
+    },
+    {
+      "input": "อยากรู้ดวงวันนี้กับเนื้อคู่",
+      "expected": {
+        "logic_id": 8,
+        "logic_name": "ดวงรายวัน",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "ตั้งชื่อบริษัทให้เข้ากับบ้านไหม",
+      "expected": {
+        "logic_id": 19,
+        "logic_name": "ตั้งชื่อและตราสัญลักษณ์",
+        "confidence": 0.85,
+        "method": "keyword",
+        "response_mode": "liff"
+      }
+    },
+    {
+      "input": "สวัสดีครับ",
+      "expected": {
+        "logic_id": 18,
+        "logic_name": "กาลชะตาและสรรพสิ่ง (ทั่วไป)",
+        "confidence": 0.5,
+        "method": "fallback_no_keyword_match",
+        "response_mode": "chat",
+        "note": "STUB: ควรเรียก Claude classification จริงตรงนี้ ไม่ใช่ fallback ตรงๆ"
+      }
+    },
+    {
+      "input": "วันนี้อากาศดีจัง",
+      "expected": {
+        "logic_id": 18,
+        "logic_name": "กาลชะตาและสรรพสิ่ง (ทั่วไป)",
+        "confidence": 0.5,
+        "method": "fallback_no_keyword_match",
+        "response_mode": "chat",
+        "note": "STUB: ควรเรียก Claude classification จริงตรงนี้ ไม่ใช่ fallback ตรงๆ"
+      }
+    },
+    {
+      "input": "",
+      "expected": {
+        "logic_id": 18,
+        "logic_name": "กาลชะตาและสรรพสิ่ง (ทั่วไป)",
+        "confidence": 0.5,
+        "method": "fallback_no_keyword_match",
+        "response_mode": "chat",
+        "note": "STUB: ควรเรียก Claude classification จริงตรงนี้ ไม่ใช่ fallback ตรงๆ"
+      }
+    }
+  ],
+  "keyword_map_order": [
+    [
+      1,
+      [
+        "รหัสชีวิต",
+        "ธาตุกำเนิด",
+        "นิสัย",
+        "วาสนา",
+        "จุดแข็ง",
+        "จุดอ่อน"
+      ]
+    ],
+    [
+      2,
+      [
+        "เบอร์โทร",
+        "ทะเบียนรถ",
+        "เลขทะเบียน",
+        "เช็คเลข",
+        "เลขนี้"
+      ]
+    ],
+    [
+      3,
+      [
+        "ฤกษ์",
+        "เวลาไหนดี",
+        "ยามไหนดี",
+        "ทิศมงคล",
+        "ออกเดินทาง"
+      ]
+    ],
+    [
+      4,
+      [
+        "ฝัน",
+        "นิมิต",
+        "ลางสังหรณ์",
+        "เมื่อคืนฝัน"
+      ]
+    ],
+    [
+      7,
+      [
+        "ฮวงจุ้ย",
+        "จัดบ้าน",
+        "จัดห้อง",
+        "ทิศห้อง",
+        "หันหน้าไปทาง",
+        "โต๊ะทำงานหันไปทาง"
+      ]
+    ],
+    [
+      8,
+      [
+        "ดวงวันนี้",
+        "ดวงประจำวัน"
+      ]
+    ],
+    [
+      9,
+      [
+        "ดวงเดือนนี้",
+        "ดวงประจำเดือน"
+      ]
+    ],
+    [
+      10,
+      [
+        "ดวงปีนี้",
+        "ดวงประจำปี"
+      ]
+    ],
+    [
+      11,
+      [
+        "วันเกิด",
+        "ปีชง",
+        "กาลกิณีปีนี้"
+      ]
+    ],
+    [
+      12,
+      [
+        "กินอะไรดี",
+        "อาหารเสริมดวง",
+        "สุขภาพ"
+      ]
+    ],
+    [
+      16,
+      [
+        "กิจกรรมเสริมดวง",
+        "ฝึกอะไรดี"
+      ]
+    ],
+    [
+      17,
+      [
+        "สมพงศ์",
+        "ดวงคู่",
+        "เนื้อคู่",
+        "ดวงความรัก"
+      ]
+    ],
+    [
+      19,
+      [
+        "ตั้งชื่อบริษัท",
+        "ตั้งชื่อเพจ",
+        "ออกแบบโลโก้",
+        "ชื่อแบรนด์"
+      ]
+    ],
+    [
+      20,
+      [
+        "เข้ากับบ้านไหม",
+        "เข้ากับรถไหม",
+        "เพื่อนร่วมงานเข้ากันไหม"
+      ]
+    ],
+    [
+      21,
+      [
+        "เสี่ยงทาย",
+        "หมุนเสี่ยงโชค",
+        "ขอเลขเสี่ยงทาย"
+      ]
+    ]
+  ],
+  "logic_names": {
+    "0": "Router",
+    "1": "พลังงานส่วนบุคคล",
+    "2": "เช็คเลขวัตถุ/ทะเบียน/เบอร์โทร",
+    "3": "ฤกษ์ยามและทิศมงคล",
+    "4": "ทำนายฝัน",
+    "7": "ฮวงจุ้ยและการจัดพื้นที่",
+    "8": "ดวงรายวัน",
+    "9": "ดวงรายเดือน",
+    "10": "ดวงรายปี",
+    "11": "วันเกิด/ทักษาจร",
+    "12": "อาหารและสุขภาพ",
+    "16": "กิจกรรมและการเรียนรู้",
+    "17": "ความรักและความสมพงศ์",
+    "18": "กาลชะตาและสรรพสิ่ง (ทั่วไป)",
+    "19": "ตั้งชื่อและตราสัญลักษณ์",
+    "20": "ข่ายความสัมพันธ์หลาย entity",
+    "21": "เสี่ยงทายผูกบริบท",
+    "-1": "Safety Refusal"
+  },
+  "response_mode": {
+    "1": "liff",
+    "2": "chat",
+    "3": "chat",
+    "4": "chat",
+    "7": "liff",
+    "8": "liff",
+    "9": "liff",
+    "10": "liff",
+    "11": "liff",
+    "12": "chat",
+    "16": "chat",
+    "17": "liff",
+    "18": "chat",
+    "19": "liff",
+    "20": "liff",
+    "21": "liff"
+  }
+}

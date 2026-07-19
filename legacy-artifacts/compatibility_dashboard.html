@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ข่ายความสัมพันธ์ธาตุ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@600;700;900&family=Noto+Sans+Thai:wght@400;600&family=JetBrains+Mono:wght@500;700&display=swap');
+  :root{
+    --marble-bg: #f4f0e6; --marble-vein: #e2d8c3;
+    --gold: #b8860b; --gold-bright: #d4a72c;
+    --ink: #2b2620; --ink-dim: #6b6255; --card-bg: #fffdf8;
+    --wood:#2f5c42; --fire:#a83a1e; --earth:#a97c1f; --metal:#7a7267; --water:#1f4d63;
+    --good:#2f6b3f; --bad:#a83a1e; --neutral:#6b6255; --clash:#b8860b;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,0.5), transparent 40%),
+      radial-gradient(ellipse at 80% 90%, rgba(216,196,150,0.35), transparent 45%),
+      linear-gradient(160deg, var(--marble-bg) 0%, var(--marble-vein) 55%, var(--marble-bg) 100%);
+    background-attachment:fixed; color:var(--ink); font-family:'Noto Sans Thai',sans-serif; min-height:100vh;
+  }
+  .wrap{ max-width:480px; margin:0 auto; padding:24px 16px 50px; }
+  h1{ font-family:'Noto Serif Thai',serif; font-weight:900; font-size:1.35rem; text-align:center; margin:4px 0; }
+  .sub{ text-align:center; color:var(--ink-dim); font-size:0.76rem; margin-bottom:18px; line-height:1.6; }
+  .facet-panel{
+    position:relative; background: var(--card-bg);
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    padding: 18px 16px; margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(80,60,20,0.10), 0 1px 0 rgba(255,255,255,0.8) inset;
+  }
+  .facet-panel::before{
+    content:""; position:absolute; inset:0;
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    padding:2px; background: linear-gradient(135deg, var(--gold-bright), var(--gold) 40%, #e8d18a 60%, var(--gold-bright));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+  }
+  .panel-title{ font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.95rem; margin:0 0 10px; }
+  .field{ margin-bottom:10px; }
+  .field label{ display:block; font-size:0.72rem; font-weight:600; color:var(--ink-dim); margin-bottom:4px; }
+  .field input, .field select{
+    width:100%; padding:9px 10px; border-radius:2px; border:1px solid rgba(43,38,32,0.18);
+    background:#fffef9; font-family:'Noto Sans Thai',sans-serif; font-size:0.85rem; color:var(--ink);
+  }
+  .row2{ display:flex; gap:8px; } .row2 > .field{ flex:1; }
+  .stage{ position:relative; width:100%; aspect-ratio:1/1; margin:6px auto; }
+  svg{ width:100%; height:100%; overflow:visible; }
+  .self-label{ font-family:'Noto Serif Thai',serif; font-weight:700; font-size:12px; fill:#fffdf8; text-anchor:middle; }
+  .entity-label{ font-family:'Noto Sans Thai',sans-serif; font-weight:600; font-size:10px; fill:var(--ink); text-anchor:middle; }
+  .entity-icon{ font-size:15px; text-anchor:middle; }
+  .score-badge{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:9px; text-anchor:middle; }
+  .link{ transition: all 0.4s ease; }
+  .link.clash{ stroke-dasharray:2 2; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+  .self-summary{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .self-elem-tag{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:0.82rem; padding:5px 12px; border-radius:999px; color:#fffdf8; }
+  .missing-tags{ display:flex; gap:5px; flex-wrap:wrap; font-size:0.7rem; color:var(--ink-dim); }
+  .missing-tags span{ border:1px solid rgba(43,38,32,0.18); border-radius:999px; padding:2px 8px; }
+  .aggregate-box{ text-align:center; margin-top:10px; padding-top:12px; border-top:1px dashed rgba(43,38,32,0.15); }
+  .aggregate-score{ font-family:'JetBrains Mono',monospace; font-weight:900; font-size:2.2rem; }
+  .aggregate-bar-track{ height:9px; background:rgba(43,38,32,0.1); border-radius:5px; overflow:hidden; margin:8px 0; }
+  .aggregate-bar-fill{ height:100%; border-radius:5px; transition: width 0.6s ease; }
+  .aggregate-label{ font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.85rem; }
+  .checkbox-row{ display:flex; align-items:center; gap:6px; font-size:0.74rem; color:var(--ink-dim); margin:6px 0; }
+  button.submit-btn, button.add-entity-btn{ width:100%; padding:12px; border-radius:2px; cursor:pointer; font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.88rem; }
+  button.submit-btn{ border:none; background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color:#fffdf8; box-shadow: 0 6px 16px rgba(184,134,11,0.3); }
+  button.add-entity-btn{ border:1.5px dashed var(--gold); background:transparent; color:var(--gold); }
+  button.add-entity-btn:hover{ background:rgba(184,134,11,0.08); }
+  .detail-box{ display:none; }
+  .detail-box.show{ display:block; }
+  .detail-row{ display:flex; justify-content:space-between; font-size:0.8rem; padding:4px 0; border-bottom:1px dashed rgba(43,38,32,0.1); }
+  .detail-relation{ margin-top:8px; font-size:0.8rem; line-height:1.6; }
+  .legend{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px; font-size:0.66rem; color:var(--ink-dim); }
+  .legend span{ display:inline-flex; align-items:center; gap:4px; }
+  .dot{ width:9px; height:2px; display:inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ข่ายความสัมพันธ์ธาตุ</h1>
+  <div class="sub">Logic 20 — Multi-Entity Compatibility Graph<br>เพิ่มบ้าน รถ เพื่อนร่วมงาน หรือคนที่สนใจ เพื่อดูว่าสัมพันธ์กับธาตุของคุณอย่างไร</div>
+
+  <div class="facet-panel">
+    <div class="panel-title">🧍 ธาตุกำเนิดของคุณ (L1 · SEED)</div>
+    <div class="row2">
+      <div class="field"><label>วันเกิด</label>
+        <select id="selfDay">
+          <option value="อาทิตย์">อาทิตย์</option><option value="จันทร์" selected>จันทร์</option>
+          <option value="อังคาร">อังคาร</option><option value="พุธ">พุธ</option>
+          <option value="พฤหัสบดี">พฤหัสบดี</option><option value="ศุกร์">ศุกร์</option><option value="เสาร์">เสาร์</option>
+        </select>
+      </div>
+      <div class="field"><label>เดือนเกิด</label><select id="selfMonth"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>ปีเกิด (ค.ศ.)</label><input type="number" id="selfYear" value="1990" min="1900" max="2100"></div>
+      <div class="field"><label>ปีนักษัตร</label>
+        <select id="selfZodiac">
+          <option value="ชวด">ชวด</option><option value="ฉลู">ฉลู</option><option value="ขาล">ขาล</option>
+          <option value="เถาะ">เถาะ</option><option value="มะโรง">มะโรง</option><option value="มะเส็ง" selected>มะเส็ง</option>
+          <option value="มะเมีย">มะเมีย</option><option value="มะแม">มะแม</option><option value="วอก">วอก</option>
+          <option value="ระกา">ระกา</option><option value="จอ">จอ</option><option value="กุน">กุน</option>
+        </select>
+      </div>
+    </div>
+    <button class="submit-btn" id="calcSelfBtn">คำนวณธาตุกำเนิด</button>
+    <div class="self-summary" id="selfSummary" style="margin-top:12px;"></div>
+  </div>
+
+  <div class="stage"><svg id="graphSvg" viewBox="0 0 320 320"></svg></div>
+
+  <div class="facet-panel">
+    <div class="panel-title">📊 คะแนนรวมทั้งกราฟ</div>
+    <div class="aggregate-box">
+      <div class="aggregate-score" id="aggScore">--</div>
+      <div class="aggregate-bar-track"><div class="aggregate-bar-fill" id="aggBarFill"></div></div>
+      <div class="aggregate-label" id="aggLabel">เพิ่ม entity เพื่อดูคะแนนรวม</div>
+    </div>
+  </div>
+
+  <div class="facet-panel detail-box" id="detailBox">
+    <div class="panel-title" id="detailTitle">-</div>
+    <div class="detail-row"><span>ธาตุของ entity</span><span id="detailElement">-</span></div>
+    <div class="detail-row"><span>คะแนนดิบ</span><span id="detailRaw">-</span></div>
+    <div class="detail-row"><span>คะแนนสุดท้าย</span><span id="detailFinal">-</span></div>
+    <div class="detail-relation" id="detailRelation">-</div>
+  </div>
+
+  <div class="facet-panel">
+    <div class="panel-title">➕ เพิ่ม Entity</div>
+    <div class="row2">
+      <div class="field">
+        <select id="entityType">
+          <option value="house">🏠 บ้าน/สถานที่</option>
+          <option value="vehicle">🚗 รถ/ยานพาหนะ</option>
+          <option value="colleague">🧑‍🤝‍🧑 เพื่อนร่วมงาน</option>
+          <option value="romantic">💞 คนที่สนใจ</option>
+          <option value="company">🏢 บริษัท/องค์กร</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><input type="text" id="entityName" placeholder="ชื่อเรียก เช่น บ้านเลขที่ 47"></div>
+    <div class="field"><input type="number" id="entityNumber" placeholder="เลขอ้างอิง เช่น 47" min="0" max="999"></div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="sharedContext">
+      <label for="sharedContext" style="margin:0;">ใช้พื้นที่/บริบทเดียวกับคุณ → ขยายน้ำหนัก ×1.5</label>
+    </div>
+    <button class="add-entity-btn" id="addBtn">เพิ่มเข้ากราฟ</button>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--good)"></span>เสริมกัน</span>
+    <span><span class="dot" style="background:var(--neutral)"></span>สูบพลัง</span>
+    <span><span class="dot" style="background:var(--bad)"></span>พิฆาต</span>
+    <span><span class="dot" style="background:var(--clash)"></span>⚡ Productive Clash</span>
+  </div>
+</div>
+
+<script>
+const CYCLE = ["Wood","Fire","Earth","Metal","Water"];
+const THAI5 = {Wood:"ไม้",Fire:"ไฟ",Earth:"ดิน",Metal:"ทอง",Water:"น้ำ"};
+const THAI4 = {Fire:"ไฟ",Earth:"ดิน",Wood:"ลม",Water:"น้ำ"};
+
+const DIGIT_ELEMENT_4 = {1:"Fire",2:"Earth",3:"Wood",4:"Water",5:"Earth",6:"Water",7:"Wood",8:"Earth",9:"Fire",0:"Earth"};
+function digitReduce(n){ n=Math.abs(Math.round(n)); while(n>9) n=String(n).split('').reduce((a,d)=>a+parseInt(d),0); return n; }
+function artifactElement(numberInput){ return DIGIT_ELEMENT_4[digitReduce(numberInput||0)]; }
+
+function cycleDistance(a,b){ const ia=CYCLE.indexOf(a),ib=CYCLE.indexOf(b); return ((ib-ia)%5+5)%5; }
+function wuXingScore(userEl, objEl, missing){
+  missing = missing || [];
+  let raw, relation;
+  if(userEl===objEl){ raw=1; relation = `ธาตุเดียวกัน (${THAI5[userEl]}×${THAI5[objEl]}) — กลมกลืน`; }
+  else {
+    const d = cycleDistance(userEl, objEl);
+    if(d===1){ raw=2; relation = `${THAI5[userEl]}ให้กำเนิด${THAI5[objEl]} — ★ส่งเสริมดีที่สุด★`; }
+    else if(d===4){ raw=-1; relation = `${THAI5[objEl]}ดูดพลังจาก${THAI5[userEl]} — สูบพลัง ควรระวัง`; }
+    else if(d===2){ raw=-2; relation = `${THAI5[userEl]}พิฆาต${THAI5[objEl]} — ⚠️พิฆาต`; }
+    else { raw=-2; relation = `${THAI5[objEl]}พิฆาต${THAI5[userEl]} — ⚠️พิฆาต`; }
+  }
+  let final=raw, clash=false;
+  if(raw===-2 && missing.includes(objEl)){ final=2; clash=true; relation += " → ⚡ Productive Clash: ธาตุที่ขาดกลายเป็นยา!"; }
+  return {raw, final, clash, relation};
+}
+
+const DAY_ELEMENT = {"อังคาร":"Fire","อาทิตย์":"Fire","จันทร์":"Water","ศุกร์":"Water","พุธ":"Wood","เสาร์":"Earth"};
+const MONTH_ELEMENT = {1:"Fire",2:"Fire",3:"Fire",4:"Wood",5:"Wood",6:"Wood",7:"Water",8:"Water",9:"Water",10:"Earth",11:"Earth",12:"Earth"};
+const ZODIAC_ELEMENT = {"จอ":"Earth","ฉลู":"Earth","มะโรง":"Earth","มะแม":"Earth","วอก":"Earth","ระกา":"Earth",
+  "ชวด":"Water","กุน":"Water","ขาล":"Wood","เถาะ":"Wood","มะเส็ง":"Fire","มะเมีย":"Fire"};
+function yearEndElement(year){
+  const d = year % 10;
+  if([6,7].includes(d)) return "Fire";
+  if([8,9].includes(d)) return "Earth";
+  if([4,5].includes(d)) return "Wood";
+  if([2,3].includes(d)) return "Water";
+  return "Metal";
+}
+function calculateElementSeed(day, month, year, zodiac){
+  const scores = {Fire:0, Earth:0, Wood:0, Water:0};
+  scores[DAY_ELEMENT[day]]++;
+  scores[MONTH_ELEMENT[month]]++;
+  let ye = yearEndElement(year); if(ye==="Metal") ye="Earth";
+  scores[ye]++;
+  scores[ZODIAC_ELEMENT[zodiac]]++;
+  const dominant = Object.keys(scores).reduce((a,b)=>scores[a]>=scores[b]?a:b);
+  const missing = Object.keys(scores).filter(k=>scores[k]===0);
+  return {scores, dominant, missing};
+}
+
+const monthSel = document.getElementById('selfMonth');
+const thaiMonths = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+thaiMonths.forEach((m,i)=>{ const opt=document.createElement('option'); opt.value=i+1; opt.textContent=m; monthSel.appendChild(opt); });
+monthSel.value = 1;
+
+let selfDominant = "Fire", selfMissing = [];
+let SELF_ELEMENT_5 = "Fire";
+
+function renderSelfSummary(seed){
+  document.getElementById('selfSummary').innerHTML = `
+    <div class="self-elem-tag" style="background:${getComputedStyle(document.documentElement).getPropertyValue('--'+seed.dominant.toLowerCase())}">${THAI4[seed.dominant]} (เด่น)</div>
+    <div class="missing-tags">${seed.missing.map(e=>`<span>ขาด ${THAI4[e]}</span>`).join('')}</div>
+  `;
+}
+
+document.getElementById('calcSelfBtn').addEventListener('click', ()=>{
+  const day = document.getElementById('selfDay').value;
+  const month = parseInt(document.getElementById('selfMonth').value);
+  const year = parseInt(document.getElementById('selfYear').value);
+  const zodiac = document.getElementById('selfZodiac').value;
+  const seed = calculateElementSeed(day, month, year, zodiac);
+  selfDominant = seed.dominant; selfMissing = seed.missing; SELF_ELEMENT_5 = seed.dominant;
+  renderSelfSummary(seed);
+  render();
+  updateAggregate();
+});
+
+let entities = [];
+let idCounter = 0;
+const CX=160, CY=160, RADIUS=118;
+const ICONS = {house:"🏠", vehicle:"🚗", colleague:"🧑‍🤝‍🧑", romantic:"💞", company:"🏢"};
+
+function relationColor(res){
+  if(res.clash) return 'var(--clash)';
+  if(res.final>=1) return 'var(--good)';
+  if(res.final===-1) return 'var(--neutral)';
+  return 'var(--bad)';
+}
+
+function render(){
+  const svg = document.getElementById('graphSvg');
+  svg.innerHTML = '';
+  const ns = "http://www.w3.org/2000/svg";
+
+  const selfCircle = document.createElementNS(ns,'circle');
+  selfCircle.setAttribute('cx',CX); selfCircle.setAttribute('cy',CY); selfCircle.setAttribute('r',26);
+  selfCircle.setAttribute('fill', getComputedStyle(document.documentElement).getPropertyValue('--'+selfDominant.toLowerCase()));
+  svg.appendChild(selfCircle);
+  const selfText = document.createElementNS(ns,'text');
+  selfText.setAttribute('x',CX); selfText.setAttribute('y',CY+4);
+  selfText.setAttribute('class','self-label'); selfText.textContent = 'คุณ';
+  svg.appendChild(selfText);
+
+  const n = entities.length;
+  entities.forEach((ent, i)=>{
+    const angle = (i / Math.max(n,1)) * 2*Math.PI - Math.PI/2;
+    const ex = CX + RADIUS*Math.cos(angle), ey = CY + RADIUS*Math.sin(angle);
+    const res = wuXingScore(SELF_ELEMENT_5, ent.element, selfMissing);
+    ent._result = res;
+
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('x1',CX); line.setAttribute('y1',CY); line.setAttribute('x2',ex); line.setAttribute('y2',ey);
+    line.setAttribute('stroke', relationColor(res));
+    line.setAttribute('stroke-width', ent.shared ? 4.5 : 2.5);
+    line.setAttribute('class','link' + (res.clash?' clash':''));
+    line.style.cursor='pointer';
+    line.addEventListener('click', ()=>showDetail(ent));
+    svg.appendChild(line);
+
+    const g = document.createElementNS(ns,'g'); g.style.cursor='pointer';
+    g.addEventListener('click', ()=>showDetail(ent));
+    const nodeCircle = document.createElementNS(ns,'circle');
+    nodeCircle.setAttribute('cx',ex); nodeCircle.setAttribute('cy',ey); nodeCircle.setAttribute('r',20);
+    nodeCircle.setAttribute('fill', getComputedStyle(document.documentElement).getPropertyValue('--'+ent.element.toLowerCase()));
+    nodeCircle.setAttribute('stroke', res.clash ? 'var(--clash)' : 'rgba(43,38,32,0.3)');
+    nodeCircle.setAttribute('stroke-width', res.clash ? 2.5 : 1);
+    g.appendChild(nodeCircle);
+    const icon = document.createElementNS(ns,'text');
+    icon.setAttribute('x',ex); icon.setAttribute('y',ey+5); icon.setAttribute('class','entity-icon'); icon.textContent = ICONS[ent.type];
+    g.appendChild(icon);
+    const label = document.createElementNS(ns,'text');
+    label.setAttribute('x',ex); label.setAttribute('y', ey + (Math.sin(angle)>0 ? 34 : -28));
+    label.setAttribute('class','entity-label'); label.textContent = ent.name.length>10 ? ent.name.slice(0,9)+'…' : ent.name;
+    g.appendChild(label);
+    const badge = document.createElementNS(ns,'text');
+    badge.setAttribute('x',ex); badge.setAttribute('y',ey-26); badge.setAttribute('class','score-badge');
+    badge.setAttribute('fill', relationColor(res)); badge.textContent = (res.final>0?'+':'') + res.final;
+    g.appendChild(badge);
+    svg.appendChild(g);
+  });
+}
+
+function showDetail(ent){
+  const box = document.getElementById('detailBox'); box.classList.add('show');
+  document.getElementById('detailTitle').textContent = `${ICONS[ent.type]} ${ent.name}`;
+  document.getElementById('detailElement').textContent = THAI5[ent.element];
+  document.getElementById('detailRaw').textContent = ent._result.raw;
+  document.getElementById('detailFinal').textContent = (ent._result.final>0?'+':'') + ent._result.final;
+  document.getElementById('detailRelation').textContent = ent._result.relation;
+}
+
+function updateAggregate(){
+  const scoreEl = document.getElementById('aggScore');
+  const fill = document.getElementById('aggBarFill');
+  const label = document.getElementById('aggLabel');
+  if(entities.length === 0){
+    scoreEl.textContent = '--'; fill.style.width = '0%'; label.textContent = 'เพิ่ม entity เพื่อดูคะแนนรวม';
+    return;
+  }
+  let totalWeighted = 0, totalWeight = 0;
+  entities.forEach(ent=>{
+    const res = wuXingScore(SELF_ELEMENT_5, ent.element, selfMissing);
+    const weight = ent.shared ? 1.5 : 1.0;
+    totalWeighted += res.final * weight;
+    totalWeight += weight * 2;
+  });
+  const pct = Math.round(((totalWeighted / totalWeight) + 1) / 2 * 100);
+  const clamped = Math.max(0, Math.min(100, pct));
+  scoreEl.textContent = clamped + ' / 100';
+  scoreEl.style.color = clamped>=65 ? 'var(--good)' : clamped<=35 ? 'var(--bad)' : 'var(--gold)';
+  fill.style.width = clamped + '%';
+  fill.style.background = clamped>=65 ? 'var(--good)' : clamped<=35 ? 'var(--bad)' : 'var(--gold)';
+  label.textContent = clamped>=65 ? 'ภาพรวมกลมกลืนดี' : clamped<=35 ? 'ภาพรวมมีความตึงเครียด ควรดูรายจุด' : 'ภาพรวมปานกลาง';
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const type = document.getElementById('entityType').value;
+  const nameInput = document.getElementById('entityName').value.trim();
+  const numberInput = parseFloat(document.getElementById('entityNumber').value);
+  const shared = document.getElementById('sharedContext').checked;
+  if(!nameInput || isNaN(numberInput)) { alert('กรอกชื่อและเลขอ้างอิงก่อนนะครับ'); return; }
+  const element = artifactElement(numberInput);
+  entities.push({ id: idCounter++, name: nameInput, type, element, shared });
+  document.getElementById('entityName').value=''; document.getElementById('entityNumber').value='';
+  document.getElementById('sharedContext').checked=false;
+  render(); updateAggregate();
+});
+
+document.getElementById('calcSelfBtn').click();
+entities.push({id:idCounter++, name:'บ้านเลขที่ 47', type:'house', element: artifactElement(47), shared:true});
+entities.push({id:idCounter++, name:'รถทะเบียน กข-82', type:'vehicle', element: artifactElement(82), shared:false});
+render();
+updateAggregate();
+</script>
+</body>
+</html>

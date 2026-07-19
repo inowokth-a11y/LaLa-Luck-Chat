@@ -1,0 +1,474 @@
+{
+  "element_seed_test1": {
+    "scores": {
+      "Fire": 3,
+      "Earth": 0,
+      "Wood": 1,
+      "Water": 0
+    },
+    "scores_th": {
+      "ไฟ": 3,
+      "ดิน": 0,
+      "ลม": 1,
+      "น้ำ": 0
+    },
+    "dominant": "Fire",
+    "dominant_th": "ไฟ",
+    "missing": [
+      "Earth",
+      "Water"
+    ],
+    "missing_th": [
+      "ดิน",
+      "น้ำ"
+    ],
+    "sources_used": [
+      [
+        "day_of_week",
+        "อังคาร",
+        "Fire"
+      ],
+      [
+        "birth_month",
+        2,
+        "Fire"
+      ],
+      [
+        "year_end_digit",
+        1986,
+        "Fire -> folded Fire"
+      ],
+      [
+        "zodiac_year",
+        "ขาล",
+        "Wood"
+      ],
+      [
+        "name_kangxi",
+        "NOT PROVIDED",
+        "skipped — needs Unihan Parser integration"
+      ]
+    ]
+  },
+  "element_seed_name_wood": {
+    "scores": {
+      "Fire": 1,
+      "Earth": 2,
+      "Wood": 2,
+      "Water": 0
+    },
+    "scores_th": {
+      "ไฟ": 1,
+      "ดิน": 2,
+      "ลม": 2,
+      "น้ำ": 0
+    },
+    "dominant": "Earth",
+    "dominant_th": "ดิน",
+    "missing": [
+      "Water"
+    ],
+    "missing_th": [
+      "น้ำ"
+    ],
+    "sources_used": [
+      [
+        "day_of_week",
+        "พุธ",
+        "Earth"
+      ],
+      [
+        "birth_month",
+        5,
+        "Wood"
+      ],
+      [
+        "year_end_digit",
+        1990,
+        "Metal -> folded Earth"
+      ],
+      [
+        "zodiac_year",
+        "มะเมีย",
+        "Fire"
+      ],
+      [
+        "name_kangxi",
+        "70% Wood",
+        "Wood"
+      ]
+    ]
+  },
+  "day_element_table": {
+    "อังคาร": "Fire",
+    "อาทิตย์": "Fire",
+    "จันทร์": "Water",
+    "ศุกร์": "Water",
+    "พุธ": "Earth",
+    "เสาร์": "Earth",
+    "พฤหัสบดี": "Wood"
+  },
+  "element_seed_thursday": {
+    "scores": {
+      "Fire": 1,
+      "Earth": 1,
+      "Wood": 1,
+      "Water": 1
+    },
+    "scores_th": {
+      "ไฟ": 1,
+      "ดิน": 1,
+      "ลม": 1,
+      "น้ำ": 1
+    },
+    "dominant": "Fire",
+    "dominant_th": "ไฟ",
+    "missing": [],
+    "missing_th": [],
+    "sources_used": [
+      [
+        "day_of_week",
+        "พฤหัสบดี",
+        "Wood"
+      ],
+      [
+        "birth_month",
+        7,
+        "Water"
+      ],
+      [
+        "year_end_digit",
+        1978,
+        "Earth -> folded Earth"
+      ],
+      [
+        "zodiac_year",
+        "มะเมีย",
+        "Fire"
+      ],
+      [
+        "name_kangxi",
+        "NOT PROVIDED",
+        "skipped — needs Unihan Parser integration"
+      ]
+    ]
+  },
+  "element_seed_wednesday": {
+    "scores": {
+      "Fire": 1,
+      "Earth": 2,
+      "Wood": 0,
+      "Water": 1
+    },
+    "scores_th": {
+      "ไฟ": 1,
+      "ดิน": 2,
+      "ลม": 0,
+      "น้ำ": 1
+    },
+    "dominant": "Earth",
+    "dominant_th": "ดิน",
+    "missing": [
+      "Wood"
+    ],
+    "missing_th": [
+      "ลม"
+    ],
+    "sources_used": [
+      [
+        "day_of_week",
+        "พุธ",
+        "Earth"
+      ],
+      [
+        "birth_month",
+        7,
+        "Water"
+      ],
+      [
+        "year_end_digit",
+        1978,
+        "Earth -> folded Earth"
+      ],
+      [
+        "zodiac_year",
+        "มะเมีย",
+        "Fire"
+      ],
+      [
+        "name_kangxi",
+        "NOT PROVIDED",
+        "skipped — needs Unihan Parser integration"
+      ]
+    ]
+  },
+  "lichun_days": {
+    "1970": 4,
+    "1986": 4,
+    "1992": 5,
+    "1996": 5,
+    "2004": 4,
+    "2026": 4
+  },
+  "cn_jan_1986": "Wood",
+  "cn_jan_1970": "Earth",
+  "cn_feb_after": "Wood",
+  "cn_feb_before": "Metal",
+  "cn_no_month_1986": "Fire",
+  "element_seed_jan_birth": {
+    "scores": {
+      "Fire": 1,
+      "Earth": 0,
+      "Wood": 2,
+      "Water": 1
+    },
+    "scores_th": {
+      "ไฟ": 1,
+      "ดิน": 0,
+      "ลม": 2,
+      "น้ำ": 1
+    },
+    "dominant": "Wood",
+    "dominant_th": "ลม",
+    "missing": [
+      "Earth"
+    ],
+    "missing_th": [
+      "ดิน"
+    ],
+    "sources_used": [
+      [
+        "day_of_week",
+        "จันทร์",
+        "Water"
+      ],
+      [
+        "birth_month",
+        1,
+        "Fire"
+      ],
+      [
+        "year_end_digit",
+        1986,
+        "Wood -> folded Wood"
+      ],
+      [
+        "zodiac_year",
+        "ขาล",
+        "Wood"
+      ],
+      [
+        "name_kangxi",
+        "NOT PROVIDED",
+        "skipped — needs Unihan Parser integration"
+      ]
+    ]
+  },
+  "wuxing_overcome_water": {
+    "user_element": "Fire",
+    "object_element": "Water",
+    "raw_score": -2,
+    "final_score": -2,
+    "productive_clash": false,
+    "relation_th": "น้ำ พิฆาต ไฟ ย้อนกลับ (⚠️พิฆาต)"
+  },
+  "wuxing_productive_clash": {
+    "user_element": "Fire",
+    "object_element": "Water",
+    "raw_score": -2,
+    "final_score": 2,
+    "productive_clash": true,
+    "relation_th": "น้ำ พิฆาต ไฟ ย้อนกลับ (⚠️พิฆาต) → ⚡ Productive Clash: ธาตุที่ขาดกลายเป็นยา แทนที่จะเป็นพิษ!"
+  },
+  "wuxing_generate": {
+    "user_element": "Wood",
+    "object_element": "Fire",
+    "raw_score": 2,
+    "final_score": 2,
+    "productive_clash": false,
+    "relation_th": "ไม้ ให้กำเนิด ไฟ (★ส่งเสริมดีที่สุด★)"
+  },
+  "wuxing_same": {
+    "user_element": "Fire",
+    "object_element": "Fire",
+    "raw_score": 1,
+    "final_score": 1,
+    "productive_clash": false,
+    "relation_th": "ธาตุเดียวกัน (กลมกลืน)"
+  },
+  "wuxing_drain": {
+    "user_element": "Fire",
+    "object_element": "Wood",
+    "raw_score": -1,
+    "final_score": -1,
+    "productive_clash": false,
+    "relation_th": "ไม้ ดูดพลังจาก ไฟ (สูบพลัง ควรระวัง)"
+  },
+  "wuxing_overcome_metal": {
+    "user_element": "Fire",
+    "object_element": "Metal",
+    "raw_score": -2,
+    "final_score": -2,
+    "productive_clash": false,
+    "relation_th": "ไฟ พิฆาต ทอง (⚠️พิฆาต)"
+  },
+  "friction_fire_lowE_highN": 4.5,
+  "friction_fire_midE_midN": 2.5,
+  "friction_earth_lowE": 0,
+  "friction_wind_high": 2.5,
+  "friction_wind_low_pdcr": 0.0,
+  "normalize_3_5": 1.8,
+  "normalize_zero_max": 1.5,
+  "calc_deviation_test6": [
+    {
+      "dimension": "Earth",
+      "expected": 1.2,
+      "actual": 0.3,
+      "gap": -0.9,
+      "meaning": "Earth: ต่ำกว่าที่คาด"
+    },
+    {
+      "dimension": "Wood",
+      "expected": 0.0,
+      "actual": 0.9,
+      "gap": 0.9,
+      "meaning": "Wood: สูงกว่าที่คาด"
+    }
+  ],
+  "personal_year_15_8_2026": 6,
+  "personal_year_guidance_6": {
+    "personal_year_number": 6,
+    "theme": "ความรักและครอบครัว",
+    "prediction_overview": "ปีแห่งความรับผิดชอบต่อครอบครัว บ้าน และความรัก เป็นช่วงเวลาของการดูแลใส่ใจคนใกล้ชิด",
+    "caution": "ภาระหนี้สินในครอบครัว หรือปัญหาจุกจิกกวนใจของญาติพี่น้อง",
+    "opportunity": "ความรักสุกงอม การแต่งงาน การมีสมาชิกใหม่ หรือการปรับปรุงบ้านให้น่าอยู่",
+    "action_advice": "ดูแลคนใกล้ชิด ตกแต่งบ้านให้สวยงาม และใส่ใจความรู้สึกคนรอบข้างให้มาก"
+  },
+  "personal_year_guidance_missing": {
+    "error": "ไม่พบข้อมูลปีจร 99 ในตาราง (มีแค่ 1-9, 11, 22, 33)"
+  },
+  "ttm_remedy_water_wood": {
+    "น้ำ": {
+      "taste": "เค็ม อ่อน",
+      "food": [
+        "น้ำมะพร้าว",
+        "บัวบก",
+        "แตงกวา",
+        "ซุปใส"
+      ],
+      "activity": [
+        "ว่ายน้ำ",
+        "สมาธิ"
+      ],
+      "color": [
+        "ฟ้า",
+        "น้ำเงิน",
+        "ดำ"
+      ],
+      "wellness_practice": {
+        "internal": {
+          "name": "Bhramari (หายใจผึ้ง)",
+          "tradition": "โยคะ/Pranayama",
+          "how_to": "หายใจเข้าลึกๆ หายใจออกพร้อมทำเสียงฮัมต่อเนื่อง ทำ 5-10 รอบ",
+          "research": "ลด cortisol, calming (เชื่อมกับ Nivethitha et al. 2017)"
+        },
+        "external": {
+          "name": "เดินเบาๆในธรรมชาติ / ฟังเพลงบรรเลงสงบ",
+          "category": "nature/music",
+          "how_to": "เดินช้าๆ 15-20 นาทีในที่มีต้นไม้ หรือฟังเพลงบรรเลงแบบตั้งใจฟัง (ไม่ใช่เปิดคลอ)",
+          "research": "Bratman/Stanford — เดินธรรมชาติลดการทำงาน subgenual PFC (จุดคิดวนซ้ำ)"
+        },
+        "combo_routine": "ก่อนนอน: Bhramari 5 รอบบนเตียง แล้วฟังเพลงบรรเลงเบาๆ 10 นาทีก่อนหลับ",
+        "best_time": "ก่อนนอน",
+        "time_reason": "งานวิจัยชัดเจนว่ากิจกรรมสงบก่อนนอนช่วยการนอนหลับ ต่างจากออกกำลังกายหนักที่รบกวนการนอน",
+        "element": "Water",
+        "caveat": "หมายเหตุสำคัญ: กิจกรรมเหล่านี้เป็นกิจกรรมสุขภาวะทั่วไปที่ 'เหมาะกับพลังงาน/บุคลิกภาพ' แบบหนึ่งๆ ไม่ใช่การรักษาหรือแก้ปัญหาสุขภาพจิตใดๆ หากมีอาการที่กังวล ควรปรึกษาผู้เชี่ยวชาญโดยตรง"
+      }
+    },
+    "ลม": {
+      "taste": "เปรี้ยว",
+      "food": [
+        "มะนาว",
+        "ส้ม",
+        "ผักสด",
+        "สับปะรด"
+      ],
+      "activity": [
+        "ท่องเที่ยว",
+        "ปั่นจักรยาน"
+      ],
+      "color": [
+        "เขียว",
+        "ฟ้าอ่อน",
+        "ขาว"
+      ],
+      "wellness_practice": {
+        "internal": {
+          "name": "เมตตาภาวนา (Loving-Kindness Meditation)",
+          "tradition": "พุทธ",
+          "how_to": "นั่งสบายๆ ระลึกความรู้สึกดีต่อตนเอง แล้วขยายไปยังคนใกล้ตัว 10-15 นาที",
+          "research": "Lutz et al. 2008, PNAS — กระตุ้น insula + ACC"
+        },
+        "external": {
+          "name": "วาดภาพ/เขียนสร้างสรรค์ หรือเล่นดนตรี (ไม่ใช่แค่ฟัง)",
+          "category": "art/music",
+          "how_to": "ให้เวลา 20-30 นาทีทำงานสร้างสรรค์แบบไม่มีเป้าหมายตายตัว ปล่อยให้ไหลไปเรื่อยๆ",
+          "research": "Music therapy meta-analysis 2022 — ผลบวกต่อ stress-related outcomes"
+        },
+        "combo_routine": "กลางวัน: เมตตาภาวนาสั้นๆ 5 นาที แล้วต่อด้วยกิจกรรมสร้างสรรค์อิสระ 20 นาที ไม่ตั้งเป้าผลงาน",
+        "best_time": "กลางวัน",
+        "time_reason": "ธาตุไม้เชื่อมกับการเติบโต/ขยาย เหมาะกับช่วงที่พลังงานกำลังขึ้น ไม่ใช่ต้นหรือปลายวัน",
+        "element": "Wood",
+        "caveat": "หมายเหตุสำคัญ: กิจกรรมเหล่านี้เป็นกิจกรรมสุขภาวะทั่วไปที่ 'เหมาะกับพลังงาน/บุคลิกภาพ' แบบหนึ่งๆ ไม่ใช่การรักษาหรือแก้ปัญหาสุขภาพจิตใดๆ หากมีอาการที่กังวล ควรปรึกษาผู้เชี่ยวชาญโดยตรง"
+      }
+    }
+  },
+  "ttm_remedy_fire": {
+    "ไฟ": {
+      "taste": "เผ็ด ร้อน",
+      "food": [
+        "ขิง",
+        "พริกไทย",
+        "กระเทียม",
+        "ต้มยำ"
+      ],
+      "activity": [
+        "วิ่ง",
+        "เต้น"
+      ],
+      "color": [
+        "แดง",
+        "ส้ม",
+        "เหลือง"
+      ],
+      "wellness_practice": {
+        "internal": {
+          "name": "Kapalabhati (ลมไฟ)",
+          "tradition": "โยคะ/Pranayama",
+          "how_to": "หายใจออกแรงๆ เร็วๆ ทางจมูก ปล่อยให้หายใจเข้าเป็นไปเอง ทำต่อเนื่อง 20-30 ครั้งต่อรอบ",
+          "research": "Nivethitha et al. 2017, Ancient Science of Life"
+        },
+        "external": {
+          "name": "วิ่ง หรือ ปีนเขา/hiking ระดับหนัก",
+          "category": "movement",
+          "how_to": "เคลื่อนไหวต่อเนื่อง 20-30 นาที ให้หัวใจเต้นเร็วขึ้นชัดเจน",
+          "research": "Niedermeier et al. — hiking 30 นาที ลดฮอร์โมนความเครียดได้ถึง 28%"
+        },
+        "combo_routine": "ตอนเช้า: Kapalabhati 5 นาทีก่อนออกจากบ้าน แล้วตามด้วยวิ่ง/เดินเร็ว 20 นาที — ใช้จังหวะหายใจที่กระตุ้นแล้วต่อด้วยการเคลื่อนไหวจริง",
+        "best_time": "เช้า",
+        "time_reason": "ออกกำลังกายตอนเช้าช่วย advance circadian phase และลดคอร์ติซอลตอนตื่นในระยะยาว (PMC systematic review)",
+        "element": "Fire",
+        "caveat": "หมายเหตุสำคัญ: กิจกรรมเหล่านี้เป็นกิจกรรมสุขภาวะทั่วไปที่ 'เหมาะกับพลังงาน/บุคลิกภาพ' แบบหนึ่งๆ ไม่ใช่การรักษาหรือแก้ปัญหาสุขภาพจิตใดๆ หากมีอาการที่กังวล ควรปรึกษาผู้เชี่ยวชาญโดยตรง"
+      }
+    }
+  },
+  "safety_gate_safe": null,
+  "safety_gate_crisis": {
+    "intercepted": true,
+    "matched_keywords": [
+      "อยากตาย",
+      "ทนไม่ไหว"
+    ],
+    "crisis_resource_message": "หากคุณกำลังรู้สึกทุกข์ใจมากๆ หรือมีความคิดทำร้ายตัวเอง อยากให้คุณลองติดต่อ สายด่วนสุขภาพจิต 1323 (โทรฟรี ตลอด 24 ชม.) หรือสมาคมสะมาริตันส์แห่งประเทศไทย 02-713-6791 นะคะ มีคนพร้อมรับฟังคุณอยู่เสมอ 💛 อาจารย์ลาลาขอหยุดการทำนายไว้ก่อน เพราะอยากให้คุณได้รับความช่วยเหลือที่เหมาะสมกว่านี้"
+  }
+}

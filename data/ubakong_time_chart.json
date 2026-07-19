@@ -1,0 +1,317 @@
+[
+  {
+    "day_of_week": "อาทิตย์",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "อาทิตย์",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "อาทิตย์",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  },
+  {
+    "day_of_week": "อาทิตย์",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "อาทิตย์",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "จันทร์",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  },
+  {
+    "day_of_week": "จันทร์",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "จันทร์",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "จันทร์",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "จันทร์",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "อังคาร",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "อังคาร",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "อังคาร",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "อังคาร",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "อังคาร",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  },
+  {
+    "day_of_week": "พุธ",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "พุธ",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "พุธ",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "พุธ",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  },
+  {
+    "day_of_week": "พุธ",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "พฤหัสบดี",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "พฤหัสบดี",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "พฤหัสบดี",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  },
+  {
+    "day_of_week": "พฤหัสบดี",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "พฤหัสบดี",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "ศุกร์",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  },
+  {
+    "day_of_week": "ศุกร์",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "ศุกร์",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "ศุกร์",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "ศุกร์",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "เสาร์",
+    "time_start": "06:01:00",
+    "time_end": "08:24:00",
+    "yam_name": "ยามสี่",
+    "meaning": "โชคดี ปลอดภัย ราบรื่น",
+    "prediction_status": "ดี",
+    "score": 4
+  },
+  {
+    "day_of_week": "เสาร์",
+    "time_start": "08:25:00",
+    "time_end": "10:48:00",
+    "yam_name": "ยามกากบาท",
+    "meaning": "มีอุปสรรค ติดขัด ไม่ควรทำการใหญ่",
+    "prediction_status": "ร้าย",
+    "score": -1
+  },
+  {
+    "day_of_week": "เสาร์",
+    "time_start": "10:49:00",
+    "time_end": "13:12:00",
+    "yam_name": "ยามศูนย์",
+    "meaning": "สูญเสีย ของหาย ไม่เป็นมงคล",
+    "prediction_status": "ร้าย",
+    "score": 0
+  },
+  {
+    "day_of_week": "เสาร์",
+    "time_start": "13:13:00",
+    "time_end": "15:36:00",
+    "yam_name": "ยามหนึ่ง",
+    "meaning": "เริ่มต้นดี มีลาภ มีคนอุปถัมภ์",
+    "prediction_status": "ดี",
+    "score": 1
+  },
+  {
+    "day_of_week": "เสาร์",
+    "time_start": "15:37:00",
+    "time_end": "18:00:00",
+    "yam_name": "ยามสอง",
+    "meaning": "มีความสุข ความสำเร็จ สมหวัง",
+    "prediction_status": "ดีมาก",
+    "score": 2
+  }
+]

@@ -1,0 +1,18 @@
+# Dependencies / build
+node_modules/
+.next/
+out/
+
+# Env
+.env
+.env.local
+
+# ⚠️ SENSITIVE — real user data (69-90 people) incl. clinical fields
+# (doctor_name, medication_recommendations, clinical_opinion, etc.)
+# ห้าม commit เข้า git repo เด็ดขาด — เก็บไว้ local เพื่อ Friction Score
+# validation อ้างอิงเท่านั้น ดู CLAUDE.md §5
+data/sensitive/
+
+# macOS / build artifacts
+.DS_Store
+*.tsbuildinfo

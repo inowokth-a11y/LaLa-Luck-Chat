@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กรอกข้อมูลพลังงาน</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@600;700;900&family=Noto+Sans+Thai:wght@400;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  :root{
+    --marble-bg: #f4f0e6;
+    --marble-vein: #e2d8c3;
+    --gold: #b8860b;
+    --gold-bright: #d4a72c;
+    --ink: #2b2620;
+    --ink-dim: #6b6255;
+    --card-bg: #fffdf8;
+    --wood:#2f5c42; --fire:#a83a1e; --earth:#a97c1f; --metal:#6f6a5e; --water:#1f4d63;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,0.5), transparent 40%),
+      radial-gradient(ellipse at 80% 90%, rgba(216,196,150,0.35), transparent 45%),
+      linear-gradient(160deg, var(--marble-bg) 0%, var(--marble-vein) 55%, var(--marble-bg) 100%);
+    background-attachment:fixed;
+    color:var(--ink); font-family:'Noto Sans Thai',sans-serif; min-height:100vh;
+  }
+  /* subtle marble vein lines */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; opacity:0.5; z-index:0;
+    background-image:
+      linear-gradient(105deg, transparent 40%, rgba(184,134,11,0.05) 41%, transparent 43%),
+      linear-gradient(70deg, transparent 60%, rgba(184,134,11,0.04) 61%, transparent 63%),
+      linear-gradient(15deg, transparent 25%, rgba(255,255,255,0.4) 26%, transparent 28%);
+  }
+
+  .wrap{ max-width:480px; margin:0 auto; padding:26px 16px 50px; position:relative; z-index:1; }
+
+  h1{
+    font-family:'Noto Serif Thai',serif; font-weight:900; font-size:1.5rem; text-align:center;
+    color:var(--ink); margin:4px 0 4px; letter-spacing:0.01em;
+  }
+  .sub{ text-align:center; color:var(--ink-dim); font-size:0.8rem; margin-bottom:22px; line-height:1.7; }
+
+  /* faceted gold-edged panel — approximates the low-poly card art border language */
+  .facet-panel{
+    position:relative;
+    background: var(--card-bg);
+    clip-path: polygon(
+      18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px
+    );
+    padding: 22px 20px 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 24px rgba(80,60,20,0.10), 0 1px 0 rgba(255,255,255,0.8) inset;
+  }
+  .facet-panel::before{
+    content:"";
+    position:absolute; inset:0;
+    clip-path: polygon(
+      18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px
+    );
+    padding:2px;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold) 40%, #e8d18a 60%, var(--gold-bright));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events:none;
+  }
+
+  .section-eyebrow{
+    display:flex; align-items:center; gap:8px; margin-bottom:14px;
+  }
+  .section-eyebrow .dot{ width:9px; height:9px; border-radius:1px; transform:rotate(45deg); background:var(--gold); }
+  .section-eyebrow h2{
+    font-family:'Noto Serif Thai',serif; font-weight:700; font-size:1.02rem; margin:0; color:var(--ink);
+  }
+  .section-eyebrow .tag{
+    font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--gold); letter-spacing:0.06em;
+    border:1px solid var(--gold); border-radius:3px; padding:2px 6px; margin-left:auto;
+  }
+  .section-note{ font-size:0.74rem; color:var(--ink-dim); margin:-8px 0 14px; line-height:1.6; }
+
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block; font-size:0.76rem; font-weight:600; color:var(--ink-dim); margin-bottom:5px;
+  }
+  .field input, .field select{
+    width:100%; padding:11px 12px; border-radius:2px;
+    border:1px solid rgba(43,38,32,0.18); background:#fffef9;
+    font-family:'Noto Sans Thai',sans-serif; font-size:0.9rem; color:var(--ink);
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,134,11,0.12); }
+  .field .mono{ font-family:'JetBrains Mono',monospace; }
+  .row2{ display:flex; gap:10px; }
+  .row2 > .field{ flex:1; }
+
+  .entity-item{
+    display:flex; gap:8px; align-items:flex-end; margin-bottom:10px;
+    padding:10px; background:rgba(184,134,11,0.05); border-radius:2px;
+    border-left:3px solid var(--gold);
+  }
+  .entity-item .field{ margin-bottom:0; flex:1; }
+  .entity-item select{ flex:0 0 118px; }
+  .remove-btn{
+    flex:0 0 auto; background:none; border:1px solid rgba(43,38,32,0.2); border-radius:50%;
+    width:30px; height:30px; color:var(--ink-dim); cursor:pointer; font-size:0.9rem; line-height:1;
+  }
+  .remove-btn:hover{ border-color:#a83a1e; color:#a83a1e; }
+
+  .add-entity-btn{
+    width:100%; padding:10px; border-radius:2px; border:1.5px dashed var(--gold);
+    background:transparent; color:var(--gold); font-family:'Noto Serif Thai',serif; font-weight:700;
+    font-size:0.85rem; cursor:pointer;
+  }
+  .add-entity-btn:hover{ background:rgba(184,134,11,0.08); }
+
+  .submit-btn{
+    width:100%; padding:16px; margin-top:6px; border:none; border-radius:2px; cursor:pointer;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    color:#fffdf8; font-family:'Noto Serif Thai',serif; font-weight:900; font-size:1.02rem;
+    letter-spacing:0.02em;
+    box-shadow: 0 6px 16px rgba(184,134,11,0.35);
+  }
+  .submit-btn:active{ transform:scale(0.98); }
+  .submit-btn:disabled{ opacity:0.5; }
+
+  /* ---- Result reveal ---- */
+  #resultSection{ display:none; }
+  #resultSection.show{ display:block; animation: fadeUp 0.5s ease; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+
+  .result-card{ text-align:center; }
+  .result-card img{
+    width:200px; height:200px; object-fit:cover; border-radius:2px; margin:6px auto 14px;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    box-shadow: 0 10px 26px rgba(80,60,20,0.25);
+    display:block;
+  }
+  .result-id{
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.6rem; color:var(--gold);
+  }
+  .result-name{ font-family:'Noto Serif Thai',serif; font-weight:900; font-size:1.15rem; margin:2px 0 10px; }
+  .result-figure{
+    display:inline-block; font-size:0.8rem; color:var(--ink-dim); margin-bottom:12px;
+    border-top:1px dashed var(--gold); border-bottom:1px dashed var(--gold); padding:6px 14px;
+  }
+  .result-essence{ font-size:0.88rem; line-height:1.8; color:var(--ink); text-align:left; }
+
+  .next-phase-note{
+    font-size:0.72rem; color:var(--ink-dim); text-align:center; margin-top:18px; line-height:1.7;
+    border-top:1px solid rgba(43,38,32,0.1); padding-top:14px;
+  }
+
+  .pdcr-bars{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .pdcr-bar-row{ display:flex; align-items:center; gap:8px; font-size:0.74rem; }
+  .pdcr-bar-label{ width:38px; flex-shrink:0; color:var(--ink-dim); }
+  .pdcr-bar-track{ flex:1; height:8px; background:rgba(43,38,32,0.08); border-radius:2px; overflow:hidden; }
+  .pdcr-bar-fill{ height:100%; border-radius:2px; }
+  .pdcr-bar-val{ width:20px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:0.7rem; }
+
+  .track-compare{ margin-top:18px; padding-top:16px; border-top:1px dashed rgba(43,38,32,0.15); }
+  .track-compare h4{ font-family:'Noto Serif Thai',serif; font-size:0.88rem; margin:0 0 10px; text-align:center; }
+  .track-note{ font-size:0.72rem; color:var(--ink-dim); text-align:center; margin-top:8px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>กรอกข้อมูลพลังงาน</h1>
+  <div class="sub">ข้อมูลของคุณ (L1) และวัตถุที่เกี่ยวข้อง (L2)<br>เพื่อคำนวณพลังงานและความสอดคล้อง</div>
+
+  <form id="intakeForm">
+    <div class="facet-panel" id="bridgePanel">
+      <div class="section-eyebrow">
+        <span class="dot"></span>
+        <h2>เคยทำแบบทดสอบ DEMM แล้วหรือไม่?</h2>
+        <span class="tag">BRIDGE</span>
+      </div>
+      <div class="section-note">ถ้าเคยทำแล้ว กรอกรหัสผู้ใช้เพื่อดึงข้อมูลเดิมมาใช้แทนการกรอกใหม่</div>
+      <div class="row2">
+        <div class="field" style="flex:2;"><label>รหัสผู้ใช้ (User ID)</label><input type="text" id="bridgeUserId" class="mono" placeholder="เช่น DEM-DZHBIAFAZGGGANONA"></div>
+      </div>
+      <button type="button" class="add-entity-btn" id="bridgeCheckBtn" style="border-style:solid;">🔗 ตรวจสอบข้อมูลเดิม</button>
+      <div id="bridgeResult" style="display:none; margin-top:14px; padding:12px; background:rgba(184,134,11,0.07); border-left:3px solid var(--gold);">
+        <div style="font-family:'Noto Serif Thai',serif; font-weight:700; font-size:0.9rem; margin-bottom:6px;">✅ พบข้อมูลเดิม — ดึงมาใช้แทน Mini Assessment แล้ว</div>
+        <div id="bridgeDetail" style="font-size:0.8rem; line-height:1.8;"></div>
+      </div>
+      <div id="bridgeNotFound" style="display:none; margin-top:10px; font-size:0.78rem; color:var(--ink-dim);">
+        ไม่พบข้อมูลเดิมสำหรับรหัสนี้ — กรุณากรอกข้อมูลด้านล่างตามปกติ
+      </div>
+    </div>
+
+    <div class="facet-panel">
+      <div class="section-eyebrow">
+        <span class="dot"></span>
+        <h2>ตัวคุณ</h2>
+        <span class="tag">L1 · SEED</span>
+      </div>
+      <div class="section-note">แก้ไขไม่ได้ — พื้นดวงกำเนิดของคุณ</div>
+
+      <div class="row2">
+        <div class="field"><label>ชื่อ</label><input type="text" id="firstName" required></div>
+        <div class="field"><label>นามสกุล</label><input type="text" id="lastName" required></div>
+      </div>
+      <div class="field"><label>วันเกิด</label><input type="date" id="birthDate" class="mono" required></div>
+      <div class="field"><label>เวลาเกิด (ถ้าทราบ)</label><input type="time" id="birthTime" class="mono"></div>
+      <div class="field">
+        <label>จังหวัดเกิด (ใช้คำนวณลัคนา)</label>
+        <select id="birthProvince">
+          <option value="bangkok" selected>กรุงเทพมหานคร</option>
+          <option value="chiangmai">เชียงใหม่</option>
+          <option value="khonkaen">ขอนแก่น</option>
+          <option value="nakhonratchasima">นครราชสีมา</option>
+          <option value="ubonratchathani">อุบลราชธานี</option>
+          <option value="phuket">ภูเก็ต</option>
+          <option value="songkhla">สงขลา</option>
+          <option value="chonburi">ชลบุรี</option>
+          <option value="nakhonsithammarat">นครศรีธรรมราช</option>
+          <option value="udonthani">อุดรธานี</option>
+          <option value="other">อื่นๆ (ใช้พิกัดกรุงเทพฯ โดยประมาณ)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="facet-panel">
+      <div class="section-eyebrow">
+        <span class="dot"></span>
+        <h2>สิ่งที่เกี่ยวข้อง</h2>
+        <span class="tag">L2 · SOIL</span>
+      </div>
+      <div class="section-note">เลือกเพิ่มได้ — บ้านเลขที่ เบอร์โทร ทะเบียนรถ ฯลฯ (ไม่บังคับ)</div>
+
+      <div id="entityList"></div>
+      <button type="button" class="add-entity-btn" id="addEntityBtn">➕ เพิ่มรายการ</button>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">🔮 คำนวณพลังงาน</button>
+  </form>
+
+  <div class="facet-panel" id="resultSection">
+    <div class="section-eyebrow">
+      <span class="dot"></span>
+      <h2>การ์ดพลังงานของคุณ</h2>
+      <span class="tag">ผลลัพธ์</span>
+    </div>
+    <div class="result-card">
+      <img id="resultImg" src="" alt="">
+      <div class="result-id" id="resultId">--</div>
+      <div class="result-name" id="resultName">-</div>
+      <div class="result-figure" id="resultFigure">-</div>
+      <div class="result-essence" id="resultEssence">-</div>
+      <div class="track-compare" id="trackCompare" style="display:none;">
+        <h4>🌉 เทียบกับข้อมูล Bridge (Track B — pDCR จาก Big Five)</h4>
+        <div class="pdcr-bars" id="bridgePdcrBars"></div>
+        <div class="track-note">การ์ด (Track A, ด้านบน) คือเรื่องราว/archetype จากตัวเลข — pDCR (Track B) คือธาตุไทย 4 ธาตุที่อนุมานจากบุคลิกภาพปัจจุบัน เป็นคนละระบบ แสดงคู่กันไว้เพื่อให้เห็นภาพรวม ไม่ใช่ค่าเดียวกัน</div>
+        <div id="frictionNote" style="display:none; margin-top:12px; padding:10px 12px; background:rgba(184,134,11,0.06); border-radius:2px; font-size:0.8rem; line-height:1.7; text-align:left;"></div>
+      </div>
+    </div>
+    <div class="next-phase-note">
+      เฟสถัดไป: การ์ดของแต่ละ L2 item แยกทีละใบ · การ์ดพลังงานภาพรวม ·
+      กราฟเปรียบเทียบ L1↔L2 · แชตบอทถามเพิ่มเติม — ยังไม่รวมอยู่ในหน้านี้
+    </div>
+  </div>
+</div>
+
+<script>
+const CARDS = [{"id": "00", "name": "🧘‍♂️ ผู้ปลีกวิเวก (The Secluded One)", "essence": "ผู้ที่ค้นพบความแข็งแกร่งและปัญญาผ่านการแยกตัวออกจากโลกภายนอก เพื่อสำรวจจักรวาลภายในตนเอง", "figure": "ฤษี", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/00.jpg"}, {"id": "01", "name": "🎖️ วีรบุรุษผู้ถูกลืม (The Unsung Hero)", "essence": "ผู้นำที่เปี่ยมด้วยความสามารถและสร้างผลงานที่โดดเด่น แต่กลับไม่ได้รับการยอมรับหรือเครดิตที่คู่ควร", "figure": "นิโคลา เทสลา", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/01.jpg"}, {"id": "02", "name": "💔 คนใจอ่อน (The Soft-Hearted)", "essence": "ผู้ที่ขับเคลื่อนด้วยความเมตตาสงสาร มีความเห็นอกเห็นใจสูง แต่ก็เปราะบางทางอารมณ์และอ่อนไหวต่อความทุกข์ของผู้อื่น", "figure": "พระนางซีตา", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/02.jpg"}, {"id": "03", "name": "😠 อัจฉริยะหัวร้อน (The Hot-headed Genius)", "essence": "ผู้ที่มีสติปัญญาเฉียบแหลมและมีความคิดที่ก้าวล้ำ แต่ถูกบดบังด้วยอารมณ์ที่รุนแรงและความใจร้อน", "figure": "ไมเคิล แองเจลโล(Michelangelo)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/03.jpg"}, {"id": "04", "name": "🕵️ นักสืบหาความลับ (The Secret Investigator)", "essence": "ผู้ที่เกิดมาพร้อมกับสัญชาตญาณในการสืบเสาะหาความจริง มีความสามารถในการมองเห็นสิ่งที่ซ่อนเร้นและเปิดเผยความลับ", "figure": "เอดการ์ อัลลัน โพ (Edgar Allan Poe)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/04.jpg"}, {"id": "05", "name": "🚶‍♂️ นักเดินทางผู้มีเหตุผล (The Rational Traveler)", "essence": "ผู้ที่ใช้ชีวิตผ่านการเดินทางและการเรียนรู้ โดยมีเหตุผลและความเชื่อมั่นในตนเองเป็นเข็มทิศนำทาง", "figure": "โอดิสสิอุส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/05.jpg"}, {"id": "06", "name": "🎭 คนเจ้าเสน่ห์ผู้ผิดหวัง (The Disappointed Charmer)", "essence": "ผู้ที่มีเสน่ห์ดึงดูดใจผู้คนอย่างเป็นธรรมชาติ แต่กลับต้องเผชิญกับความผิดหวังในเรื่องความรักและการเงินอยู่เสมอ", "figure": "มาร์ค แอนโทนี (Mark Antony)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/06.jpg"}, {"id": "07", "name": "💪 นักสู้ผู้ฝ่าฟัน (The Struggling Fighter)", "essence": "ผู้ที่ถูกลิขิตให้ชีวิตต้องเผชิญหน้ากับอุปสรรคและความท้าทายอย่างต่อเนื่อง แต่ก็มีความแข็งแกร่งที่จะต่อสู้และก้าวข้ามไปได้", "figure": "เฮอร์คิวลิส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/07.jpg"}, {"id": "08", "name": "🎲 นักเสี่ยงโชค (The Gambler)", "essence": "ผู้ที่รักความตื่นเต้นและกล้าได้กล้าเสีย มีความสุขกับการใช้ชีวิตบนความเสี่ยงเพื่อผลตอบแทนที่ยิ่งใหญ่", "figure": "จาโกโม คาสโนวา (Giacomo Casanova)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/08.jpg"}, {"id": "09", "name": "🔮 ผู้มีญาณทิพย์ (The Clairvoyant)", "essence": "ผู้ที่มีสัมผัสที่หกและสัญชาตญาณที่เฉียบคม สามารถเชื่อมต่อกับโลกที่มองไม่เห็นและรับรู้ถึงพลังงานลี้ลับ", "figure": "เทพีไพเธีย", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/09.jpg"}, {"id": "10", "name": "🚀 ผู้ริเริ่มแห่งความสำเร็จ (The Successful Initiator)", "essence": "ผู้นำที่สมบูรณ์แบบซึ่งยืนอยู่ ณ จุดเริ่มต้นใหม่ที่เต็มไปด้วยโอกาสและความสำเร็จ เป็นผู้ที่สามารถเปลี่ยนวิสัยทัศน์ให้กลายเป็นความจริง", "figure": "อเล็กซานเดอร์มหาราช", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/10.jpg"}, {"id": "11", "name": "🌀 ผู้มีลางสังหรณ์ (The Premonitioner)", "essence": "ผู้ที่มีพลังแห่งสัญชาตญาณและการหยั่งรู้ที่เฉียบคมเป็นสองเท่า สามารถสร้างแรงบันดาลใจและมองเห็นในสิ่งที่คนอื่นมองไม่เห็น", "figure": "โจนออฟอาร์ค", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/11.jpg"}, {"id": "12", "name": "🥀 ศิลปินผู้เปราะบาง (The Fragile Artist)", "essence": "ผู้ที่เรียนรู้และเติบโตผ่านประสบการณ์ มีความสามารถในการปรับตัวและสร้างสมดุลในสถานการณ์ที่ขัดแย้ง", "figure": "วินเซนต์ แวนโกะ", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/12.jpg"}, {"id": "13", "name": "🎤 นักพูดผู้สร้างสรรค์ (The Creative Orator)", "essence": "ผู้ที่ต้องเผชิญหน้ากับการเปลี่ยนแปลงครั้งใหญ่ที่ไม่คาดคิด เพื่อรื้อถอนโครงสร้างเก่าและสร้างสรรค์สิ่งใหม่ที่ดีกว่าเดิม", "figure": "Georges Danton", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/13.jpg"}, {"id": "14", "name": "🌐 นักสื่อสารยุคใหม่ (The Modern Communicator)", "essence": "ผู้รักอิสระที่ต้องเรียนรู้ที่จะควบคุมตนเองและจัดการความเสี่ยง เพื่อไม่ให้หลงทางไปกับสิ่งยั่วยุทางโลก", "figure": "เฮอร์มีส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/14.jpg"}, {"id": "15", "name": "✈️ นักเดินทางผู้มีเป้าหมาย (The Purposeful Traveler)", "essence": "ผู้มีเสน่ห์ดึงดูดและปัญญาลึกซึ้ง ให้ความสำคัญกับความรัก ครอบครัว และการช่วยเหลือผู้อื่น", "figure": "ไอเนียส (Aeneas)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/15.jpg"}, {"id": "16", "name": "🏡 ผู้สร้างครอบครัว (The Family Builder)", "essence": "ผู้ที่ต้องเผชิญกับการสูญเสียและความผิดหวัง เพื่อนำไปสู่การทบทวนตนเองและการเติบโตทางจิตวิญญาณ", "figure": "โจคาสตา (Jocasta)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/16.jpg"}, {"id": "17", "name": "🧠 นักปราชญ์ (The Sage)", "essence": "ผู้ที่มีความมั่นใจและพลังงานสูง สามารถทำงานใหญ่ให้สำเร็จได้ด้วยการผสมผสานระหว่างความกล้าหาญและสติปัญญา", "figure": "กษัตริย์โซโลมอน (King Solomon)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/17.jpg"}, {"id": "18", "name": "🌋 ผู้กล้าบ้าบิ่น (The Daredevil)", "essence": "ผู้ที่ต้องเรียนรู้บทเรียนเรื่องการใช้อำนาจและการควบคุมอารมณ์ เพื่อก้าวข้ามความขัดแย้งและรู้จักการให้อภัย", "figure": "อะคิลลีส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/18.jpg"}, {"id": "19", "name": "✨ ผู้มีเมตตา (The Benevolent)", "essence": "ผู้นำที่มีวิสัยทัศน์และต้องพึ่งพาตนเองเพื่อสร้างชื่อเสียงและความสำเร็จ ซึ่งมักจะได้รับโชคจากแดนไกล", "figure": "พระเจ้าอโศกมหาราช", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/19.jpg"}, {"id": "20", "name": "🧩 ผู้ประสานงาน (The Coordinator)", "essence": "ผู้ที่แสวงหาความสมดุลและความร่วมมือ มีความสามารถในการสร้างความสัมพันธ์ใหม่ๆ แต่ก็อาจลังเลและต้องพึ่งพาผู้อื่น", "figure": "Psyche (ไซคี)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/20.jpg"}, {"id": "21", "name": "🌟 ดาวเด่น (The Shining Star)", "essence": "ผู้ที่มีพลังแห่งการแสดงออก ความคิดสร้างสรรค์ และการสื่อสาร สามารถสร้างความสุขและแรงบันดาลใจให้ผู้อื่น", "figure": "เทพอพอลโล", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/21.jpg"}, {"id": "22", "name": "🌪️ ผู้เปลี่ยนแปลงโลก (The World Changer)", "essence": "ผู้ที่มีพลังในการสร้างสรรค์ที่ยิ่งใหญ่ มีเสน่ห์ อ่อนโยน และสามารถสร้างความสำเร็จที่จับต้องได้ โดยเฉพาะงานที่เกี่ยวกับศิลปะและความงาม", "figure": "ลีโอนาร์โด ดา วินชี", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/22.jpg"}, {"id": "23", "name": "💖 ผู้มีเสน่ห์ (The Charmer)", "essence": "ผู้รักการผจญภัยและการเปลี่ยนแปลง มีความสามารถในการสื่อสารและปรับตัวเข้ากับสิ่งใหม่ๆ ได้อย่างยอดเยี่ยม", "figure": "Cleopatra", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/23.jpg"}, {"id": "24", "name": "🛠️ นักปฏิบัติ (The Practitioner)", "essence": "ผู้ที่มีเมตตามหานิยม ให้ความสำคัญกับความรับผิดชอบ ครอบครัว และการดูแลผู้อื่น สามารถสร้างความมั่นคงและหาเงินเก่ง", "figure": "เทพีเดเมเทอร์", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/24.jpg"}, {"id": "25", "name": "🎓 นักวิชาการ (The Scholar)", "essence": "ผู้ที่แสวงหาความจริงผ่านการวิเคราะห์และการค้นคว้า มีจิตวิญญาณที่ลึกซึ้ง และมักได้รับการสนับสนุนจากสตรี", "figure": "Peter Abelard", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/25.jpg"}, {"id": "26", "name": "⚖️ ผู้พิพากษา (The Judge)", "essence": "ผู้ที่มีอำนาจในการจัดการธุรกิจและการเงิน สามารถสร้างความสำเร็จและความมั่นคงได้ด้วยวาจาที่เป็นทรัพย์", "figure": "เทพพลูตอส (Plutus)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/26.jpg"}, {"id": "27", "name": "🙏 ผู้เสียสละ (The Altruist)", "essence": "ผู้ที่ทำงานเพื่อมนุษยธรรม มีความเสียสละ แต่ก็ต้องเผชิญกับปัญหาการเงินและความรัก", "figure": "เจ้าชายมิชกิน (Prince Myshkin)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/27.jpg"}, {"id": "28", "name": "🦁 ผู้นำที่กล้าหาญ (The Courageous Leader)", "essence": "ผู้นำที่แข็งแกร่งในด้านการเงินและการจัดการ สามารถสร้างความสำเร็จที่ยิ่งใหญ่และยั่งยืนได้", "figure": "ลอเรนโซ เดอ เมดิชี (Lorenzo de' Medici)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/28.jpg"}, {"id": "29", "name": "🙏 ผู้ศรัทธาที่เมตตา (The Merciful Believer)", "essence": "ผู้มีญาณหยั่งรู้และความสามารถทางศิลปะ ใช้ความอ่อนไหวของตนเองในการให้คำปรึกษาและช่วยเหลือผู้อื่น", "figure": "พระถังซัมจั๋ง", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/29.jpg"}, {"id": "30", "name": "💡 นักคิดนักพูด (The Thinker-Speaker)", "essence": "ผู้ที่มีความคิดสร้างสรรค์และการสื่อสารที่สมบูรณ์แบบ สามารถสร้างผลงานที่ยิ่งใหญ่และมีความสุขในชีวิต", "figure": "Oscar Wilde", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/30.jpg"}, {"id": "31", "name": "👑 ราชาผู้สร้างสรรค์ (The Creative King)", "essence": "ผู้นำที่เริ่มต้นโครงการสร้างสรรค์ด้วยการสื่อสารที่ชัดเจน แต่ชีวิตมักมีการเปลี่ยนแปลงอย่างฉับพลัน", "figure": "กษัตริย์อาเธอร์", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/31.jpg"}, {"id": "32", "name": "💖 ทูตสันถวไมตรี (The Goodwill Ambassador)", "essence": "ผู้มีเสน่ห์และกล้าหาญ สามารถทำงานร่วมกับผู้อื่นเพื่อสร้างสรรค์สิ่งใหม่ๆ และมักมีรายได้ที่ดีมาก", "figure": "เซอร์ แลนสล็อต (Sir Lancelot)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/32.jpg"}, {"id": "33", "name": "✨ ปรมาจารย์ผู้เมตตา (The Compassionate Master)", "essence": "นักสู้ตัวจริงที่มีความแข็งแกร่ง กล้าหาญ และจริงจังกับชีวิต แต่ก็อาจทำให้หาคู่ครองได้ยาก", "figure": "โมเสส (Moses)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/33.jpg"}, {"id": "34", "name": "⚔️ นักรบผู้ชาญฉลาด (The Wise Warrior)", "essence": "ผู้ที่สร้างรากฐานที่มั่นคงผ่านการสื่อสารที่ตรงไปตรงมาและการทำงานหนัก แต่ก็อาจนำไปสู่ความขัดแย้ง", "figure": "เทพีอาธีนา", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/34.jpg"}, {"id": "35", "name": "🗺️ นักสำรวจ (The Adventurer)", "essence": "ผู้มีอำนาจและบารมี รักการผจญภัยและการเปลี่ยนแปลง มักได้รับการอุปถัมภ์จากผู้ใหญ่", "figure": "คริสโตเฟอร์ โคลัมบัส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/35.jpg"}, {"id": "36", "name": "💝 ผู้ให้ (The Giver)", "essence": "ผู้ที่มีเสน่ห์เป็นทรัพย์ สามารถใช้การเจรจาเพื่อสร้างความสำเร็จ ให้ความสำคัญกับครอบครัวและความสามัคคี", "figure": "Abigail Adams", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/36.jpg"}, {"id": "37", "name": "📖 นักปราชญ์ผู้สันโดษ (The Solitary Scholar)", "essence": "ผู้ที่ต้องเผชิญกับความลำบากและอุปสรรค เพื่อนำไปสู่การพัฒนาตนเองและการค้นพบทางจิตวิญญาณ", "figure": "ขงจื๊อ", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/37.jpg"}, {"id": "38", "name": "💼 นักธุรกิจผู้กล้าได้กล้าเสีย (The Risk-Taking Businessman)", "essence": "ผู้ที่รักความครึกครื้นและงานรื่นเริง สามารถใช้การสื่อสารเพื่อสร้างความสำเร็จทางธุรกิจ แต่ต้องระวังเรื่องการใช้เงิน", "figure": "โฮเวิร์ด ฮิวส์", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/38.jpg"}, {"id": "39", "name": "🌟 ผู้ใจบุญ (The Philanthropist)", "essence": "ผู้ที่ใช้การสื่อสารเพื่อช่วยเหลือผู้อื่นและสร้างแรงบันดาลใจ สามารถเอาชนะการแข่งขันและมีชื่อเสียง แต่ก็อาจเจอกับทุกขลาภ", "figure": "แอนดรูว์ คาร์เนกี", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/39.jpg"}, {"id": "40", "name": "🔬 นักวิทยาศาสตร์ (The Scientist)", "essence": "การสร้างรากฐานที่ยั่งยืนผ่านการค้นคว้าหาความจริงและนวัตกรรม", "figure": "มารี คูรี", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/40.jpg"}, {"id": "41", "name": "🏛️ ผู้นำผู้สร้างสรรค์ (The Creative Founder)", "essence": "การเป็นผู้นำที่มั่นคงและน่าเชื่อถือในการริเริ่มสิ่งใหม่", "figure": "Henry Ford", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/41.jpg"}, {"id": "42", "name": "🤝 หุ้นส่วนผู้ภักดี (The Loyal Partner)", "essence": "การสร้างความสมดุลและความร่วมมือที่มั่นคงและมีระเบียบ", "figure": "เทพฮิฟีสตัส (Hephaestus)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/42.jpg"}, {"id": "43", "name": "📢 นักสื่อสารผู้หนักแน่น (The Firm Communicator)", "essence": "การสร้างสรรค์ผลงานที่มีคุณภาพผ่านการสื่อสารที่ชัดเจน", "figure": "วินสตัน เชอร์ชิลล์", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/43.jpg"}, {"id": "44", "name": "🏰 จอมคนผู้สร้างเมือง (The Master Builder)", "essence": "การสร้างรากฐานที่ยิ่งใหญ่ แต่ต้องแบกรับความกดดันมหาศาล", "figure": "จักรพรรดิออกัสตัส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/44.jpg"}, {"id": "45", "name": "🧭 นักบุกเบิกผู้ยืดหยุ่น (The Flexible Pioneer)", "essence": "การสร้างรากฐานที่ปรับเปลี่ยนได้ผ่านการเดินทางและการเรียนรู้", "figure": "เลฟ เอริกสัน", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/45.jpg"}, {"id": "46", "name": "❤️ ผู้พิทักษ์ที่มั่นคง (The Stable Guardian)", "essence": "การดูแลครอบครัวอย่างมั่นคงและรับผิดชอบ เป็นที่พึ่งที่แข็งแกร่ง", "figure": "เฮกเตอร์", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/46.jpg"}, {"id": "47", "name": "🧘 ปราชญ์ผู้สันโดษ (The Solitary Sage)", "essence": "การค้นพบความจริงผ่านการศึกษาเชิงลึกและการพัฒนาจิตวิญญาณ", "figure": "เล่าจื๊อ", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/47.jpg"}, {"id": "48", "name": "📈 นักบริหารมือทอง (The Golden Executive)", "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนผ่านการจัดการที่มีประสิทธิภาพ", "figure": "ไครซัส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/48.jpg"}, {"id": "49", "name": "🕊️ ผู้ให้ที่หนักแน่น (The Steadfast Giver)", "essence": "การอุทิศตนเพื่อสังคมอย่างมั่นคง แต่อย่างลืมฟังเสียงของตัวเอง", "figure": "ฟลอเรนซ์ ไนติงเกล", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/49.jpg"}, {"id": "50", "name": "⛵ นักเดินทางผู้อิสระ (The Independent Voyager)", "essence": "การเริ่มต้นชีวิตใหม่ผ่านการเดินทางและการเปลี่ยนแปลงที่ไร้ขีดจำกัด", "figure": "ซินแบด", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/50.jpg"}, {"id": "51", "name": "🦁 ผู้นำนักผจญภัย (The Adventurous Leader)", "essence": "การเป็นผู้นำในสถานการณ์ใหม่ๆ ที่ไม่แน่นอน", "figure": "ฌออากีม มูราต์ (Joachim Murat)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/51.jpg"}, {"id": "52", "name": "🤝 หุ้นส่วนผู้ยืดหยุ่น (The Flexible Partner)", "essence": "การสร้างความสมดุลและความร่วมมือที่ยืดหยุ่นและปรับตัวเก่ง", "figure": "Sun Quan (ซุนกวน)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/52.jpg"}, {"id": "53", "name": "🎨 ศิลปินนักเดินทาง (The Traveling Artist)", "essence": "การใช้ความคิดสร้างสรรค์และการสื่อสารที่หลากหลายผ่านการเดินทาง", "figure": "พอล โกแกง", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/53.jpg"}, {"id": "54", "name": "🧱 ผู้สร้างที่ยืดหยุ่น (The Flexible Builder)", "essence": "การสร้างรากฐานที่ปรับเปลี่ยนได้ผ่านการทำงานหนักและการปรับตัว", "figure": "เดดาลัส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/54.jpg"}, {"id": "55", "name": "🌪️ นักปฏิวัติ (The Revolutionary)", "essence": "การเปลี่ยนแปลงครั้งยิ่งใหญ่ที่มาพร้อมกับอิสระสูงสุด", "figure": "สปาร์ตาคัส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/55.jpg"}, {"id": "56", "name": "❤️ ผู้ดูแลที่ยืดหยุ่น (The Flexible Caregiver)", "essence": "การดูแลผู้อื่นอย่างมีประสิทธิภาพโดยไม่ทิ้งความเป็นอิสระ", "figure": "มาเรีย มอนเตสซอรี่ (Maria Montessori)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/56.jpg"}, {"id": "57", "name": "🔮 ปราชญ์ผู้ลึกลับ (The Mystic Sage)", "essence": "การค้นพบความจริงทางจิตวิญญาณผ่านการเดินทางและการค้นคว้า", "figure": "นอสตราดามุส", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/57.jpg"}, {"id": "58", "name": "📊 นักลงทุนผู้ปรับตัว (The Adaptive Investor)", "essence": "การสร้างความสำเร็จทางธุรกิจที่ยืดหยุ่นและปรับตัวตามความเสี่ยง", "figure": "Sima Yi (สุมาอี้)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/58.jpg"}, {"id": "59", "name": "🙏 ผู้ให้ผู้รักอิสระ (The Free-spirited Giver)", "essence": "การอุทิศตนเพื่อสังคมอย่างยืดหยุ่นและไม่ยึดติด", "figure": "จอห์นนี่ แอปเปิ้ลซีด", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/59.jpg"}, {"id": "60", "name": "🏡 ผู้พิทักษ์ครอบครัว (The Family Guardian)", "essence": "การอุทิศตนเพื่อความรัก ครอบครัว และการบริการอย่างสมบูรณ์แบบ", "figure": "เทพีฟริกก์", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/60.jpg"}, {"id": "61", "name": "👑 ผู้นำผู้เปี่ยมรัก (The Loving Leader)", "essence": "การเป็นผู้นำที่ใช้ความรักและความใส่ใจในการริเริ่มโครงการเพื่อสังคม", "figure": "สมเด็จพระราชินีนาถวิกตอเรีย", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/61.jpg"}, {"id": "62", "name": "⚖️ ผู้ประสานสัมพันธ์ (The Relationship Mediator)", "essence": "การสร้างความสมดุลและความร่วมมือที่เปี่ยมด้วยความรับผิดชอบ", "figure": "เนวิลล์ เชมเบอร์ลิน (Neville Chamberlain)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/62.jpg"}, {"id": "63", "name": "🎤 นักสื่อสารผู้ชอบดูแล (The Caring Communicator)", "essence": "การใช้การสื่อสารด้วยความรักเพื่อสร้างสรรค์ผลงานเพื่อสังคม", "figure": "เอวา เปรอง (Eva Perón)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/63.jpg"}, {"id": "64", "name": "🏛️ สถาปนิกของครอบครัว (The Family Architect)", "essence": "การสร้างรากฐานที่มั่นคงให้กับครอบครัวผ่านการทำงานหนัก", "figure": "มาร์คัส ออเรลิอุส (Marcus Aurelius)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/64.jpg"}, {"id": "65", "name": "✈️ นักเดินทางผู้มีความรับผิดชอบ (The Responsible Traveler)", "essence": "การสร้างสมดุลระหว่างอิสระและความรับผิดชอบผ่านการเดินทาง", "figure": "อิบน์ บัตตูตา (Ibn Battuta)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/65.jpg"}, {"id": "66", "name": "❤️ ผู้ให้ที่ยิ่งใหญ่ (The Great Giver)", "essence": "การดูแลผู้อื่นอย่างไม่มีเงื่อนไข แต่ต้องเรียนรู้ที่จะรักตนเอง", "figure": "เจ้าแม่กวนอิม (Guan Yin)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/66.jpg"}, {"id": "67", "name": "🧘 ปราชญ์ผู้มีความรับผิดชอบ (The Responsible Sage)", "essence": "การใช้ปัญญาในการวิเคราะห์ความสัมพันธ์และการพัฒนาจิตวิญญาณ", "figure": "เพลโต (Plato)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/67.jpg"}, {"id": "68", "name": "🏰 เจ้าแห่งอาณาจักร (The Empire Lord)", "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนโดยมีความรับผิดชอบเป็นที่ตั้ง", "figure": "เมเยอร์ อัมเชล ร็อธไชลด์ (Mayer Amschel Rothschild)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/68.jpg"}, {"id": "69", "name": "🙏 นักบุญผู้เสียสละ (The Sacrificial Saint)", "essence": "การอุทิศตนเพื่อสังคมอย่างยั่งยืน แต่ต้องระวังความอ่อนไหว", "figure": "พระเยซูแห่งนาซาเร็ธ (Jesus of Nazareth)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/69.jpg"}, {"id": "70", "name": "🌌 ผู้แสวงหาสัจธรรม (The Truth Seeker)", "essence": "การค้นพบความจริงที่สมบูรณ์ผ่านการศึกษาเชิงลึกและการพัฒนาจิตวิญญาณ", "figure": "พระพุทธเจ้า", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/70.jpg"}, {"id": "71", "name": "👨‍🔬 ผู้นำนักวิจัย (The Research Leader)", "essence": "การเป็นผู้นำในการค้นคว้าและสร้างนวัตกรรม แต่ต้องควบคุมความหยิ่ง", "figure": "เซอร์ ไอแซก นิวตัน (Isaac Newton)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/71.jpg"}, {"id": "72", "name": "🔬 นักวิเคราะห์ความสัมพันธ์ (The Relational Analyst)", "essence": "การสร้างความสมดุลและความร่วมมือผ่านการวิเคราะห์อย่างมีเหตุผล", "figure": "บรูตัส (Brutus)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/72.jpg"}, {"id": "73", "name": "✍️ นักเขียนเชิงวิเคราะห์ (The Analytical Writer)", "essence": "การใช้ความคิดสร้างสรรค์ในการสื่อสารเชิงลึกและการค้นพบความจริง", "figure": "ฮอร์เฮ หลุยส์ บอร์เกส (Jorge Luis Borges)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/73.jpg"}, {"id": "74", "name": "🏗️ สถาปนิกนักวิเคราะห์ (The Analytical Architect)", "essence": "การสร้างรากฐานที่มั่นคงผ่านการทำงานหนักและการค้นคว้าอย่างมีระบบ", "figure": "วิตรูวิอุส (Vitruvius)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/74.jpg"}, {"id": "75", "name": "🗺️ นักสำรวจผู้ใฝ่รู้ (The Inquisitive Explorer)", "essence": "การเดินทางเพื่อการเรียนรู้และค้นคว้าอย่างอิสระ แต่ต้องสร้างความมั่นคง", "figure": "ชาร์ลส์ ดาร์วิน (Charles Darwin)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/75.jpg"}, {"id": "76", "name": "❤️ ผู้ดูแลผู้เปี่ยมด้วยปัญญา (The Wise Caregiver)", "essence": "การดูแลผู้อื่นอย่างมีเหตุผล แต่ต้องระวังการแบกรับความกังวล", "figure": "ไครอน (Chiron)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/76.jpg"}, {"id": "77", "name": "🦉 ปราชญ์ผู้หยั่งรู้ (The Oracle Sage)", "essence": "การเข้าถึงปัญญาญาณที่ลึกซึ้ง แต่ต้องระวังความโดดเดี่ยว", "figure": "เมอร์ลิน (Merlin)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/77.jpg"}, {"id": "78", "name": "📈 นักบริหารผู้มีวิสัยทัศน์ (The Visionary Executive)", "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนผ่านการวิเคราะห์ที่มีประสิทธิภาพ", "figure": "ตระกูลเมดิชี (Medici Family)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/78.jpg"}, {"id": "79", "name": "🙏 นักบุญผู้มีปัญญา (The Wise Saint)", "essence": "การอุทิศตนเพื่อสังคมอย่างยั่งยืนโดยใช้ปัญญา แต่ต้องระวังความอ่อนไหว", "figure": "Thich Nhat Hanh (ติช นัท ฮันห์)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/79.jpg"}, {"id": "80", "name": "🏰 เจ้าแห่งอาณาจักร (The Empire Lord)", "essence": "การสร้างความสำเร็จทางธุรกิจและการจัดการการเงินอย่างสมบูรณ์แบบ", "figure": "มันซา มูซา (Mansa Musa)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/80.jpg"}, {"id": "81", "name": "👑 จักรพรรดิผู้ทรงอำนาจ (The Powerful Emperor)", "essence": "การเป็นผู้นำที่แข็งแกร่งในการเริ่มต้นธุรกิจและสร้างความสำเร็จ", "figure": "สุลัยมานผู้เกรียงไกร (Suleiman the Magnificent)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/81.jpg"}, {"id": "82", "name": "🤝 ทูตผู้ทรงอิทธิพล (The Influential Ambassador)", "essence": "การสร้างความร่วมมือที่ทรงอำนาจเพื่อความสำเร็จที่ยิ่งใหญ่", "figure": "จางเหลียง (Zhang Liang)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/82.jpg"}, {"id": "83", "name": "📣 ผู้ทรงอิทธิพลทางความคิด (The Influencer)", "essence": "การใช้การสื่อสารและความคิดสร้างสรรค์เพื่อสร้างความสำเร็จและอำนาจ", "figure": "พี.ที. บาร์นัม (P.T. Barnum)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/83.jpg"}, {"id": "84", "name": "🏛️ สถาปนิกผู้ทรงอำนาจ (The Powerful Architect)", "essence": "การสร้างรากฐานที่แข็งแกร่งและทรงอำนาจผ่านการทำงานหนัก", "figure": "อิมโฮเทป (Imhotep)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/84.jpg"}, {"id": "85", "name": "🌪️ นักปฏิวัติผู้ทรงอำนาจ (The Powerful Revolutionary)", "essence": "การสร้างอำนาจจากการปรับตัวและการเดินทางเพื่อเรียนรู้", "figure": "นโปเลียน โบนาปาร์ต (Napoleon Bonaparte)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/85.jpg"}, {"id": "86", "name": "❤️ ผู้ดูแลผู้ทรงอิทธิพล (The Influential Caregiver)", "essence": "การดูแลผู้อื่นอย่างมีประสิทธิภาพเพื่อสร้างความสัมพันธ์ที่ดี", "figure": "คอร์เนเลีย แอฟริกานา (Cornelia Africana)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/86.jpg"}, {"id": "87", "name": "🦉 ปราชญ์ผู้ทรงอำนาจ (The Powerful Sage)", "essence": "การใช้ปัญญาในการค้นหาความจริงเพื่อสร้างอำนาจจากภายใน", "figure": "จอห์น ดี (John Dee)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/87.jpg"}, {"id": "88", "name": "💎 จักรพรรดิแห่งความมั่งคั่ง (The Emperor of Wealth)", "essence": "การสร้างอาณาจักรธุรกิจที่ต้องใช้อำนาจสมบูรณ์และระวังความโลภ", "figure": "กษัตริย์ไมดาส (King Midas)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/88.jpg"}, {"id": "89", "name": "🙏 ผู้นำผู้เสียสละ (The Sacrificial Leader)", "essence": "การใช้อำนาจเพื่อการให้และการทำงานเพื่อสังคมอย่างยั่งยืน", "figure": "อับราฮัม ลินคอล์น (Abraham Lincoln)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/89.jpg"}, {"id": "90", "name": "🕊️ นักบุญผู้ให้ (The Giving Saint)", "essence": "การอุทิศตนเพื่อมนุษยธรรมและการให้ที่ยิ่งใหญ่", "figure": "นักบุญฟรานซิสแห่งอัสซีซี (Saint Francis of Assisi)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/90.jpg"}, {"id": "91", "name": "👑 ผู้นำผู้เปี่ยมเมตตา (The Compassionate Leader)", "essence": "การเป็นผู้นำที่เสียสละในการเริ่มต้นโครงการเพื่อสังคม", "figure": "พระเจ้าไซรัสมหาราช (Cyrus the Great)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/91.jpg"}, {"id": "92", "name": "🤝 ทูตแห่งสันติภาพ (The Ambassador of Peace)", "essence": "การสร้างความสมดุลและความร่วมมือเพื่อสังคมด้วยความเมตตา", "figure": "อาริสติด บรียอง (Aristide Briand)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/92.jpg"}, {"id": "93", "name": "🎨 ศิลปินเพื่อสังคม (The Social Artist)", "essence": "การใช้ความคิดสร้างสรรค์และการสื่อสารเพื่อช่วยเหลือและให้กำลังใจ", "figure": "วิกตอร์ อูโก (Victor Hugo)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/93.jpg"}, {"id": "94", "name": "🏡 ผู้สร้างชุมชน (The Community Builder)", "essence": "การสร้างรากฐานที่มั่นคงให้กับสังคมผ่านการทำงานหนักและการดูแล", "figure": "เจน แอดดัมส์ (Jane Addams)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/94.jpg"}, {"id": "95", "name": "🦋 นักเดินทางผู้ใจบุญ (The Philanthropic Traveler)", "essence": "การเดินทางเพื่อการเรียนรู้และช่วยเหลือผู้อื่นอย่างอิสระ", "figure": "เดวิด ลิฟวิงสโตน (David Livingstone)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/95.jpg"}, {"id": "96", "name": "❤️ ผู้ดูแลผู้เสียสละ (The Sacrificial Caregiver)", "essence": "การดูแลผู้อื่นอย่างมีประสิทธิภาพ แต่ต้องระวังการแบกรับภาระ", "figure": "นักบุญเวโรนิกา (Saint Veronica)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/96.jpg"}, {"id": "97", "name": "🧠 นักจิตวิทยาเพื่อสังคม (The Social Psychologist)", "essence": "การใช้ปัญญาในการค้นหาความจริงทางจิตวิญญาณเพื่อช่วยเหลือผู้อื่น", "figure": "คาร์ล โรเจอร์ส (Carl Rogers)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/97.jpg"}, {"id": "98", "name": "📈 ผู้จัดการเพื่อสังคม (The Social Manager)", "essence": "การสร้างความสำเร็จทางธุรกิจที่ยั่งยืนโดยมีเป้าหมายเพื่อสังคม", "figure": "โรเบิร์ต โอเวน (Robert Owen)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/98.jpg"}, {"id": "99", "name": "🌍 ผู้อุทิศตนเพื่อโลก (The World Philanthropist)", "essence": "การให้และการเสียสละที่ยิ่งใหญ่เพื่อมวลมนุษยชาติ", "figure": "โพรมีธีอุส (Prometheus)", "img": "https://qrtwwjkwnspprrbabpbd.supabase.co/storage/v1/object/public/cards/99.jpg"}];
+const CARD_BY_ID = {};
+CARDS.forEach(c => CARD_BY_ID[c.id] = c);
+// ---- Bridge API demo data (clinical fields deliberately excluded) ----
+const BRIDGE_USERS = [{"user_id": "DEM-DZHBIAFAZGGGANONA", "archetype_id": "Y_J-Q4-TJ", "archetype_name_th": "ผู้รักษามาตรฐาน", "archetype_name_en": "The Standard Keeper", "score_o": 2.9, "score_c": 3.1, "score_e": 2.6, "score_a": 3.5, "score_n": 3.0, "quadrant_primary": "Q4", "via_dominant": "J", "pdcr_fire": 3, "pdcr_wind": 7, "pdcr_water": 1, "pdcr_earth": 1, "pdcr_dominant": "W", "indian_dosha": "Pitta (ปิตตะ - ไฟ)", "energy_id": 83.0, "energy_name": "📣 ผู้ทรงอิทธิพลทางความคิด (The Influencer)"}, {"user_id": "DEM-BAEDBEGGFAHGANONA", "archetype_id": "Y_C-Q4-FJ", "archetype_name_th": "ผู้พิทักษ์ประตู", "archetype_name_en": "The Gate Keeper", "score_o": 2.8, "score_c": 3.0, "score_e": 2.4, "score_a": 3.4, "score_n": 2.8, "quadrant_primary": "Q4", "via_dominant": "C", "pdcr_fire": 1, "pdcr_wind": 7, "pdcr_water": 2, "pdcr_earth": 2, "pdcr_dominant": "W", "indian_dosha": "Pitta (ปิตตะ - ไฟ)", "energy_id": 75.0, "energy_name": "🗺️ นักสำรวจผู้ใฝ่รู้ (The Inquisitive Explorer)"}, {"user_id": "DEM-HAHABGGGFAHGANONA", "archetype_id": "Y_T-Q4-FJ", "archetype_name_th": "ผู้รักษาสันติ", "archetype_name_en": "The Group Peace Keeper", "score_o": 2.4, "score_c": 3.3, "score_e": 1.3, "score_a": 2.6, "score_n": 2.9, "quadrant_primary": "Q4", "via_dominant": "T", "pdcr_fire": 3, "pdcr_wind": 1, "pdcr_water": 3, "pdcr_earth": 5, "pdcr_dominant": "E", "indian_dosha": "Pitta (ปิตตะ - ไฟ)", "energy_id": 66.0, "energy_name": "❤️ ผู้ให้ที่ยิ่งใหญ่ (The Great Giver)"}, {"user_id": "DEM-DZBZZIEBCFGGANONA", "archetype_id": "Y_T-Q4-FJ", "archetype_name_th": "ผู้รักษาสันติ", "archetype_name_en": "The Group Peace Keeper", "score_o": 2.8, "score_c": 3.4, "score_e": 2.4, "score_a": 2.8, "score_n": 2.7, "quadrant_primary": "Q4", "via_dominant": "T", "pdcr_fire": 0, "pdcr_wind": 5, "pdcr_water": 4, "pdcr_earth": 3, "pdcr_dominant": "W", "indian_dosha": "Pitta (ปิตตะ - ไฟ)", "energy_id": NaN, "energy_name": NaN}, {"user_id": "DEM-FBIHEBHGFAHGANONA", "archetype_id": "Y_T-Q4-TP", "archetype_name_th": "ผู้ฝึกตนผู้เคร่งครัด", "archetype_name_en": "The Disciplined Experimenter", "score_o": 0.0, "score_c": 0.0, "score_e": 0.0, "score_a": 0.0, "score_n": 0.0, "quadrant_primary": "Q4", "via_dominant": "W", "pdcr_fire": 0, "pdcr_wind": 0, "pdcr_water": 0, "pdcr_earth": 0, "pdcr_dominant": "F", "indian_dosha": "Kapha (กผะ - ดิน/น้ำ)", "energy_id": 91.0, "energy_name": "👑 ผู้นำผู้เปี่ยมเมตตา (The Compassionate Leader)"}];
+const BRIDGE_BY_ID = {};
+BRIDGE_USERS.forEach(u => BRIDGE_BY_ID[u.user_id] = u);
+
+let bridgeMatch = null; // set when a bridge user is found
+
+const PDCR_COLORS = { fire: '#a83a1e', wind: '#2f5c42', water: '#1f4d63', earth: '#a97c1f' };
+const PDCR_LABELS_TH = { fire: 'ไฟ', wind: 'ลม', water: 'น้ำ', earth: 'ดิน' };
+
+function renderPdcrBars(containerId, user) {
+  const el = document.getElementById(containerId);
+  const vals = { fire: user.pdcr_fire, wind: user.pdcr_wind, water: user.pdcr_water, earth: user.pdcr_earth };
+  const max = Math.max(1, ...Object.values(vals));
+  el.innerHTML = Object.entries(vals).map(([k, v]) => `
+    <div class="pdcr-bar-row">
+      <span class="pdcr-bar-label">${PDCR_LABELS_TH[k]}</span>
+      <div class="pdcr-bar-track"><div class="pdcr-bar-fill" style="width:${(v/max*100)}%; background:${PDCR_COLORS[k]}"></div></div>
+      <span class="pdcr-bar-val">${v}</span>
+    </div>
+  `).join('');
+}
+
+// ---- Friction Score (Equation 4, ported from kruth_element_engine.py — validated n=79/64 unique) ----
+const JS_DAY_TO_THAI = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์']; // Date.getDay() 0=Sun
+const DAY_ELEMENT_TH = {
+  'อังคาร':'ไฟ', 'อาทิตย์':'ไฟ', 'จันทร์':'น้ำ', 'ศุกร์':'น้ำ', 'พุธ':'ลม', 'เสาร์':'ดิน', 'พฤหัสบดี': null,
+};
+function frictionScore(dayElTh, bigFiveE, bigFiveN, pdcrWind) {
+  let f = 0;
+  if (dayElTh === 'ไฟ') { if (bigFiveE < 2.5) f = 3; else if (bigFiveE < 3.0) f = 2; }
+  else if (dayElTh === 'ดิน') { if (bigFiveE < 2.5) f = 0; }
+  else if (dayElTh === 'ลม') { if (pdcrWind !== undefined && pdcrWind >= 6) f = 2; }
+  if (bigFiveN >= 3.5) f += 1.5; else if (bigFiveN >= 3.0) f += 0.5;
+  return f;
+}
+function frictionMessage(f) {
+  // Soft, non-alarming framing — never show the raw number to the end user directly.
+  if (f >= 3) return { level: 'สูง', text: 'ช่วงนี้ธาตุประจำวันเกิดกับบุคลิกภาพที่แสดงออกของคุณอาจไม่ค่อยสอดคล้องกันนัก ลองหากิจกรรมที่ช่วยผ่อนคลายและกลับมาสู่จังหวะของตัวเองดูนะคะ' };
+  if (f >= 1.5) return { level: 'ปานกลาง', text: 'มีความตึงเล็กน้อยระหว่างพื้นดวงกำเนิดกับตัวตนตอนนี้ ไม่ใช่เรื่องผิดปกติ แต่ลองสังเกตตัวเองเพิ่มเติมได้ค่ะ' };
+  return { level: 'สอดคล้องดี', text: 'ธาตุประจำวันเกิดกับบุคลิกภาพปัจจุบันของคุณค่อนข้างไปด้วยกันได้ดีค่ะ' };
+}
+
+document.getElementById('bridgeCheckBtn').addEventListener('click', () => {
+  const uid = document.getElementById('bridgeUserId').value.trim();
+  const resultBox = document.getElementById('bridgeResult');
+  const notFoundBox = document.getElementById('bridgeNotFound');
+  const user = BRIDGE_BY_ID[uid];
+
+  if (user) {
+    bridgeMatch = user;
+    notFoundBox.style.display = 'none';
+    resultBox.style.display = 'block';
+    document.getElementById('bridgeDetail').innerHTML = `
+      <strong>Archetype (DEMM):</strong> ${user.archetype_name_th} (${user.archetype_name_en})<br>
+      <strong>Quadrant:</strong> ${user.quadrant_primary} &nbsp; <strong>VIA เด่น:</strong> ${user.via_dominant}<br>
+      <strong>pDCR เด่น:</strong> ${PDCR_LABELS_TH[{F:'fire',W:'wind',A:'water',E:'earth'}[user.pdcr_dominant]] || user.pdcr_dominant}
+    `;
+  } else {
+    bridgeMatch = null;
+    resultBox.style.display = 'none';
+    notFoundBox.style.display = uid ? 'block' : 'none';
+  }
+});
+
+
+// ---- Simplified NamePower table (9 groups, Thai consonants + English letters) ----
+// Approximation of the original "Anto_Natee" table — vowel/tone-mark position parsing
+// is simplified to per-character lookup, which is a known limitation for Thai vowels
+// that visually precede their consonant (this is a demo, not the production parser).
+const CHAR_GROUPS = {
+  1: "กดถทภฤAJS", 2: "ขชบปงBKT", 3: "ฆตฑฒCLU", 4: "คธรญษDMV",
+  5: "ฉณฌนมหฎฮฬENW", 6: "จลวอFOX", 7: "ซศสGPY", 8: "ยผฝพฟHQZ", 9: "ฏฐIR",
+};
+const CHAR_TO_VAL = {};
+Object.entries(CHAR_GROUPS).forEach(([val, chars]) => {
+  for (const ch of chars) CHAR_TO_VAL[ch] = parseInt(val);
+});
+
+function namePower(name) {
+  let sum = 0;
+  for (const ch of name.toUpperCase()) {
+    if (CHAR_TO_VAL[ch] !== undefined) sum += CHAR_TO_VAL[ch];
+  }
+  return sum;
+}
+function digitSum(n) { return String(Math.abs(Math.round(n))).split('').reduce((a,d)=>a+parseInt(d),0); }
+function reduceTo99(n) {
+  n = Math.abs(Math.round(n));
+  while (n > 99) n = digitSum(n);
+  return n;
+}
+
+function computeCardId({firstName, lastName, birthDate, birthTime}) {
+  const d = new Date(birthDate + 'T00:00:00');
+  const birthPower = digitSum(d.getDate()) + digitSum(d.getMonth()+1) + digitSum(d.getFullYear());
+  const dayPower = d.getDay() + 1; // Sun=1 ... Sat=7
+  let timePower = 0;
+  if (birthTime) {
+    const [hh, mm] = birthTime.split(':').map(Number);
+    timePower = digitSum(hh) + digitSum(mm);
+  }
+  const nPower = namePower(firstName + lastName);
+  const total = birthPower + dayPower + timePower + nPower;
+  return reduceTo99(total);
+}
+
+// ---- L2 entity list ----
+const entityList = document.getElementById('entityList');
+function addEntityRow() {
+  const row = document.createElement('div');
+  row.className = 'entity-item';
+  row.innerHTML = `
+    <div class="field">
+      <select class="entity-type">
+        <option value="phone">เบอร์โทร</option>
+        <option value="plate">ทะเบียนรถ</option>
+        <option value="house">บ้านเลขที่</option>
+        <option value="other">อื่นๆ</option>
+      </select>
+    </div>
+    <div class="field"><input type="text" class="entity-value mono" placeholder="กรอกค่า"></div>
+    <button type="button" class="remove-btn">✕</button>
+  `;
+  row.querySelector('.remove-btn').addEventListener('click', () => row.remove());
+  entityList.appendChild(row);
+}
+document.getElementById('addEntityBtn').addEventListener('click', addEntityRow);
+addEntityRow(); // start with one row
+
+document.getElementById('intakeForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const firstName = document.getElementById('firstName').value;
+  const lastName = document.getElementById('lastName').value;
+  const birthDate = document.getElementById('birthDate').value;
+  const birthTime = document.getElementById('birthTime').value;
+
+  const id = String(computeCardId({firstName, lastName, birthDate, birthTime})).padStart(2, '0');
+  const card = CARD_BY_ID[id];
+
+  const resultSection = document.getElementById('resultSection');
+  document.getElementById('resultImg').src = card ? card.img : '';
+  document.getElementById('resultId').textContent = id;
+  document.getElementById('resultName').textContent = card ? card.name : '(ไม่พบข้อมูลการ์ด)';
+  document.getElementById('resultFigure').textContent = card ? `มีลักษณะคล้าย: ${card.figure}` : '';
+  document.getElementById('resultEssence').textContent = card ? card.essence : '';
+
+  const trackCompare = document.getElementById('trackCompare');
+  const frictionNote = document.getElementById('frictionNote');
+  if (bridgeMatch) {
+    trackCompare.style.display = 'block';
+    renderPdcrBars('bridgePdcrBars', bridgeMatch);
+
+    const dow = JS_DAY_TO_THAI[new Date(birthDate + 'T00:00:00').getDay()];
+    const dayEl = DAY_ELEMENT_TH[dow];
+    if (dayEl && bridgeMatch.score_e !== undefined && bridgeMatch.score_n !== undefined) {
+      const f = frictionScore(dayEl, bridgeMatch.score_e, bridgeMatch.score_n, bridgeMatch.pdcr_wind);
+      const msg = frictionMessage(f);
+      frictionNote.style.display = 'block';
+      frictionNote.innerHTML = `<strong>🌤️ ความสอดคล้อง (${msg.level}):</strong><br>${msg.text}`;
+    } else {
+      frictionNote.style.display = 'none';
+    }
+  } else {
+    trackCompare.style.display = 'none';
+  }
+
+  resultSection.classList.add('show');
+  resultSection.scrollIntoView({behavior:'smooth', block:'start'});
+});
+</script>
+</body>
+</html>

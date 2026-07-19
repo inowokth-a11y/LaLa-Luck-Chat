@@ -1,0 +1,135 @@
+/* หน้า Dream — โทน 🌑 มืด (สีจาก .tone-night ใน globals.css เท่านั้น) */
+
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 1rem;
+}
+
+.header { text-align: center; margin-bottom: 1rem; }
+.header h1 { font-size: 1.6rem; color: var(--gold); }
+.sub { color: var(--ink-dim); font-size: 0.78rem; margin-top: 0.3rem; }
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 0;
+  overflow-y: auto;
+}
+
+.rowUser { display: flex; justify-content: flex-end; }
+.rowBot { display: flex; justify-content: flex-start; }
+
+.bubbleUser,
+.bubbleBot {
+  max-width: 85%;
+  padding: 0.8rem 1rem;
+  font-size: 0.92rem;
+  line-height: 1.85;
+}
+.bubbleUser {
+  background: var(--bubble-user);
+  border-right: 2px solid var(--gold-dim);
+}
+.bubbleBot {
+  background: var(--bubble-bot);
+  border-left: 2px solid var(--gold);
+}
+.crisis {
+  border-left-color: var(--fire);
+  background: color-mix(in srgb, var(--fire) 12%, var(--bubble-bot));
+}
+
+.text { margin: 0; white-space: pre-wrap; }
+
+/* ชิปสัญลักษณ์ที่ engine จับได้ */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+.chip {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+}
+
+.discovery {
+  margin-top: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  background: color-mix(in srgb, var(--ring-a) 18%, transparent);
+  border-left: 2px solid var(--ring-a);
+}
+.discovery small { display: block; color: var(--ink-dim); font-size: 0.68rem; margin-top: 0.2rem; }
+
+.via {
+  margin-top: 0.55rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  color: var(--ink-dim);
+  opacity: 0.7;
+}
+
+.typing { color: var(--ink-dim); font-style: italic; }
+
+/* ---- ช่องพิมพ์ ---- */
+.composer {
+  border-top: 1px solid color-mix(in srgb, var(--gold) 20%, transparent);
+  padding-top: 0.8rem;
+}
+.opts {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+.select {
+  background: var(--bg2);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  font-family: inherit;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.inputRow { display: flex; gap: 0.5rem; }
+.input {
+  flex: 1;
+  background: var(--bg2);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+  padding: 0.7rem 0.8rem;
+  font-size: 0.92rem;
+  font-family: inherit;
+}
+.input:focus { outline: none; border-color: var(--gold); }
+.send {
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  padding: 0.7rem 1.3rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.send:disabled { opacity: 0.4; cursor: default; }

@@ -1,0 +1,93 @@
+{
+  "kalakini_by_day": {
+    "อาทิตย์": "ศุกร์",
+    "จันทร์": "อาทิตย์",
+    "อังคาร": "จันทร์",
+    "พุธ": "อังคาร",
+    "พฤหัสบดี": "เสาร์",
+    "ศุกร์": "ราหู",
+    "เสาร์": "พุธ",
+    "ราหู_8": "พฤหัสบดี",
+    "unknown_day": null
+  },
+  "moon_cases": {
+    "j2000_epoch": {
+      "moon_longitude": 223.33024972093446,
+      "moon_sign": "พิจิก"
+    },
+    "y2026_07_16": {
+      "moon_longitude": 135.5575460731282,
+      "moon_sign": "สิงห์"
+    },
+    "y1990_08_15_1130": {
+      "moon_longitude": 76.47627652643884,
+      "moon_sign": "มิถุน"
+    }
+  },
+  "daily_cases": {
+    "no_birthday": {
+      "lagna_sign": "ธนู",
+      "moon_sign_today": "เมษ",
+      "sign_distance": 4,
+      "aspect": "ตรีโกณ (Trine)",
+      "kalakini": null,
+      "daily_luck_score": 8
+    },
+    "kalakini_not_triggered": {
+      "lagna_sign": "ธนู",
+      "moon_sign_today": "กรกฎ",
+      "sign_distance": 7,
+      "aspect": "กลาง (ไม่มีมุมพิเศษ)",
+      "kalakini": {
+        "triggered": false,
+        "planet": "อาทิตย์",
+        "ruled_signs": [
+          "สิงห์"
+        ]
+      },
+      "daily_luck_score": 5
+    },
+    "kalakini_triggered": {
+      "lagna_sign": "ธนู",
+      "moon_sign_today": "สิงห์",
+      "sign_distance": 8,
+      "aspect": "ตรีโกณ (Trine)",
+      "kalakini": {
+        "triggered": true,
+        "planet": "อาทิตย์",
+        "ruled_signs": [
+          "สิงห์"
+        ]
+      },
+      "daily_luck_score": 5
+    },
+    "rahu_uncheckable": {
+      "lagna_sign": "ธนู",
+      "moon_sign_today": "เมษ",
+      "sign_distance": 4,
+      "aspect": "ตรีโกณ (Trine)",
+      "kalakini": {
+        "triggered": null,
+        "planet": "ราหู",
+        "note": "ราหูไม่มีเรือนคงที่ตามหลักดั้งเดิม — ตรวจสอบไม่ได้"
+      },
+      "daily_luck_score": 8
+    },
+    "opposition": {
+      "lagna_sign": "เมษ",
+      "moon_sign_today": "ตุลย์",
+      "sign_distance": 6,
+      "aspect": "เล็ง (Opposition)",
+      "kalakini": null,
+      "daily_luck_score": 3
+    },
+    "conjunct": {
+      "lagna_sign": "เมษ",
+      "moon_sign_today": "เมษ",
+      "sign_distance": 0,
+      "aspect": "ทับ (Conjunct)",
+      "kalakini": null,
+      "daily_luck_score": 6
+    }
+  }
+}

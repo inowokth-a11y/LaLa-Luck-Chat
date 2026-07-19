@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens — ค่าจริงทั้งสองโทน (CLAUDE.md §2) mirror จาก lib/design-tokens.ts
+ * ห้าม hardcode hex ในแต่ละหน้าอีก — ห่อหน้า/ส่วนด้วย .tone-night หรือ .tone-marble
+ *   🌑 .tone-night  → พิธีกรรม/โต้ตอบสด (Oracle Draw, Dream Chat)
+ *   ☀️ .tone-marble → ข้อมูล/ผลลัพธ์ถาวร (Profile, Fortune, Compatibility)
+ */
+
+/* ค่าเริ่มต้น = โทนมืด (color-scheme dark) */
+:root,
+.tone-night {
+  --bg: #0a0714;
+  --bg2: #14101c;
+  --gold: #f2e6c8;
+  --gold-dim: #a89870;
+  --ink: #ece6da;
+  --ink-dim: #a89cb0;
+
+  /* Oracle dual-ring */
+  --ring-a: #7a5c9e;
+  --ring-b: #5c8a9e;
+  --orb-core: #fff6e0;
+  --orb-mid: #b48ee0;
+  --orb-edge: #3a2a5e;
+
+  /* Dream chat */
+  --bubble-bot: #241c30;
+  --bubble-user: #3a2f4a;
+
+  /* ธาตุ 5 (โทนมืด) */
+  --wood: #3f7a5c;
+  --fire: #c9432b;
+  --earth: #c99a3d;
+  --metal: #b9ae9a;
+  --water: #2c5a72;
+
+  --surface: var(--bg2);
+  --text: var(--ink);
+  --text-dim: var(--ink-dim);
+}
+
+/* โทนสว่างหินอ่อน */
+.tone-marble {
+  --marble-bg: #f4f0e6;
+  --marble-vein: #e2d8c3;
+  --gold: #b8860b;
+  --gold-bright: #d4a72c;
+  --ink: #2b2620;
+  --ink-dim: #6b6255;
+  --card-bg: #fffdf8;
+
+  /* สถานะ (ผลลัพธ์ดี/ร้าย/กลาง/ปะทะ) */
+  --good: #2f6b3f;
+  --bad: #a83a1e;
+  --neutral: #6b6255;
+  --clash: #b8860b;
+
+  /* ธาตุ 5 (โทนสว่าง) */
+  --wood: #2f5c42;
+  --fire: #a83a1e;
+  --earth: #a97c1f;
+  --metal: #7a7267;
+  --water: #1f4d63;
+
+  --bg: var(--marble-bg);
+  --surface: var(--card-bg);
+  --text: var(--ink);
+  --text-dim: var(--ink-dim);
+  color-scheme: light;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans-thai), system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text, var(--ink));
+}
+
+/* หัวข้อใช้ serif ไทยเสมอ (CLAUDE.md §2) */
+h1, h2, h3, h4 {
+  font-family: var(--font-serif-thai), serif;
+}
+
+/* ตัวเลข/โค้ดใช้ monospace */
+.num, code, .mono {
+  font-family: var(--font-mono), monospace;
+}

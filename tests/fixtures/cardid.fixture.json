@@ -1,0 +1,73 @@
+{
+  "card_ids": [
+    {
+      "input": {
+        "firstName": "วุฒิ์ธิระ",
+        "lastName": "ครุฑขุนทด",
+        "birthDate": "1986-10-07",
+        "birthTime": "09:30"
+      },
+      "expected": 84
+    },
+    {
+      "input": {
+        "firstName": "เบญจมาศ",
+        "lastName": "แต้มพุดซา",
+        "birthDate": "1988-12-31",
+        "birthTime": ""
+      },
+      "expected": 88
+    },
+    {
+      "input": {
+        "firstName": "ธิดารัตน์",
+        "lastName": "คิม",
+        "birthDate": "2003-10-21",
+        "birthTime": "14:00"
+      },
+      "expected": 43
+    },
+    {
+      "input": {
+        "firstName": "Nirawit",
+        "lastName": "Ridngam",
+        "birthDate": "2001-07-07",
+        "birthTime": ""
+      },
+      "expected": 4
+    },
+    {
+      "input": {
+        "firstName": "กชกร",
+        "lastName": "บุญเรือง",
+        "birthDate": "1988-08-29",
+        "birthTime": "23:59"
+      },
+      "expected": 92
+    },
+    {
+      "input": {
+        "firstName": "ก",
+        "lastName": "ก",
+        "birthDate": "2000-01-01",
+        "birthTime": "00:00"
+      },
+      "expected": 13
+    }
+  ],
+  "name_power": {
+    "วุฒิ์ธิระครุฑขุนทด": 37,
+    "NirawitRidngam": 79,
+    "": 0
+  },
+  "digit_sum": {
+    "0": 0,
+    "99": 18,
+    "1986": 24
+  },
+  "reduce_to_99": {
+    "42": 42,
+    "100": 1,
+    "999": 27
+  }
+}
