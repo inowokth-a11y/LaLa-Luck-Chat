@@ -13,6 +13,8 @@ import {
   dailyPrediction,
 } from "../lib/engine/daily";
 import { julianDay } from "../lib/engine/lagna";
+import { lahiriAyanamsa } from "../lib/engine/ascendant";
+const MOON_SIGN_THAI = ["เมษ","พฤษภ","มิถุน","กรกฎ","สิงห์","กันย์","ตุลย์","พิจิก","ธนู","มังกร","กุมภ์","มีน"];
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fx = JSON.parse(readFileSync(join(here, "fixtures", "daily.fixture.json"), "utf-8"));
@@ -41,8 +43,16 @@ for (const [label, dt] of moonCases) {
   test(`moon longitude+sign — ${label}`, () => {
     const ms = Date.UTC(dt.year, dt.month - 1, dt.day, dt.hour, dt.minute, 0);
     const lon = moonEclipticLongitude(julianDay(ms));
+    // ลองจิจูดยังต้องตรงกับ Python เป๊ะ — นี่คือ "คณิตศาสตร์ที่พอร์ตมา" ซึ่งไม่ได้เปลี่ยน
     assert.ok(Math.abs(lon - fx.moon_cases[label].moon_longitude) <= 1e-6, `${label} longitude`);
-    assert.equal(getMoonSign(dt), fx.moon_cases[label].moon_sign);
+
+    // 🔴 ราศี **จงใจไม่ตรงกับ Python** — Python ไม่ลบอายนางศะ (ให้ราศีสายนะแบบตะวันตก)
+    //    ส่วนเราลบแล้วเพื่อให้เป็นนิรายนะตามโหราศาสตร์ไทย (ดู CLAUDE.md §5.3)
+    //    เทสต์จึงเทียบกับ "ราศีที่คำนวณจากลองจิจูดของ Python ลบอายนางศะ" แทน
+    const jd = julianDay(ms);
+    const siderealLon = ((fx.moon_cases[label].moon_longitude - lahiriAyanamsa(jd)) % 360 + 360) % 360;
+    const expectedSign = MOON_SIGN_THAI[Math.floor(siderealLon / 30)];
+    assert.equal(getMoonSign(dt), expectedSign, `${label} ราศีนิรายนะ`);
   });
 }
 

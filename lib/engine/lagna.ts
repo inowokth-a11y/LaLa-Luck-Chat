@@ -7,6 +7,8 @@
 // หมายเหตุ parity: ฟังก์ชัน trig อาจต่าง ULP ระหว่าง libm(Python)/V8(JS) — ค่าที่ output
 // ถูก round แล้ว (2-3 ตำแหน่ง) จึงตรงกันเกือบทุกกรณี; golden test เทียบด้วย tolerance เล็ก
 
+import { lahiriAyanamsa } from "./ascendant";
+
 const DEG = Math.PI / 180;
 const rad = (d: number) => d * DEG;
 const deg = (r: number) => r / DEG;
@@ -116,9 +118,24 @@ export function trueSunriseUtc(year: number, month: number, day: number, latDeg:
   return addMinutes(base, sunriseMin);
 }
 
-export function getZodiacSign(longitudeDeg: number): [string, number] {
-  const idx = Math.floor(longitudeDeg / 30);
-  const degIntoSign = pymod(longitudeDeg, 30);
+/**
+ * ลองจิจูด → ราศี
+ *
+ * 🔴 **โหราศาสตร์ไทยเป็นระบบนิรายนะ (sidereal)** ผูกราศีกับกลุ่มดาวจริง
+ *    ต่างจากระบบสายนะ (tropical) ของตะวันตกที่ผูกกับจุดวสันตวิษุวัต
+ *    ปัจจุบันสองระบบห่างกัน ~24° = เกือบเต็มราศี
+ *
+ *    เดิมฟังก์ชันนี้ไม่ลบอายนางศะเลย → ราศีที่ได้เป็นแบบตะวันตก **ผิดสำหรับไทย**
+ *    (พอร์ตตรงจาก Python ซึ่งก็ไม่ได้ลบเหมือนกัน — ต้นทางผิดมาแต่แรก)
+ *
+ * @param longitudeDeg ลองจิจูดสายนะ (tropical) 0-360
+ * @param jd  ใส่ Julian Day → ลบอายนางศะให้ ได้ราศีไทย (นิรายนะ) ← ใช้ในโปรดักชัน
+ *            ไม่ใส่ → คืนราศีสายนะแบบเดิม (ใช้เฉพาะ golden test เทียบกับ Python)
+ */
+export function getZodiacSign(longitudeDeg: number, jd?: number): [string, number] {
+  const lon = jd === undefined ? longitudeDeg : pymod(longitudeDeg - lahiriAyanamsa(jd), 360);
+  const idx = Math.floor(lon / 30);
+  const degIntoSign = pymod(lon, 30);
   return [ZODIAC_ORDER[idx], degIntoSign];
 }
 

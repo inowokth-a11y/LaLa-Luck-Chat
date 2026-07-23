@@ -68,7 +68,8 @@ export function monthlyPrediction(lagnaSign: string, onDate: DateOnly): MonthlyR
   const ms = Date.UTC(onDate.year, onDate.month - 1, onDate.day, 12, 0, 0);
   const jd = julianDay(ms);
   const sunLon = solarEclipticLongitude(jd);
-  const [sunSign] = getZodiacSign(sunLon);
+  // ส่ง jd → ได้ราศีนิรายนะ (ไทย) ไม่ใช่สายนะ (ตะวันตก) — ดู getZodiacSign()
+  const [sunSign] = getZodiacSign(sunLon, jd);
   const house = getHouseOfSign(lagnaSign, sunSign);
   return {
     lagna_sign: lagnaSign,
@@ -116,8 +117,9 @@ export function yearlyPrediction(lagnaSign: string, onDate: DateOnly): YearlyRes
   const ms = Date.UTC(onDate.year, onDate.month - 1, onDate.day, 12, 0, 0);
   const jd = julianDay(ms);
 
-  const [jupSign] = getZodiacSign(jupiterLongitude(jd));
-  const [satSign] = getZodiacSign(saturnLongitude(jd));
+  // ส่ง jd → ราศีนิรายนะ (ไทย)
+  const [jupSign] = getZodiacSign(jupiterLongitude(jd), jd);
+  const [satSign] = getZodiacSign(saturnLongitude(jd), jd);
 
   const jupRelation = wholeSignRelation(lagnaSign, jupSign);
   const satRelation = wholeSignRelation(lagnaSign, satSign);

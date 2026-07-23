@@ -10,6 +10,7 @@ import { calculateElementSeed, THAI_LABEL_4, type ElementSeedResult } from "@/li
 import { cardImageUrl } from "@/lib/cards";
 import { supabase } from "@/lib/supabase/client";
 import styles from "./profile.module.css";
+import FunctionChat from "../_components/FunctionChat";
 
 interface CardRow {
   energy_id: string;
@@ -198,6 +199,10 @@ export default function ProfilePage() {
           </details>
         </section>
       )}
+    
+      {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
+      <FunctionChat logicId={1} context={card && seed ? { การ์ด: card, ธาตุ: seed, เลขการ์ด: cardId } : null} placeholder="เช่น ธาตุที่ขาดควรทำยังไงดี" />
+
     </main>
   );
 }

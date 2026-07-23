@@ -29,6 +29,7 @@ import {
 } from "@/lib/engine/compatibility";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./compatibility.module.css";
+import FunctionChat from "../_components/FunctionChat";
 
 const ZODIAC_ANIMALS = [
   "ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง",
@@ -371,6 +372,10 @@ export default function CompatibilityPage() {
           )}
         </section>
       )}
+    
+      {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
+      <FunctionChat logicId={20} context={seed ? { ธาตุของฉัน: seed, สิ่งรอบตัว: scored, ภาพรวม: aggregate } : null} placeholder="เช่น ควรแก้ตรงไหนก่อนดี" />
+
     </div>
   );
 }

@@ -35,6 +35,7 @@ export default function DreamPage() {
   const [day, setDay] = useState("");
   const [deep, setDeep] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   async function send(e: React.FormEvent) {
@@ -56,9 +57,14 @@ export default function DreamPage() {
 
       if (d.intercepted) {
         setMsgs((m) => [...m, { who: "lala", text: d.message, intercepted: true }]);
+      } else if (d.quotaExceeded) {
+        // โควตาหมด — บอกตรงๆ ไม่ใช่ทำเป็น error
+        setMsgs((m) => [...m, { who: "lala", text: d.message }]);
+        setRemaining(0);
       } else if (d.error) {
         setMsgs((m) => [...m, { who: "lala", text: `⚠️ ${d.error}` }]);
       } else {
+        if (typeof d.remaining === "number") setRemaining(d.remaining);
         setMsgs((m) => [
           ...m,
           {
@@ -82,7 +88,11 @@ export default function DreamPage() {
     <main className={`tone-night ${styles.page}`}>
       <header className={styles.header}>
         <h1>ทำนายฝัน</h1>
-        <p className={styles.sub}>อาจารย์ลาลา · ฐานข้อมูล 457 สัญลักษณ์ + 50 ธีมจิตวิทยา</p>
+        <p className={styles.sub}>
+          อาจารย์ลาลา · ฐานข้อมูล 457 สัญลักษณ์ + 50 ธีมจิตวิทยา
+          <br />
+          {remaining === null ? "ช่วงทดลอง ถามได้ 2 ครั้ง" : `เหลือ ${remaining}/2 ครั้ง`}
+        </p>
       </header>
 
       <div className={styles.chat}>
@@ -122,6 +132,7 @@ export default function DreamPage() {
         <div ref={endRef} />
       </div>
 
+      {remaining === 0 ? null : (
       <form onSubmit={send} className={styles.composer}>
         <div className={styles.opts}>
           <select value={day} onChange={(e) => setDay(e.target.value)} className={styles.select}>
@@ -148,6 +159,7 @@ export default function DreamPage() {
           </button>
         </div>
       </form>
+      )}
     </main>
   );
 }

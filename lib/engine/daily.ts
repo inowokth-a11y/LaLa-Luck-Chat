@@ -3,6 +3,7 @@
 //
 // ⚠️ กาลกิณีของราหู (เกิดวันศุกร์) ตรวจไม่ได้ (ราหูไม่มีเรือนคงที่, CLAUDE.md §5)
 
+import { lahiriAyanamsa } from "./ascendant";
 import { ZODIAC_ORDER, julianDay } from "./lagna";
 
 const pymod = (a: number, n: number) => ((a % n) + n) % n;
@@ -74,7 +75,8 @@ export function moonEclipticLongitude(jd: number): number {
 export function getMoonSign(dtUtc: { year: number; month: number; day: number; hour?: number; minute?: number; second?: number }): string {
   const ms = Date.UTC(dtUtc.year, dtUtc.month - 1, dtUtc.day, dtUtc.hour ?? 0, dtUtc.minute ?? 0, dtUtc.second ?? 0);
   const jd = julianDay(ms);
-  const lon = moonEclipticLongitude(jd);
+  // ลบอายนางศะ → ราศีนิรายนะ (ไทย) ให้สอดคล้องกับลัคนาและราศีอาทิตย์
+  const lon = pymod(moonEclipticLongitude(jd) - lahiriAyanamsa(jd), 360);
   const idx = Math.floor(lon / 30);
   return MOON_SIGN_THAI[idx];
 }

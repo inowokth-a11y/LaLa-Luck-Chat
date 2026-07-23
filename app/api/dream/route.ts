@@ -7,12 +7,17 @@
 //   4. AI-2 (OpenAI→Claude) เรียบเรียงเป็นคำตอบ — ห้ามเพิ่มข้อเท็จจริงเอง
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { interpretDream, getAi1SystemPrompt } from "@/lib/engine/dream";
 import { safetyGate } from "@/lib/engine/element";
 import { generate, extractJson, isRoleAvailable } from "@/lib/ai";
 import { lookupCachedDiscovery, saveDiscovery, type Discovery } from "@/lib/dream/discovery-cache";
+import { parseQuota, serializeQuota, checkQuota, consumeQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
 
 export const runtime = "nodejs";
+
+const QUOTA_COOKIE = "kruth_chat_quota";
+const DREAM_LOGIC_ID = 4;
 
 type Ai1Discovery = Discovery;
 
@@ -47,6 +52,19 @@ export async function POST(req: Request) {
         message: gate.crisis_resource_message,
         matched_keywords: gate.matched_keywords,
       });
+    }
+
+    // ---- 1b. โควตา — หลัง Safety Gate เสมอ (คนส่งสัญญาณวิกฤตต้องไม่ถูกคิดโควตา) ----
+    // Logic 4 เป็นฟังก์ชันที่แพงที่สุด (฿0.57 ถ้าเจอในฐาน / ฿7.46 ถ้าปลุก AI-1)
+    // จึงคุมด้วยโควตาเดียวกับแชทฟังก์ชันอื่น
+    const jar = await cookies();
+    const quotaState = parseQuota(jar.get(QUOTA_COOKIE)?.value);
+    const quota = checkQuota(quotaState, DREAM_LOGIC_ID);
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { quotaExceeded: true, message: quotaExhaustedMessage(DREAM_LOGIC_ID), remaining: 0, limit: quota.limit },
+        { status: 429 }
+      );
     }
 
     // ---- 2. engine matching (deterministic) ----
@@ -130,10 +148,16 @@ export async function POST(req: Request) {
       reply = renderTemplate(result, discovery); // fallback ขั้นสุดท้าย: ผู้ใช้ยังได้คำตอบ
     }
 
-    return NextResponse.json({
+    // หักโควตาเมื่อตอบสำเร็จเท่านั้น
+    const nextQuota = consumeQuota(quotaState, DREAM_LOGIC_ID);
+    const afterQuota = checkQuota(nextQuota, DREAM_LOGIC_ID);
+
+    const response = NextResponse.json({
       intercepted: false,
       reply,
       via,
+      remaining: afterQuota.remaining,
+      limit: afterQuota.limit,
       engine: {
         found_anything: result.found_anything,
         symbol_matches: result.symbol_matches,
@@ -143,6 +167,12 @@ export async function POST(req: Request) {
       discovery,
       discovery_source: discoverySource, // "cache" = ไม่ได้เรียก AI-1 รอบนี้ (ประหยัด ~฿9.3)
     });
+    response.cookies.set(QUOTA_COOKIE, serializeQuota(nextQuota), {
+      httpOnly: true, sameSite: "lax", path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      secure: process.env.NODE_ENV === "production",
+    });
+    return response;
   } catch (err) {
     console.error("[dream] error", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "เกิดข้อผิดพลาด" }, { status: 500 });

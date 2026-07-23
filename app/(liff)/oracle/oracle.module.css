@@ -132,3 +132,353 @@
   color: var(--ink-dim);
   opacity: 0.7;
 }
+
+/* ---- วงแหวนคู่ (DualRing.tsx) — โทนมืด/พิธีกรรม ตาม CLAUDE.md §2 ---- */
+
+.ringRow {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.ringWrap {
+  text-align: center;
+}
+
+.ringLabel {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+
+.ring {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border: 1px dashed rgba(242, 230, 200, 0.18);
+  cursor: grab;
+  touch-action: none; /* จำเป็น — ไม่งั้นมือถือจะเลื่อนหน้าแทนการหมุนวง */
+  user-select: none;
+}
+.ring:active { cursor: grabbing; }
+.ring:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+
+/* เข็มชี้ที่ 12 นาฬิกา — จุดที่อ่านค่า */
+.reticle {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 14px solid var(--gold);
+  z-index: 3;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  /* ไม่ใส่ transition — ตำแหน่งถูกขับด้วย requestAnimationFrame อยู่แล้ว
+     ถ้าใส่จะสู้กันเองแล้วภาพกระตุก */
+}
+
+/* ช่องในวง = "ไพ่คว่ำ" ไม่ใช่วงกลม — ให้รู้สึกเหมือนกำลังเลือกไพ่จริง
+   สัดส่วน 40×56 ตรงกับหลังไพ่จริง (1414×2000 ≈ 0.707) */
+.slot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  transition: box-shadow 0.3s ease;
+}
+
+.slotBack {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ไพ่ที่เข็มชี้ — พลิกเปิดให้เห็นเลข */
+.slotLanded {
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 22px rgba(242, 230, 200, 0.7);
+  animation: slotFlip 0.5s cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+@keyframes slotFlip {
+  from { transform-origin: center; }
+}
+
+.slotNumber {
+  color: var(--bg);
+  font-family: var(--font-mono), monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.ringDigit {
+  margin-top: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.spinAll {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.7rem 1.6rem;
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.spinAll:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ringHint {
+  text-align: center;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  margin-top: 0.6rem;
+  line-height: 1.6;
+}
+
+.phase {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--gold);
+  margin: 1rem 0 0.25rem;
+}
+
+.cardPair {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.miniCard {
+  flex: 1;
+  min-width: 130px;
+  max-width: 170px;
+  text-align: center;
+  padding: 0.75rem 0.6rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(242, 230, 200, 0.2);
+}
+.miniLabel { font-size: 0.66rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+.miniId { font-family: var(--font-mono), monospace; font-weight: 700; font-size: 1.3rem; color: var(--gold); }
+.miniName { font-size: 0.76rem; margin-top: 0.25rem; line-height: 1.5; }
+
+.aggBox { text-align: center; margin: 1rem 0; }
+.aggNum { font-family: var(--font-mono), monospace; font-size: 1.9rem; font-weight: 700; color: var(--gold); }
+.aggLabel { font-size: 0.88rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+.componentList { list-style: none; padding: 0; margin: 0.9rem 0 0; }
+.componentItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(242, 230, 200, 0.12);
+  font-size: 0.82rem;
+}
+.componentItem span:last-child { font-family: var(--font-mono), monospace; white-space: nowrap; }
+.componentDetail { font-size: 0.74rem; color: var(--text-dim); line-height: 1.55; }
+
+/* ---- จังหวะเปิดการ์ด (CardReveal.tsx) — พอร์ตจาก .reveal-* ใน HTML ต้นฉบับ ---- */
+
+.revealOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: radial-gradient(ellipse at 50% 40%, rgba(28, 22, 38, 0.96), rgba(6, 4, 10, 0.98));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  animation: revealFadeIn 0.4s ease both;
+}
+
+@keyframes revealFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.revealCard3d {
+  width: 220px;
+  height: 311px;
+  perspective: 1200px;
+  animation: revealZoom 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes revealZoom {
+  from { transform: scale(0.3); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.revealInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+.revealFlipped { transform: rotateY(180deg); }
+
+.revealBack,
+.revealFront {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(242, 230, 200, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ด้านหลังไพ่ — ใช้ภาพจริง (public/cardback.png ย่อจาก
+   docs/design-assets/lala-lucky-chat-cardback.png 1414×2000)
+   ต้องเป็นภาพเดียวกับที่อยู่ในวงแหวน ผู้ใช้จะได้รู้สึกว่า "ไพ่ใบที่เลือกไว้กำลังถูกเปิด" */
+.revealBack {
+  background: #0b0812 center / cover no-repeat url("/cardback.png");
+  padding: 0;
+}
+
+.revealFront {
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, #171123, #0d0a14);
+  gap: 0.5rem;
+}
+
+.revealImg {
+  max-width: 78%;
+  max-height: 74%;
+  object-fit: contain;
+}
+
+.revealId {
+  font-family: var(--font-mono), monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.revealText {
+  text-align: center;
+  max-width: 340px;
+  animation: revealFadeIn 0.6s ease 0.9s both;
+}
+.revealName {
+  font-size: 1.05rem;
+  color: var(--gold);
+  line-height: 1.55;
+}
+.revealEssence {
+  margin-top: 0.5rem;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  line-height: 1.75;
+}
+
+.revealCloseHint {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  animation: revealPulse 1.8s ease-in-out infinite;
+}
+@keyframes revealPulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
+/* เคารพการตั้งค่าของผู้ใช้ที่ขอลดการเคลื่อนไหว (accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .revealCard3d, .revealOverlay, .revealText { animation: none; }
+  .revealInner { transition: none; }
+  .revealCloseHint { animation: none; opacity: 0.7; }
+}
+
+/* ---- คำใบ้ "ปัดเพื่อหมุน" — แทน swipe-finger/dir-arrows ของ HTML ต้นฉบับ ----
+   หายไปทันทีที่ผู้ใช้แตะวง (ไม่ค้างบังตัวเลข) */
+
+.swipeHint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  pointer-events: none; /* ต้องไม่บังการปัด */
+  z-index: 2;
+}
+
+/* เส้นโค้งที่วิ่งรอบวง — สื่อทิศทางการหมุน */
+.swipeArc {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--gold);
+  border-right-color: var(--gold);
+  opacity: 0.55;
+  animation: swipeSpin 2.4s linear infinite;
+}
+@keyframes swipeSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* นิ้วที่ขยับเป็นวงโค้ง — บอกว่า "ลากไปตามวง" ไม่ใช่ "แตะ" */
+.swipeFinger {
+  font-size: 1.9rem;
+  animation: swipeMove 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+@keyframes swipeMove {
+  0%   { transform: translate(-34px, 14px) rotate(-18deg); opacity: 0; }
+  15%  { opacity: 1; }
+  50%  { transform: translate(0, -10px) rotate(0deg); opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translate(34px, 14px) rotate(18deg); opacity: 0; }
+}
+
+.swipeWord {
+  font-size: 0.78rem;
+  color: var(--gold);
+  background: rgba(10, 7, 20, 0.75);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  margin-top: 2.2rem;
+}
+
+/* เคารพผู้ใช้ที่ขอลดการเคลื่อนไหว — ยังเห็นคำใบ้แต่ไม่ขยับ */
+@media (prefers-reduced-motion: reduce) {
+  .swipeArc, .swipeFinger { animation: none; }
+  .swipeFinger { opacity: 1; transform: none; }
+}

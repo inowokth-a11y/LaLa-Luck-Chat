@@ -19,6 +19,7 @@ import {
 import { relationColorVar } from "@/lib/engine/compatibility";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./fengshui.module.css";
+import FunctionChat from "../_components/FunctionChat";
 
 const ZODIAC_ANIMALS = ["ชวด","ฉลู","ขาล","เถาะ","มะโรง","มะเส็ง","มะเมีย","มะแม","วอก","ระกา","จอ","กุน"];
 const zodiacFromYear = (y: number) => ZODIAC_ANIMALS[(((y - 2020) % 12) + 12) % 12];
@@ -195,6 +196,10 @@ export default function FengShuiPage() {
           </p>
         </section>
       )}
+    
+      {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
+      <FunctionChat logicId={7} context={analysis} placeholder="เช่น ถ้าย้ายโต๊ะไม่ได้ทำยังไงดี" />
+
     </div>
   );
 }

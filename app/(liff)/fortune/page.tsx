@@ -4,15 +4,18 @@
 // พอร์ตจาก legacy-artifacts/fortune_dashboard.html — ใช้ engine ที่พอร์ตแล้วทั้งหมด
 // โทน: ☀️ สว่างหินอ่อน (.tone-marble) ตาม CLAUDE.md §2 — เป็นหน้า "ข้อมูล/ผลลัพธ์"
 //
-// ⚠️ ลัคนา (calculateLagna) ยังไม่เคย verify กับดวงจริง (CLAUDE.md §5) — หน้านี้แสดง caveat ไว้
+// ✅ ลัคนาใช้สูตรดาราศาสตร์มาตรฐาน (lib/engine/ascendant.ts) แล้ว — วิธีอันโตนาทีเดิม
+// พิสูจน์แล้วว่าผิด (วนได้แค่ 9 ราศี/วัน) ดู CLAUDE.md §5.2
 
 import { useState } from "react";
-import { calculateLagna } from "@/lib/engine/lagna";
+import { calculateLagna, julianDay } from "@/lib/engine/lagna";
+import { calculateAscendant } from "@/lib/engine/ascendant";
 import { dailyPrediction, getMoonSign } from "@/lib/engine/daily";
 import { monthlyPrediction, yearlyPrediction, birthdayPrediction } from "@/lib/engine/transit";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
-import { PROVINCES, provinceByKey } from "@/lib/provinces";
+import { provincesByRegion, provinceByKey } from "@/lib/provinces";
 import styles from "./fortune.module.css";
+import FunctionChat from "../_components/FunctionChat";
 
 type Daily = ReturnType<typeof dailyPrediction>;
 type Monthly = ReturnType<typeof monthlyPrediction>;
@@ -57,14 +60,18 @@ export default function FortunePage() {
       const [hh, mm] = birthTime.split(":").map(Number);
       const p = provinceByKey(province);
 
+      // ⚠️ เปลี่ยนมาใช้สูตรดาราศาสตร์มาตรฐาน (19 ก.ค. 2569) — วิธีอันโตนาทีเดิมให้ผลผิด:
+      //    ตาราง ANTO_NATEE รวม 2,028 นาที แทนที่จะเป็น 1,440 → วนได้แค่ 9 ราศี/วัน
+      //    ยังเรียก calculateLagna() อยู่เพราะต้องใช้ค่าอาทิตย์ขึ้น/ชดเชยเวลาไปแสดงผล
+      //    แต่ **ไม่ใช้ lagna_sign ของมันแล้ว** (ดู lib/engine/ascendant.ts)
       const lagnaRes = calculateLagna(
         { year, month, day, hour: hh, minute: mm },
         p.lat,
         p.lon,
         7
       );
-      const lagna = lagnaRes.lagna_sign;
-      if (!lagna) throw new Error("คำนวณลัคนาไม่สำเร็จ");
+      const jdBirth = julianDay(Date.UTC(year, month - 1, day, hh, mm, 0) - 7 * 3600000);
+      const lagna = calculateAscendant(jdBirth, p.lat, p.lon, "sidereal").sign;
 
       const now = new Date();
       const today = { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate() };
@@ -107,9 +114,14 @@ export default function FortunePage() {
         </div>
         <label className={styles.field}>
           <span>จังหวัดเกิด</span>
+          {/* จัดกลุ่มตามภาค — 77 จังหวัดเรียงเป็นรายการเดียวหายากเกินไป */}
           <select value={province} onChange={(e) => setProvince(e.target.value)}>
-            {PROVINCES.map((p) => (
-              <option key={p.key} value={p.key}>{p.name}</option>
+            {provincesByRegion().map((g) => (
+              <optgroup key={g.region} label={`ภาค${g.region}`}>
+                {g.items.map((p) => (
+                  <option key={p.key} value={p.key}>{p.name}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <small className={styles.hint}>ใช้หาเวลาอาทิตย์ขึ้นจริง — จำเป็นต่อการคำนวณลัคนา</small>
@@ -209,6 +221,10 @@ export default function FortunePage() {
           </section>
         </>
       )}
+    
+      {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
+      <FunctionChat logicId={8} context={r} placeholder="เช่น ลัคนากันย์หมายความว่าอะไร" />
+
     </main>
   );
 }

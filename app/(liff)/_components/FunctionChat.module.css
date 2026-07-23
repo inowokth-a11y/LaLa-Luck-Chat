@@ -1,0 +1,139 @@
+/* กล่องแชท AI ประจำฟังก์ชัน — ใช้ตัวแปรสีจาก .tone-marble / .tone-night ที่หน้าแม่ตั้งไว้
+   ห้าม hardcode hex (CLAUDE.md §2) เพื่อให้ใช้ได้ทั้งหน้าโทนสว่างและโทนมืด */
+
+.box {
+  background: var(--surface);
+  border: 1px solid var(--marble-vein, rgba(242, 230, 200, 0.2));
+  border-left: 3px solid var(--gold);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+
+.title {
+  font-size: 1rem;
+  color: var(--gold);
+}
+
+.quota {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono), monospace;
+  white-space: nowrap;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.user,
+.ai {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  max-width: 88%;
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--gold);
+  color: var(--surface);
+}
+
+.ai {
+  align-self: flex-start;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--marble-vein, rgba(242, 230, 200, 0.15));
+}
+
+.form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--marble-vein, rgba(242, 230, 200, 0.2));
+  border-radius: 2px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.92rem;
+}
+.input:focus {
+  outline: 2px solid var(--gold-bright, var(--gold));
+  outline-offset: 1px;
+}
+
+.send {
+  padding: 0.6rem 1.1rem;
+  background: var(--gold);
+  color: var(--surface);
+  border: none;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.notice {
+  background: var(--bg);
+  border-left: 3px solid var(--gold);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+  margin-bottom: 0.5rem;
+}
+
+.error {
+  color: var(--bad, #a83a1e);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.74rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* ข้อความช่วยเหลือตอนพบสัญญาณวิกฤต — แสดงเดี่ยวๆ ไม่มีปุ่ม ไม่มีการตลาด */
+.crisis {
+  background: var(--surface);
+  border-left: 3px solid var(--bad, #a83a1e);
+  padding: 1.25rem;
+  margin: 1.25rem auto;
+  max-width: 720px;
+  font-size: 0.92rem;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-wrap;
+}
