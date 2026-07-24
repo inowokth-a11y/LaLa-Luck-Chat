@@ -587,7 +587,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 209/209 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 237/237 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -597,7 +597,7 @@ cd /Users/freeman/Desktop/kruth-element
 ### ✅ ทำเสร็จแล้ว
 | ส่วน | สถานะ |
 |---|---|
-| Engine ทั้งหมด (รวม router) | ✅ 209 tests ผ่าน (พอร์ตครบทุกตัวแล้ว) |
+| Engine ทั้งหมด (รวม router) | ✅ 237 tests ผ่าน (พอร์ตครบทุกตัวแล้ว) |
 | Supabase | ✅ migration 000-017 + seed รันจริง 22 ตาราง (§7) |
 | หน้า `/profile` (Logic 1) | ✅ ทดสอบใน browser จริง — การ์ด+ธาตุ+ประวัติบุคคล |
 | หน้า `/fortune` (Logic 8-11) | ✅ ทดสอบจริง — ลัคนา/รายวัน/เดือน/ปี/ทักษาจร |
@@ -1124,27 +1124,25 @@ rAF มีไว้ให้ภาพลื่นเท่านั้น (พ�
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 209/209
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 237/237
 ```
 
-### สถานะ ณ จบเซสชันนี้
+### สถานะล่าสุด (อัปเดต 24 ก.ค. 2569)
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine ทุกตัว (รวม router, ascendant, oracle, compatibility) | ✅ 209 tests |
+| Engine ทุกตัว (รวม router, ascendant, oracle, compatibility) | ✅ **237 tests** (เดิม 209 + 28 ของ chat-plan) |
 | หน้า LIFF 6 หน้า | ✅ profile · fortune · dream · oracle · compatibility · fengshui |
 | API | ✅ dream · oracle · chat · logic/router · line/webhook |
+| **AI Chat แบบยืดหยุ่น เฟส 1** | ✅ `lib/chat/plan.ts` — ชั้น validate เสร็จ **ยังไม่ต่อ AI** (§16) |
 | Supabase | ✅ migration 000-019 รันจริงแล้ว |
-| GitHub | ✅ `inowokth-a11y/LaLa-Luck-Chat` (commit แรกแล้ว) |
+| GitHub | ✅ `inowokth-a11y/LaLa-Luck-Chat` |
 | Vercel | ✅ deploy สำเร็จ (Hobby) — ⚠️ ยังไม่มีโดเมนจริง |
-| **ยังไม่ commit** | 🔴 **~27 ไฟล์** — งานทั้งเซสชันนี้ยังอยู่แค่ในเครื่อง |
 
-### 🔴 งานแรกที่ต้องทำในเซสชันใหม่: commit + push
+### ก่อน commit ทุกครั้ง
 
 ```bash
 git status                    # ตรวจว่าไม่มี .env.local / data/sensitive/ หลุด
-git add -A && git commit -m "..."
-git push
 ```
 ตรวจก่อน push เสมอ: `git ls-files | grep -E "sensitive|env.local"` ต้องว่าง
 
@@ -1199,8 +1197,9 @@ Scopes              : openid, profile, email
 
 **4. dream matching → Intl.Segmenter/FTS** — ยังใช้ substring อยู่ (over-match คำสั้น)
 
-**5. AI Chat แบบยืดหยุ่น + กราฟเปรียบเทียบ** — ออกแบบเสร็จแล้ว **ดู §16**
-⏸️ ทำหลังมีระบบสมาชิก + แดชบอร์ดต้นทุน (ควรเป็นฟีเจอร์พรีเมียม 2-3 เครดิต)
+**5. AI Chat แบบยืดหยุ่น + กราฟเปรียบเทียบ** — ✅ **เฟส 1 (ชั้น validate) เสร็จแล้ว** ดู §16
+เหลือเฟส 2: ต่อ AI จริง + กราฟ + UI ⏸️ ทำหลังมีระบบสมาชิก + แดชบอร์ดต้นทุน
+(ควรเป็นฟีเจอร์พรีเมียม 2-3 เครดิต)
 
 **6. Logic ที่ยังไม่ทำ:** 5, 6 (Vision API) · 12, 16 (มีตารางแต่ไม่มีหน้า) · 13, 15, 17
 
@@ -1254,8 +1253,11 @@ Scopes              : openid, profile, email
 
 ## 16. 🧠 AI Chat แบบยืดหยุ่น + กราฟเปรียบเทียบ — โครงที่ตกลงไว้ (23 ก.ค. 2569)
 
-> **สถานะ: ออกแบบแล้ว ยังไม่เขียนโค้ด** · ผู้ใช้เห็นชอบแนวทางนี้แล้ว
-> ⏸️ **ทำหลังระบบสมาชิก + แดชบอร์ดต้นทุน** เพราะควรเป็นฟีเจอร์พรีเมียม (คิด 2-3 เครดิต)
+> **สถานะ: ✅ เฟส 1 (ชั้น validate) เขียนเสร็จแล้ว 24 ก.ค. 2569** — `lib/chat/plan.ts` +
+> `tests/chat-plan.test.ts` (28 เทสต์) · **ยังไม่ได้ต่อ AI จริง และยังไม่ได้แตะ
+> `app/api/chat/route.ts`** (ตั้งใจหยุดตรงนี้ตามที่ผู้ใช้สั่ง — ให้ด่าน validate ผ่านเทสต์ก่อน)
+> ⏸️ ส่วนที่เหลือ (ต่อ AI + กราฟ + UI) **ทำหลังระบบสมาชิก + แดชบอร์ดต้นทุน** เพราะควรเป็น
+> ฟีเจอร์พรีเมียม (คิด 2-3 เครดิต)
 
 ### ปัญหาที่จะแก้
 ตอนนี้ `/api/chat` ตอบได้เฉพาะจาก context ที่หน้าจอส่งมา — คำถามที่ไม่ตรง Logic ไหนเลย
@@ -1325,13 +1327,29 @@ Scopes              : openid, profile, email
 **เฟส 2** ค่อยเปิดตัวที่ต้องใช้วันเกิด (`calculateElementSeed`, `dailyPrediction`,
 `analyzeFengShui`, `checkFullAuspiciousTime` ฯลฯ) — ต้องมี `missingInputs` ทำงานก่อน
 
-### กฎ validate ที่ server (ห้ามข้าม)
+### ✅ กฎ validate ที่ server (ห้ามข้าม) — บังคับได้จริงแล้ว มีเทสต์ล็อกทุกข้อ
 
-1. **fn ต้องอยู่ใน allowlist** — ไม่ใช่ `eval` หรือเรียกอะไรก็ได้
-2. **args ต้องตรง type** — เลขต้องเป็นเลข ธาตุต้องอยู่ใน 5 ตัวจริง
-3. **ห้ามใช้ฟังก์ชันข้ามบริบท** — เช่นเอาตาราง digit→element ของ Logic 2 ไปใส่ปีเกิด
-4. **`missingInputs` ไม่ว่าง → ถามผู้ใช้ ห้ามรันแล้วเดา**
-5. **จำกัดจำนวน calls ต่อแผน** (เสนอ 5) กันแผนบวมสูบ token
+| กฎ | ตัวอย่างที่ถูกปฏิเสธจริงในเทสต์ |
+|---|---|
+| 1. **fn ต้องอยู่ใน allowlist** — ไม่ใช่ `eval` หรือเรียกอะไรก็ได้ | `eval` · `calculateElementSeed` · `LOOKUP2DIGIT` (case ต่างถือว่าไม่ตรง) |
+| 2. **args ต้องตรง type** — เลขต้องเป็นเลข ธาตุต้องอยู่ใน 5 ตัวจริง | `{num:"99"}` (สตริง — **ไม่แปลงให้**) · `1.5` · `NaN` · `1e999` · ธาตุ `"Lightning"` |
+| 3. **ห้ามใช้ฟังก์ชันข้ามบริบท** | `lookup2digit(1990)` → error บอกตรงๆ ว่าปีเกิดเป็นคนละบริบท · `lookup3digit(2569)` |
+| 4. **`missingInputs` ไม่ว่าง → ถามผู้ใช้ ห้ามรันแล้วเดา** | คืน `kind:"needs_input"` **ไม่รัน calls แม้ AI ส่ง calls มาพร้อมกัน** |
+| 5. **จำกัดจำนวน calls ต่อแผน** = `MAX_CALLS_PER_PLAN` 5 | 6 calls ถูกปฏิเสธ |
+
+**ผลลัพธ์ของ `validateChatPlan()` เป็น 3 ทาง ไม่ใช่ boolean** —
+`{ok:true, plan}` · `{ok:false, kind:"needs_input", missingInputs}` · `{ok:false, kind:"invalid", errors}`
+เพราะ "ข้อมูลไม่พอ" กับ "แผนผิด" ต้องตอบผู้ใช้คนละแบบ (ถามเพิ่ม vs ให้ AI วางแผนใหม่)
+
+**การตัดสินใจที่เพิ่มระหว่างเขียน (ไม่ได้อยู่ในแบบร่างเดิม):**
+- **ธาตุภาษาไทย normalize ให้** — `"ไฟ"`→Fire, `"ทอง"`→Metal, และ **`"ลม"`→Wood**
+  (มาจากระบบ 4 bucket ที่ `THAI_LABEL_4.Wood = "ลม"` ส่วนระบบ 5 ธาตุใช้ "ไม้") เป็นการแปลง
+  deterministic ไม่ใช่การเดา — ถ้าจะเข้มกว่านี้ (รับเฉพาะอังกฤษ) ต้องแก้ `toElement5()`
+- **`caveat` ผูกกับฟังก์ชันใน allowlist โดยตรง** — `executePlan()` คืน `caveats[]` (ยุบซ้ำแล้ว)
+  ทุกครั้ง ข้อจำกัดจาก §5 (เบอร์โทร/3-digit fallback/artifactElement ไม่มี "ทอง") จึงไหลถึง
+  ผู้ใช้เสมอ **ชั้นเล่าเรื่องต้องแสดง ห้ามกลืนหาย**
+- **`describeAllowlistForPrompt()` สร้าง prompt จาก `PLAN_ALLOWLIST` ตรงๆ** — prompt จึง
+  drift จากสิ่งที่รันได้จริงไม่ได้ (เพิ่ม fn แล้วลืมแก้ prompt = เป็นไปไม่ได้)
 
 ### 🔴 กฎกราฟ — จุดที่พลาดง่ายที่สุด
 
@@ -1352,6 +1370,20 @@ Scopes              : openid, profile, email
 
 → validate ปฏิเสธถ้า `series` ข้ามชนิด
 
+✅ **บังคับแล้วด้วยกฎที่แข็งกว่าที่ร่างไว้: ทุก call ในแผนต้องเป็น fn เดียวกับ `chart.series`**
+(ไม่ใช่แค่ "series ไม่ข้ามชนิด") → การเทียบข้าม Logic เกิดขึ้นไม่ได้เชิงโครงสร้าง ไม่ใช่แค่ตรวจจับ
+error message บอกด้วยว่า fn ตัวไหนปนเข้ามา
+
+**กฎกราฟที่เพิ่มระหว่างเขียน:**
+- **`bar`/`radar`/`scale` ต้องใช้ engine ที่คืน "คะแนน" จริงเท่านั้น** — มีแค่ `wuXingScore`
+  (สเกล −2..2) กับ `digitSumReduce` (สเกล 0..9) ที่ประกาศ `chartable` ไว้
+  ส่วน `table` ไม่ได้อ้างว่ามีสเกลร่วมกัน จึงใช้กับ `lookup2digit` ฯลฯ ได้
+  (`lookup2digit` + `bar` = ถูกปฏิเสธ พร้อมแนะให้ใช้ table แทน)
+- **จุดข้อมูลขั้นต่ำ: bar 2 · radar 3 · table 2 · scale 1** — กราฟเปรียบเทียบที่มีจุดเดียว
+  ไม่มีความหมาย ส่วน `scale` เป็นมาตรวัดค่าเดียวจึง 1 จุดพอ
+- **สเกลของกราฟมาจาก `PLAN_ALLOWLIST[series].chartable.scale` ไม่ใช่จาก AI** — AI ตั้งได้แค่
+  ชนิดกราฟกับป้ายชื่อ (ป้ายถูก trim + ตัดที่ 60 ตัวอักษร; ไม่ส่งมา → server สร้างเองจาก args)
+
 ### กราฟ — ไม่ต้องลงไลบรารีเพิ่ม
 
 มีแม่แบบครบแล้ว ยกออกมาเป็น component กลาง 4 แบบ:
@@ -1367,23 +1399,30 @@ Scopes              : openid, profile, email
 - **จอ ≥1024px** → แบ่งซ้ายขวา: กราฟซ้าย · แชทขวา
 - ใช้ CSS grid อย่างเดียว **ไม่ต้องเขียน logic แยกจอ**
 
-### ไฟล์ที่ต้องแตะ
+### ไฟล์
 
 ```
-lib/chat/plan.ts          (ใหม่) schema + allowlist + validate + executor
-lib/chat/charts.ts        (ใหม่) ชนิดกราฟ + กฎ series เดียวกัน
-app/api/chat/route.ts     เพิ่มเส้นทาง "แผน" คู่กับเส้นทางเดิม
-app/(liff)/_components/   เพิ่ม ChartPanel.tsx
-tests/chat-plan.test.ts   (ใหม่) เทสต์ validate — สำคัญกว่าเทสต์ AI
+✅ lib/chat/plan.ts          schema + allowlist 6 fn + validate + executor (ตรรกะล้วน)
+✅ tests/chat-plan.test.ts   28 เทสต์ — เทสต์ validate สำคัญกว่าเทสต์ AI
+⬜ lib/chat/charts.ts        ชนิดกราฟ + กฎ series เดียวกัน
+⬜ app/api/chat/route.ts     เพิ่มเส้นทาง "แผน" คู่กับเส้นทางเดิม
+⬜ app/(liff)/_components/   เพิ่ม ChartPanel.tsx
 ```
+
+**`lib/chat/plan.ts` ไม่ import อะไรที่แตะ network/cookie/next เลย** (มีแค่ engine 2 ตัว)
+— เทสต์จึงรันตรงๆ ไม่ต้อง mock อะไร **ถ้าจะแก้ อย่าลากของฝั่ง server เข้ามาในไฟล์นี้**
 
 ⚠️ **`lib/ai/index.ts` คืนแค่ text** — ถ้าจะไป tool-use จริงต้องขยาย แต่แผน JSON ใช้
 `extractJson()` ที่มีอยู่แล้วได้เลย **ไม่ต้องแก้ชั้น AI**
 
-### คำสั่งเริ่มงานหัวข้อนี้ (คัดลอกไปวางได้)
+### คำสั่งเริ่มงานเฟส 2 (คัดลอกไปวางได้)
 
 ```
-อ่าน CLAUDE.md §16 แล้วทำเฟส 1 ของ AI Chat แบบยืดหยุ่น:
-lib/chat/plan.ts (schema + allowlist 6 ฟังก์ชัน + validate) พร้อมเทสต์
-ยังไม่ต้องต่อ AI จริง — ให้ validate ผ่านเทสต์ก่อน แล้วค่อยต่อ
+อ่าน CLAUDE.md §16 แล้วต่อเฟส 2 ของ AI Chat แบบยืดหยุ่น:
+ต่อ AI จริงเข้ากับ lib/chat/plan.ts ที่มีอยู่แล้ว (Claude Haiku วางแผน → validateChatPlan
+→ executePlan → gpt-5.5 เล่า) แล้วเพิ่มเส้นทางนี้ใน app/api/chat/route.ts
+ห้ามแก้กฎ validate ให้หลวมลงเพื่อให้ AI ผ่านง่ายขึ้น — ถ้า AI วางแผนไม่ผ่านให้แก้ prompt
 ```
+
+⚠️ **เมื่อต่อ AI แล้ว ให้บันทึกไว้ด้วยว่า AI วางแผน "ไม่ผ่าน validate" บ่อยแค่ไหนและด้วยกฎข้อไหน**
+— เป็นตัวชี้ว่าต้องแก้ prompt ตรงไหน (และเป็นต้นทุนที่จ่ายไปโดยไม่ได้คำตอบ)
