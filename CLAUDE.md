@@ -799,8 +799,15 @@ Logic เข้าไปจะรู้ตัวว่ากำลังเพ�
 ตามคาด) · หลายเหตุการณ์ในก้อนเดียวรับได้ (`accepted: 2`) · ลายเซ็นมั่วยัง 401
 
 🔴 **ยังไม่ได้ทำ — ต้องทำเองบน LINE Console:** ยังไม่ได้ตั้ง Webhook URL จริงในบัญชี LINE OA
-(เป็นการตั้งค่าบนบัญชีจริงของผู้ใช้ ผมไม่ทำให้เอง) ต้อง deploy ขึ้น public URL ก่อน แล้วเอา
-`https://<โดเมน>/api/line/webhook` ไปใส่ใน LINE Developers Console → Verify
+(เป็นการตั้งค่าบนบัญชีจริงของผู้ใช้ ผมไม่ทำให้เอง)
+
+✅ **มี public URL แล้ว (24 ก.ค. 2569):** ใช้ URL production ของ Vercel ไปก่อน (ยังไม่ซื้อโดเมน)
+→ Webhook URL ที่ต้องเอาไปใส่ LINE Developers Console คือ:
+```
+https://lala-lucky-chat.vercel.app/api/line/webhook
+```
+ยืนยันด้วย curl จริงแล้วว่า endpoint บน prod ตอบถูก: POST ไม่มีลายเซ็น → **401** ·
+`/api/logic/router` → `ai_available:true` (env AI ครบ) · `/profile` → 200 (Supabase ครบ)
 
 ### ✅ dream matching — แก้แล้ว แต่ **ไม่ใช่ด้วย FTS** (19 ก.ค. 2569)
 
@@ -1137,7 +1144,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 237/237
 | **AI Chat แบบยืดหยุ่น เฟส 1** | ✅ `lib/chat/plan.ts` — ชั้น validate เสร็จ **ยังไม่ต่อ AI** (§16) |
 | Supabase | ✅ migration 000-019 รันจริงแล้ว |
 | GitHub | ✅ `inowokth-a11y/LaLa-Luck-Chat` |
-| Vercel | ✅ deploy สำเร็จ (Hobby) — ⚠️ ยังไม่มีโดเมนจริง |
+| Vercel | ✅ deploy สำเร็จ (Hobby) — **โปรเจกต์จริงคือ `lala-lucky-chat` → `https://lala-lucky-chat.vercel.app`** (verify ทุก path 200) · ⏸️ ใช้ vercel.app ไปก่อน ยังไม่ซื้อโดเมน |
 
 ### ก่อน commit ทุกครั้ง
 
