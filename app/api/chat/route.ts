@@ -26,6 +26,7 @@ import {
   planQuotaExhaustedMessage,
 } from "@/lib/chat/plan-run";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
+import { getDbUsage, bumpDbUsage, planBucket, logicBucket } from "@/lib/chat/usage-db";
 import type { PlanProfileContext } from "@/lib/chat/plan";
 
 export const runtime = "nodejs";
@@ -90,9 +91,22 @@ export async function POST(req: Request) {
       return await handlePlanMode(question);
     }
 
-    // ---- 2. โควตา ----
+    // ---- 2. โควตา (ล็อกอิน → DB ผูก auth_uid · ไม่ล็อกอิน → cookie) ----
     const jar = await cookies();
-    const state = parseQuota(jar.get(QUOTA_COOKIE)?.value);
+    const cookieState = parseQuota(jar.get(QUOTA_COOKIE)?.value);
+
+    let userId: string | null = null;
+    try {
+      const supabase = await createSupabaseServer();
+      userId = (await supabase.auth.getUser()).data.user?.id ?? null;
+    } catch (e) {
+      console.warn("[chat] อ่าน session ไม่สำเร็จ — ถือว่าไม่ล็อกอิน", e);
+    }
+    const bucket = logicBucket(logicId);
+    // ยอดที่ใช้ไป: ล็อกอินอ่านจาก DB · ไม่ล็อกอินอ่านจาก cookie
+    // ใส่เป็น state สังเคราะห์ให้ checkQuota เดิมทำงานต่อ (เช็ค logic เปิด + limit + remaining)
+    const dbUsed = userId ? await getDbUsage(userId, bucket) : 0;
+    const state = userId ? { [String(logicId)]: dbUsed } : cookieState;
     const q = checkQuota(state, logicId);
 
     if (!q.allowed) {
@@ -131,8 +145,13 @@ ${contextJson}
     });
 
     // หักโควตาหลัง AI ตอบสำเร็จเท่านั้น — AI ล่มแล้วยังเสียสิทธิ์ถือว่าไม่ยุติธรรม
-    const next = consumeQuota(state, logicId);
-    const after = checkQuota(next, logicId);
+    // ล็อกอิน → bump DB (atomic) · ไม่ล็อกอิน → cookie
+    let afterState = consumeQuota(state, logicId);
+    if (userId) {
+      const bumped = await bumpDbUsage(userId, bucket);
+      afterState = { [String(logicId)]: bumped ?? dbUsed + 1 };
+    }
+    const after = checkQuota(afterState, logicId);
 
     const res = NextResponse.json({
       reply: ai.text,
@@ -141,13 +160,16 @@ ${contextJson}
       remaining: after.remaining,
       limit: after.limit,
     });
-    res.cookies.set(QUOTA_COOKIE, serializeQuota(next), {
-      httpOnly: true, // กัน JS ในหน้าเว็บแก้ตัวเลขตรงๆ
-      sameSite: "lax",
-      path: "/",
-      maxAge: COOKIE_MAX_AGE,
-      secure: process.env.NODE_ENV === "production",
-    });
+    // cookie เฉพาะผู้ไม่ล็อกอิน — ผู้ล็อกอินใช้ DB เป็นแหล่งจริง
+    if (!userId) {
+      res.cookies.set(QUOTA_COOKIE, serializeQuota(afterState), {
+        httpOnly: true, // กัน JS ในหน้าเว็บแก้ตัวเลขตรงๆ
+        sameSite: "lax",
+        path: "/",
+        maxAge: COOKIE_MAX_AGE,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
     return res;
   } catch (err) {
     console.error("[chat] error", err);
@@ -164,23 +186,16 @@ ${contextJson}
  */
 async function handlePlanMode(question: string): Promise<NextResponse> {
   const jar = await cookies();
-  const used = parsePlanUsed(jar.get(PLAN_QUOTA_COOKIE)?.value);
-  const q = checkPlanQuota(used);
 
-  if (!q.allowed) {
-    return NextResponse.json(
-      { quotaExceeded: true, message: planQuotaExhaustedMessage(), used: q.used, remaining: 0, limit: q.limit },
-      { status: 429 }
-    );
-  }
-
-  // โปรไฟล์ผู้ใช้ (ธาตุประจำตัว) — อ่านด้วย session ผู้ใช้ (RLS own-row) ไม่ใช่ service role
+  // โหลด session ครั้งเดียว — ใช้ทั้งโควตา (DB) และโปรไฟล์ (ธาตุประจำตัว)
   // 🔴 วันเกิดไม่เคยถูกส่งให้ AI — สร้าง context ที่นี่แล้วส่งเข้า runPlanChat เท่านั้น
+  let userId: string | null = null;
   let profileCtx: PlanProfileContext | null = null;
   try {
     const supabase = await createSupabaseServer();
     const { data } = await supabase.auth.getUser();
     if (data.user) {
+      userId = data.user.id;
       const { data: prof } = await supabase
         .from("user_profiles_e")
         .select("birth_date")
@@ -189,7 +204,17 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
       profileCtx = buildProfileContext(prof?.birth_date);
     }
   } catch (e) {
-    console.warn("[chat/plan] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
+    console.warn("[chat/plan] อ่าน session/โปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่ล็อกอิน", e);
+  }
+
+  // โควตา: ล็อกอิน → นับที่ DB (ผูก auth_uid, ล้าง cookie ไม่รีเซ็ต) · ไม่ล็อกอิน → cookie
+  const used = userId ? await getDbUsage(userId, planBucket()) : parsePlanUsed(jar.get(PLAN_QUOTA_COOKIE)?.value);
+  const q = checkPlanQuota(used);
+  if (!q.allowed) {
+    return NextResponse.json(
+      { quotaExceeded: true, message: planQuotaExhaustedMessage(), used: q.used, remaining: 0, limit: q.limit },
+      { status: 429 }
+    );
   }
 
   const result = await runPlanChat(question, profileCtx);
@@ -203,8 +228,12 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
   }
 
   // หักโควตาเฉพาะเมื่อได้คำตอบจริงเท่านั้น
-  const nextUsed = used + 1;
-  const after = checkPlanQuota(nextUsed);
+  let afterUsed = used + 1;
+  if (userId) {
+    const bumped = await bumpDbUsage(userId, planBucket());
+    if (bumped !== null) afterUsed = bumped;
+  }
+  const after = checkPlanQuota(afterUsed);
   const res = NextResponse.json({
     reply: result.reply,
     results: result.results,
@@ -215,13 +244,16 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
     remaining: after.remaining,
     limit: after.limit,
   });
-  res.cookies.set(PLAN_QUOTA_COOKIE, String(nextUsed), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-    secure: process.env.NODE_ENV === "production",
-  });
+  // cookie เฉพาะผู้ไม่ล็อกอิน — ผู้ล็อกอินใช้ DB เป็นแหล่งจริง ไม่ต้องเขียน cookie
+  if (!userId) {
+    res.cookies.set(PLAN_QUOTA_COOKIE, String(afterUsed), {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: COOKIE_MAX_AGE,
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
   return res;
 }
 
