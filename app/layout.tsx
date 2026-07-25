@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_Thai, Noto_Sans_Thai, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import AuthStatus from "./_components/AuthStatus";
 
 // Typography คงที่ทุกหน้า (CLAUDE.md §2)
 const serifThai = Noto_Serif_Thai({
@@ -31,7 +32,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th" className={`${serifThai.variable} ${sansThai.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <AuthStatus />
+        {children}
+      </body>
     </html>
   );
 }
