@@ -42,6 +42,9 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login?error=exchange_failed", url.origin));
   }
 
+  // ปลายทางหลังล็อกอิน — ถ้ายังไม่มีโปรไฟล์ ให้ไปกรอกข้อมูลพื้นฐานก่อน (อย่างแรก)
+  let destination = safeNext;
+
   // upsert ตัวตนฝั่ง E — ล้มเหลวไม่ควรทำให้ login พัง (session สำเร็จไปแล้ว)
   try {
     const { data } = await supabase.auth.getUser();
@@ -75,10 +78,20 @@ export async function GET(request: Request) {
         },
         { onConflict: "auth_uid" }
       );
+
+      // ยังไม่มีโปรไฟล์พื้นฐาน → พาไปกรอกก่อน แล้วค่อยไปปลายทางเดิม
+      const { data: prof } = await svc
+        .from("user_profiles_e")
+        .select("auth_uid")
+        .eq("auth_uid", user.id)
+        .maybeSingle();
+      if (!prof) {
+        destination = `/onboarding?next=${encodeURIComponent(safeNext)}`;
+      }
     }
   } catch (e) {
     console.error("[auth/callback] upsert identity ล้มเหลว (login ยังสำเร็จ)", e);
   }
 
-  return NextResponse.redirect(new URL(safeNext, url.origin));
+  return NextResponse.redirect(new URL(destination, url.origin));
 }

@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 const TOOLS: { href: string; label: string; primary?: boolean }[] = [
-  { href: "/chat", label: "💬 ถามอาจารย์ลาลา (วิเคราะห์อิสระ · AI)", primary: true },
-  { href: "/profile", label: "🔮 โปรไฟล์พลังงาน (Logic 1)" },
-  { href: "/fortune", label: "✨ ดวงของฉัน (Logic 8-11)" },
-  { href: "/compatibility", label: "🤝 ข่ายความสัมพันธ์ (Logic 20)" },
-  { href: "/fengshui", label: "🧭 ฮวงจุ้ย (Logic 7)" },
-  { href: "/dream", label: "🌙 ทำนายฝัน (Logic 4 · AI)" },
-  { href: "/oracle", label: "🎴 เสี่ยงทาย (Logic 21 · AI)" },
+  { href: "/chat", label: "💬 ถามอาจารย์ลาลา (วิเคราะห์อิสระ)", primary: true },
+  { href: "/profile", label: "🔮 โปรไฟล์พลังงาน" },
+  { href: "/fortune", label: "✨ ดวงของฉัน" },
+  { href: "/compatibility", label: "🤝 ข่ายความสัมพันธ์" },
+  { href: "/fengshui", label: "🧭 ฮวงจุ้ย" },
+  { href: "/dream", label: "🌙 ทำนายฝัน" },
+  { href: "/oracle", label: "🎴 เสี่ยงทาย" },
 ];
 
 export default function Home() {

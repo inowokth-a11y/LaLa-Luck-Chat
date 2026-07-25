@@ -134,7 +134,7 @@ export default function FortunePage() {
         <>
           {/* ---- Logic 8: รายวัน ---- */}
           <section className={styles.panel}>
-            <h2 className={styles.h2}>วันนี้ (Logic 8)</h2>
+            <h2 className={styles.h2}>วันนี้</h2>
             <div className={styles.luckNumber} style={{ color: r.daily.daily_luck_score >= 7 ? "var(--good)" : r.daily.daily_luck_score <= 3 ? "var(--bad)" : "var(--gold)" }}>
               {r.daily.daily_luck_score}<span className={styles.luckMax}>/10</span>
             </div>
@@ -160,7 +160,7 @@ export default function FortunePage() {
 
           {/* ---- Logic 9: รายเดือน ---- */}
           <section className={styles.panel}>
-            <h2 className={styles.h2}>เดือนนี้ (Logic 9)</h2>
+            <h2 className={styles.h2}>เดือนนี้</h2>
             <dl className={styles.details}>
               <div><dt>อาทิตย์อยู่ราศี</dt><dd>{r.monthly.sun_sign_this_month}</dd></div>
               <div><dt>ตกภพ</dt><dd>{r.monthly.house}</dd></div>
@@ -173,7 +173,7 @@ export default function FortunePage() {
 
           {/* ---- Logic 10: รายปี ---- */}
           <section className={styles.panel}>
-            <h2 className={styles.h2}>ปีนี้ (Logic 10)</h2>
+            <h2 className={styles.h2}>ปีนี้</h2>
             <div className={styles.grade} style={{ background: GRADE_COLOR[r.yearly.year_grade] }}>{r.yearly.year_grade}</div>
             <p className={styles.gradeLabel}>{r.yearly.year_label}</p>
             <dl className={styles.details}>
@@ -186,7 +186,7 @@ export default function FortunePage() {
           {/* ---- Logic 11: ทักษาจร ---- */}
           {"taksa_jr" in r.birthday && (
             <section className={styles.panel}>
-              <h2 className={styles.h2}>ทักษาจรปีนี้ (Logic 11)</h2>
+              <h2 className={styles.h2}>ทักษาจรปีนี้</h2>
               <dl className={styles.details}>
                 <div><dt>อายุปีนี้</dt><dd className="num">{r.birthday.age} ปี</dd></div>
                 <div><dt>บริวารจรปีนี้</dt><dd>{r.birthday.this_year_barivarn_planet}</dd></div>

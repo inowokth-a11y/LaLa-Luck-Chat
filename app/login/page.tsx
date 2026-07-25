@@ -122,6 +122,9 @@ export default function LoginPage() {
           <p style={{ maxWidth: 340, textAlign: "center", opacity: 0.85 }}>
             เข้าสู่ระบบด้วย <strong>{user.email ?? user.app_metadata?.provider ?? "บัญชีของคุณ"}</strong>
           </p>
+          <Link href="/onboarding" style={{ ...btn, background: "var(--gold)", color: "var(--bg)", fontWeight: 600, textAlign: "center", textDecoration: "none", display: "block" }}>
+            กรอก/แก้ไขข้อมูลพื้นฐาน
+          </Link>
           <Link href="/" style={{ ...btn, textAlign: "center", textDecoration: "none", display: "block" }}>
             ไปหน้าแรก
           </Link>

@@ -1142,7 +1142,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 237/237
 | หน้า LIFF 6 หน้า | ✅ profile · fortune · dream · oracle · compatibility · fengshui |
 | API | ✅ dream · oracle · chat · logic/router · line/webhook |
 | **AI Chat แบบยืดหยุ่น เฟส 1** | ✅ `lib/chat/plan.ts` — ชั้น validate เสร็จ **ยังไม่ต่อ AI** (§16) |
-| Supabase | ✅ migration 000-020 รันจริงแล้ว (020 = user_identities สำหรับระบบสมาชิก) |
+| Supabase | ✅ migration 000-021 รันจริงแล้ว (020 = user_identities, 021 = user_profiles_e) |
 | GitHub | ✅ `inowokth-a11y/LaLa-Luck-Chat` |
 | Vercel | ✅ deploy สำเร็จ (Hobby) — **โปรเจกต์จริงคือ `lala-lucky-chat` → `https://lala-lucky-chat.vercel.app`** (verify ทุก path 200) · ⏸️ ใช้ vercel.app ไปก่อน ยังไม่ซื้อโดเมน |
 
@@ -1176,8 +1176,21 @@ git status                    # ตรวจว่าไม่มี .env.local 
 > **Redirect allow-list** = `https://lala-lucky-chat.vercel.app/**` (Authentication → URL Configuration)
 > ไม่งั้น OAuth จะ redirect กลับไม่ได้ · dev localhost ใช้ได้อยู่แล้ว (Supabase อนุญาต localhost)
 >
-> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ผูกเครดิต/subscription กับ auth_uid · ย้ายโควตา plan-chat/แชท
-> จาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login บนทุกหน้า (ตอนนี้มีลิงก์ที่หน้าแรก)
+> **✅ สไลซ์ 1.5 (25 ก.ค. 2569) — เก็บข้อมูลพื้นฐานหลังล็อกอิน + ซ่อน "Logic" จากผู้ใช้:**
+> - `supabase/migrations/021_user_profiles_e.sql` — ตารางโปรไฟล์ (ชื่อ/วันเกิด ค.ศ./เวลา/จังหวัด)
+>   ผูก `auth_uid` · **ไม่แตะ users ของ D** · RLS แบบ **own-row write** (ต่างจาก user_identities):
+>   ผู้ใช้เขียนแถวตัวเองได้ (`with check auth.uid()=auth_uid`) · verify anon: อ่าน 0, insert ปลอมปฏิเสธ 42501
+> - `app/onboarding/page.tsx` — ฟอร์มกรอกครั้งเดียว (prefill ถ้าเคยกรอก) · เขียนตรงด้วย session ผู้ใช้
+>   · กันคนไม่ล็อกอิน → เด้ง `/login?next=/onboarding` (ทดสอบจริงแล้ว) · `useSearchParams` ต้องห่อ `<Suspense>`
+> - `app/auth/callback/route.ts` — หลังล็อกอิน **ถ้ายังไม่มีโปรไฟล์ → พาไป /onboarding ก่อน** แล้วค่อยไป next
+> - หน้า login (account view) เพิ่มปุ่ม "กรอก/แก้ไขข้อมูลพื้นฐาน" (เผื่อผู้ใช้เก่าที่ไม่ผ่าน callback อีก)
+> - 🔴 **ซ่อน "Logic X" จากผู้ใช้ทุกจุด (ผู้ใช้สั่ง):** หน้าแรก label 6 เครื่องมือ + fortune หัวข้อ
+>   วันนี้/เดือนนี้/ปีนี้/ทักษาจร — เอา "(Logic N)" ออก · **comment ในโค้ด/`logicId=` prop เก็บไว้** (ผู้ใช้ไม่เห็น)
+>   · เวลาเพิ่ม UI ใหม่ ห้ามโชว์คำว่า "Logic <เลข>" ให้ผู้ใช้เห็นอีก
+>
+> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ใช้ `user_profiles_e` จริงในการคำนวณ (prefill /profile /fortune +
+> ป้อน birthDate ให้ flexible chat §16 ที่ยังตอบ needs_input) · ผูกเครดิต/subscription กับ auth_uid ·
+> ย้ายโควตา plan-chat/แชทจาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login บนทุกหน้า
 
 ผู้ใช้เลือก: **Google + Facebook + LINE Login** (Instagram ทำไม่ได้ — Basic Display API
 ปิดถาวร 4 ธ.ค. 2024 และ Meta ไม่อนุมัติแอปที่ใช้ IG ทำ authentication)
