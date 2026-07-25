@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import {
   validateChatPlan,
   executePlan,
+  planRequiresProfile,
   missingInputPrompt,
   describeAllowlistForPrompt,
   PLAN_ALLOWLIST,
@@ -17,7 +18,19 @@ import {
   MAX_CALLS_PER_PLAN,
   MISSING_INPUT_LABELS,
   type ChatPlan,
+  type PlanProfileContext,
 } from "../lib/chat/plan";
+import { calculateElementSeed } from "../lib/engine/element";
+
+// โปรไฟล์จำลองสำหรับเทสต์ fn "ของฉัน" — ธาตุเด่น Fire, ขาด Metal(ไม่มีใน 4 bucket)/บางธาตุ
+const seed = calculateElementSeed({
+  day_of_week: "อังคาร", // ไฟ
+  birth_month: 1, // ไฟ
+  birth_year_ad: 1990,
+  birth_day: 15,
+  zodiac_year_animal: "มะเมีย", // ไฟ
+});
+const MOCK_PROFILE: PlanProfileContext = { dominant: seed.dominant, missing: seed.missing, seed };
 
 /** ช่วยอ่านเทสต์: บังคับให้แผนต้องผ่าน แล้วคืนแผนที่ validate แล้ว */
 function mustPass(raw: unknown): ChatPlan {
@@ -53,12 +66,13 @@ test("🔴 fn นอก allowlist ถูกปฏิเสธ (ไม่ใช�
   }
 });
 
-test("🔴 ฟังก์ชันที่ต้องใช้วันเกิดยังไม่เปิดในเฟส 1", () => {
-  // เฟส 1 เปิดเฉพาะตัวที่ไม่ต้องใช้วันเกิด — ต้องมี missingInputs ทำงานก่อนถึงจะเปิดได้ (§16)
-  for (const later of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
-    assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(later), `${later} ยังไม่ควรอยู่ใน allowlist เฟส 1`);
+test("🔴 raw engine ที่รับวันเกิดอิสระต้องไม่ถูกเปิดตรงๆ ให้ AI", () => {
+  // ธาตุประจำตัวเปิดผ่าน myElementSeed (server เติมวันเกิด) เท่านั้น —
+  // ห้ามเปิด calculateElementSeed ตรงๆ เพราะ AI จะยัดวันเกิด/ค่าอื่นเองได้ (ละเมิดเส้นแบ่ง §16)
+  for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
+    assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 6, "เฟส 1 มี 6 ฟังก์ชันตามที่ตกลงไว้ใน §16");
+  assert.equal(PLAN_FN_NAMES.length, 8, "6 ตัวไม่ใช้วันเกิด + myElementSeed + myWuXingVsElement");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -327,4 +341,58 @@ test("ทุก fn ใน allowlist มี spec ครบและระบุ L
     assert.ok(typeof s.logic === "number", `${fn} ไม่ได้ระบุ Logic ต้นสังกัด`);
     assert.ok(s.description && s.argsHint, `${fn} ไม่มีคำอธิบาย/argsHint`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// ฟังก์ชัน "ของฉัน" — ใช้วันเกิดที่ server เติม (AI ไม่แตะวันเกิด)
+// ---------------------------------------------------------------------------
+
+test("myElementSeed รับ args ว่าง และคืนผลจาก context (server เติม) — AI ยัดวันเกิดไม่ได้", () => {
+  const plan = mustPass({ calls: [{ fn: "myElementSeed", args: {} }] });
+  assert.equal(planRequiresProfile(plan), true, "ต้องถูกทำเครื่องหมายว่าใช้โปรไฟล์");
+  const ex = executePlan(plan, MOCK_PROFILE);
+  assert.equal(ex.results[0].output, MOCK_PROFILE.seed, "ผลต้องมาจาก seed ที่ server คำนวณ");
+  assert.equal(ex.results[0].label, "ธาตุประจำตัวของฉัน");
+});
+
+test("🔴 myElementSeed ที่ AI แอบใส่วันเกิด → args ถูกปัดทิ้ง (validate คืน {})", () => {
+  // AI พยายามยัด birthDate/ค่าปลอม → check คืน args ว่างเสมอ ไม่มีทางเข้าถึง engine
+  const plan = mustPass({ calls: [{ fn: "myElementSeed", args: { birthDate: "2000-01-01", num: 99 } }] });
+  assert.deepEqual(plan.calls[0].args, {}, "args ของ myElementSeed ต้องถูกล้างเป็น {} เสมอ");
+});
+
+test("myWuXingVsElement ใช้ธาตุเราจาก context (ไม่ใช่จาก AI) เทียบกับ objectElement", () => {
+  const plan = mustPass({ calls: [{ fn: "myWuXingVsElement", args: { objectElement: "น้ำ" } }] });
+  assert.deepEqual(plan.calls[0].args, { objectElement: "Water" }, "รับแค่ objectElement · ธาตุเรามาจากโปรไฟล์");
+  const ex = executePlan(plan, MOCK_PROFILE);
+  const out = ex.results[0].output as { user_element: string; object_element: string };
+  assert.equal(out.user_element, MOCK_PROFILE.dominant, "ตัวเรา = dominant ของผู้ใช้ ไม่ใช่ค่าที่ AI ส่ง");
+  assert.equal(out.object_element, "Water");
+});
+
+test("🔴 myWuXingVsElement ธาตุปลอมถูกปฏิเสธ", () => {
+  const errs = mustFail({ calls: [{ fn: "myWuXingVsElement", args: { objectElement: "Plasma" } }] });
+  assert.ok(errs[0].includes("ไม่ใช่ธาตุที่มีจริง"));
+});
+
+test("myWuXingVsElement ทำกราฟ bar ได้ (เทียบธาตุเรากับหลายธาตุ) ตัวเลขจาก engine", () => {
+  const plan = mustPass({
+    calls: [
+      { fn: "myWuXingVsElement", args: { objectElement: "Water" }, label: "น้ำ" },
+      { fn: "myWuXingVsElement", args: { objectElement: "Wood" }, label: "ไม้" },
+    ],
+    chart: { type: "bar", label: "ธาตุฉันเข้ากับอะไร", series: "myWuXingVsElement" },
+  });
+  const ex = executePlan(plan, MOCK_PROFILE);
+  assert.ok(ex.chart && ex.chart.type === "bar");
+  const pts = (ex.chart as { points: { value: number }[] }).points;
+  // ค่าต้องตรงกับที่ engine คืนเมื่อ user = dominant จริง
+  assert.deepEqual(
+    pts.map((p) => p.value),
+    plan.calls.map((c) => (PLAN_ALLOWLIST.myWuXingVsElement.run(c.args, MOCK_PROFILE) as { final_score: number }).final_score)
+  );
+});
+
+test("planRequiresProfile เป็น false สำหรับแผนที่ไม่มี fn 'ของฉัน'", () => {
+  assert.equal(planRequiresProfile(mustPass({ calls: [{ fn: "lookup2digit", args: { num: 7 } }] })), false);
 });

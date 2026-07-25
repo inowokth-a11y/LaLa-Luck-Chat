@@ -10,12 +10,13 @@ import {
   buildNarratorSystem,
   interpretPlannerOutput,
   buildNarratorInput,
+  buildProfileContext,
   parsePlanUsed,
   checkPlanQuota,
   planQuotaExhaustedMessage,
   FREE_PLAN_QUESTIONS,
 } from "../lib/chat/plan-run";
-import { PLAN_FN_NAMES } from "../lib/chat/plan";
+import { PLAN_FN_NAMES, type PlanProfileContext } from "../lib/chat/plan";
 
 // ---------------------------------------------------------------------------
 // system prompts — ต้องสร้างจาก allowlist จริง (drift ไม่ได้)
@@ -79,6 +80,44 @@ test("planner ที่มีกราฟถูกต้อง → answered + ex
   assert.equal(r.status, "answered");
   if (r.status !== "answered") return;
   assert.ok(r.execution.chart && r.execution.chart.type === "bar");
+});
+
+// ---------------------------------------------------------------------------
+// ฟังก์ชัน "ของฉัน" — ต้องมีโปรไฟล์ (ธาตุประจำตัว) ที่ server เติม
+// ---------------------------------------------------------------------------
+
+test("buildProfileContext จากวันเกิด → คำนวณ ElementSeed ให้ (server เตรียม ไม่ใช่ AI)", () => {
+  const ctx = buildProfileContext("1990-01-15");
+  assert.ok(ctx, "วันเกิดถูกต้องต้องได้ context");
+  assert.ok(["Fire", "Earth", "Wood", "Water"].includes(ctx!.dominant));
+  assert.ok(ctx!.seed.dominant_th, "มีผล seed เต็ม");
+});
+
+test("buildProfileContext ปฏิเสธข้อมูลเสีย (พ.ศ./รูปแบบผิด/ว่าง) → null", () => {
+  for (const bad of [null, undefined, "", "2533-01-15", "1990/01/15", "abc", "1800-01-01"]) {
+    assert.equal(buildProfileContext(bad as string), null, `"${bad}" ควรได้ null`);
+  }
+});
+
+test("🔴 แผนต้องใช้ธาตุประจำตัว แต่ไม่มีโปรไฟล์ → needs_input (ไม่เดา ไม่ครash)", () => {
+  const r = interpretPlannerOutput('{"calls":[{"fn":"myElementSeed","args":{}}]}', null);
+  assert.equal(r.status, "needs_input");
+  if (r.status !== "needs_input") return;
+  assert.ok(/เข้าสู่ระบบ|วันเกิด/.test(r.message), "ต้องบอกให้ล็อกอิน/กรอกวันเกิด");
+});
+
+test("แผนธาตุประจำตัว + มีโปรไฟล์ → answered ด้วยผลจาก engine", () => {
+  const ctx: PlanProfileContext = buildProfileContext("1990-01-15")!;
+  const r = interpretPlannerOutput('{"calls":[{"fn":"myElementSeed","args":{}}]}', ctx);
+  assert.equal(r.status, "answered");
+  if (r.status !== "answered") return;
+  assert.equal(r.execution.results[0].output, ctx.seed);
+});
+
+test("planner prompt สอนให้ใช้ myElementSeed สำหรับธาตุประจำตัว (ไม่สอนให้ใส่วันเกิด)", () => {
+  const p = buildPlannerSystem();
+  assert.ok(p.includes("myElementSeed"));
+  assert.ok(/ห้ามใส่วันเกิด|ระบบเติม/.test(p), "ต้องย้ำว่า AI ไม่ต้องใส่วันเกิด");
 });
 
 // ---------------------------------------------------------------------------

@@ -10,7 +10,13 @@
 //
 // ⚠️ ไม่ใช่ golden parity port — ตรรกะใหม่ ไม่มีต้นฉบับ Python
 
-import { wuXingScore, THAI_LABEL_5, THAI_LABEL_4, type Element5 } from "../engine/element";
+import {
+  wuXingScore,
+  THAI_LABEL_5,
+  THAI_LABEL_4,
+  type Element5,
+  type ElementSeedResult,
+} from "../engine/element";
 import {
   lookup2digit,
   lookup3digit,
@@ -20,10 +26,26 @@ import {
 } from "../engine/numerology";
 
 // ---------------------------------------------------------------------------
+// บริบทโปรไฟล์ผู้ใช้ — server เติมตอนรัน ฟังก์ชัน "ของฉัน" ใช้ค่านี้ (AI ไม่แตะวันเกิด §16)
+// ---------------------------------------------------------------------------
+
+export interface PlanProfileContext {
+  /** ธาตุเด่นของผู้ใช้ (จาก ElementSeed) — ใช้เป็น "ตัวเรา" ใน wuXingScore */
+  dominant: Element5;
+  /** ธาตุที่ผู้ใช้ขาด — ใช้ตัดสิน Productive Clash */
+  missing: Element5[];
+  /** ผล ElementSeed เต็ม (สำหรับ myElementSeed) */
+  seed: ElementSeedResult;
+}
+
+// ---------------------------------------------------------------------------
 // ชนิดข้อมูลของ "แผน"
 // ---------------------------------------------------------------------------
 
-/** ฟังก์ชันที่เปิดให้ AI เรียกได้ในเฟส 1 — ทั้งหมดไม่ต้องใช้วันเกิด (§16) */
+/** ฟังก์ชันที่เปิดให้ AI เรียกได้
+ *  - 6 ตัวแรก: ไม่ต้องใช้วันเกิด (เฟส 1)
+ *  - myElementSeed / myWuXingVsElement: ใช้วันเกิดของผู้ใช้ **ที่ server เติมให้** (needsProfile)
+ *    🔴 AI ไม่ได้ส่งวันเกิดมา — เลือกได้แค่ "ให้ใช้ธาตุประจำตัวของผู้ใช้" เท่านั้น (§16) */
 export const PLAN_FN_NAMES = [
   "lookup2digit",
   "lookup3digit",
@@ -31,6 +53,8 @@ export const PLAN_FN_NAMES = [
   "artifactElement",
   "digitSumReduce",
   "wuXingScore",
+  "myElementSeed",
+  "myWuXingVsElement",
 ] as const;
 
 export type PlanFnName = (typeof PLAN_FN_NAMES)[number];
@@ -108,8 +132,11 @@ interface FnSpec {
   /** ข้อจำกัดที่ต้องบอกผู้ใช้ทุกครั้ง (§5) — null = ผ่านการ verify แล้ว */
   caveat: string | null;
   chartable: ChartableSpec | null;
+  /** true = ต้องใช้โปรไฟล์ผู้ใช้ (วันเกิด) ที่ server เติมให้ — ต้องล็อกอิน+กรอกข้อมูลก่อน */
+  needsProfile?: boolean;
   check: (args: Record<string, unknown>) => ArgCheck;
-  run: (args: Record<string, unknown>) => unknown;
+  /** ctx = โปรไฟล์ผู้ใช้ (มีเฉพาะ fn ที่ needsProfile) — server เติมตอนรัน AI ไม่แตะ */
+  run: (args: Record<string, unknown>, ctx?: PlanProfileContext) => unknown;
   /** ป้ายชื่อสำรองเมื่อ AI ไม่ได้ตั้งมา — สร้างจาก args ฝั่ง server */
   defaultLabel: (args: Record<string, unknown>) => string;
 }
@@ -251,6 +278,39 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
         (a.userMissingElements as Element5[] | undefined) ?? []
       ),
     defaultLabel: (a) => THAI_LABEL_5[a.objectElement as Element5],
+  },
+
+  // ---- ฟังก์ชัน "ของฉัน" — ใช้วันเกิดของผู้ใช้ที่ server เติม (AI ไม่ส่งวันเกิดมา) ----
+  myElementSeed: {
+    logic: 1,
+    description:
+      "ธาตุประจำตัวของผู้ใช้ (คำนวณจากวันเกิดที่บันทึกไว้) — ใช้เมื่อถามเรื่อง 'ธาตุของฉัน/ดวงฉัน/ฉันธาตุอะไร'",
+    argsHint: "{} (ไม่ต้องใส่วันเกิด — ระบบเติมจากโปรไฟล์ผู้ใช้เอง)",
+    caveat: null,
+    chartable: null,
+    needsProfile: true,
+    // ไม่มี args ให้ AI ใส่ — กันไม่ให้ AI ยัดวันเกิด/ค่าอื่นเข้ามา
+    check: () => ({ ok: true, args: {} }),
+    run: (_a, ctx) => ctx!.seed,
+    defaultLabel: () => "ธาตุประจำตัวของฉัน",
+  },
+
+  myWuXingVsElement: {
+    logic: 1,
+    description:
+      "เทียบธาตุประจำตัวของผู้ใช้กับธาตุที่ระบุ (ส่งเสริม/พิฆาต/กลาง) — ใช้เมื่อถาม 'ธาตุฉันเข้ากับ [ธาตุ] ไหม'",
+    argsHint: '{ objectElement: "Water" } (ธาตุเรามาจากโปรไฟล์ ไม่ต้องส่ง)',
+    caveat: null,
+    chartable: { scale: [-2, 2], pick: (o) => (o as { final_score: number }).final_score },
+    needsProfile: true,
+    check: (a) => {
+      const o = toElement5(a.objectElement);
+      if (!o) return { ok: false, error: `objectElement ไม่ใช่ธาตุที่มีจริง (ได้ ${JSON.stringify(a.objectElement)})` };
+      return { ok: true, args: { objectElement: o } };
+    },
+    // ตัวเรา = dominant ของผู้ใช้ · missing ของผู้ใช้ → Productive Clash คิดจากของจริง
+    run: (a, ctx) => wuXingScore(ctx!.dominant, a.objectElement as Element5, ctx!.missing),
+    defaultLabel: (a) => `ฉัน ↔ ${THAI_LABEL_5[a.objectElement as Element5]}`,
   },
 };
 
@@ -434,14 +494,20 @@ export interface PlanExecution {
   caveats: string[];
 }
 
-export function executePlan(plan: ChatPlan): PlanExecution {
+/** แผนนี้ต้องใช้โปรไฟล์ผู้ใช้ (วันเกิด) ไหม — ใช้ตัดสินว่าต้องถามให้ล็อกอิน/กรอกข้อมูลก่อน */
+export function planRequiresProfile(plan: ChatPlan): boolean {
+  return plan.calls.some((c) => PLAN_ALLOWLIST[c.fn].needsProfile === true);
+}
+
+// ctx ต้องมีเมื่อแผนมี fn ที่ needsProfile — caller (interpretPlannerOutput) กันไว้แล้ว
+export function executePlan(plan: ChatPlan, ctx?: PlanProfileContext): PlanExecution {
   const results: CallResult[] = plan.calls.map((c) => {
     const spec = PLAN_ALLOWLIST[c.fn];
     return {
       fn: c.fn,
       args: c.args,
       label: c.label ?? spec.defaultLabel(c.args),
-      output: spec.run(c.args),
+      output: spec.run(c.args, ctx),
       ...(spec.caveat ? { caveat: spec.caveat } : {}),
     };
   });

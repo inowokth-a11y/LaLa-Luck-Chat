@@ -20,10 +20,13 @@ import {
 } from "@/lib/chat/quota";
 import {
   runPlanChat,
+  buildProfileContext,
   parsePlanUsed,
   checkPlanQuota,
   planQuotaExhaustedMessage,
 } from "@/lib/chat/plan-run";
+import { createSupabaseServer } from "@/lib/supabase/auth-server";
+import type { PlanProfileContext } from "@/lib/chat/plan";
 
 export const runtime = "nodejs";
 
@@ -171,7 +174,25 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
     );
   }
 
-  const result = await runPlanChat(question);
+  // โปรไฟล์ผู้ใช้ (ธาตุประจำตัว) — อ่านด้วย session ผู้ใช้ (RLS own-row) ไม่ใช่ service role
+  // 🔴 วันเกิดไม่เคยถูกส่งให้ AI — สร้าง context ที่นี่แล้วส่งเข้า runPlanChat เท่านั้น
+  let profileCtx: PlanProfileContext | null = null;
+  try {
+    const supabase = await createSupabaseServer();
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      const { data: prof } = await supabase
+        .from("user_profiles_e")
+        .select("birth_date")
+        .eq("auth_uid", data.user.id)
+        .maybeSingle();
+      profileCtx = buildProfileContext(prof?.birth_date);
+    }
+  } catch (e) {
+    console.warn("[chat/plan] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
+  }
+
+  const result = await runPlanChat(question, profileCtx);
 
   // ถามข้อมูลเพิ่ม / คำถามนอกขอบเขต → ไม่หักโควตา (ยังไม่ได้คำตอบจริง)
   if (result.status === "needs_input") {

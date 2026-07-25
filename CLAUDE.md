@@ -1195,9 +1195,10 @@ git status                    # ตรวจว่าไม่มี .env.local 
 >   + โน้ต "✓ เติมข้อมูลจากบัญชีของคุณ" · ทดสอบ anon จริง: ฟอร์มว่าง ไม่มี notice ไม่พัง ไม่มี console error
 >   (prefill ตอนล็อกอินจริงยังไม่ได้ทดสอบ — ต้องมี session ที่ล็อกอินเองไม่ได้)
 >
-> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ป้อน birthDate ให้ flexible chat §16 (ตอนนี้ยังตอบ needs_input) —
-> ต้องเปิดฟังก์ชันที่ใช้วันเกิดใน PLAN_ALLOWLIST + inject โปรไฟล์เข้า runPlanChat · ผูกเครดิต/subscription
-> กับ auth_uid · ย้ายโควตา plan-chat/แชทจาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login ทุกหน้า
+> **✅ สไลซ์ 1.7 (25 ก.ค. 2569) — flexible chat ใช้ธาตุประจำตัวจากโปรไฟล์ (ดู §16.3)**
+>
+> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ผูกเครดิต/subscription กับ auth_uid · ย้ายโควตา plan-chat/แชท
+> จาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login ทุกหน้า
 
 ผู้ใช้เลือก: **Google + Facebook + LINE Login** (Instagram ทำไม่ได้ — Basic Display API
 ปิดถาวร 4 ธ.ค. 2024 และ Meta ไม่อนุมัติแอปที่ใช้ IG ทำ authentication)
@@ -1367,6 +1368,38 @@ Scopes              : openid, profile, email
 🐛 **เครื่องมือ:** ปุ่ม/ฟอร์มบน dev server แรกโหลดมัก **ไม่ hydrate ทันที** → คลิก/พิมพ์ไม่เข้า
 React state (input.value ว่าง) · แก้ด้วย reload + native setter+`dispatchEvent('input')` แล้ว
 `form.requestSubmit()` (ตรงกับบันทึกเครื่องมือ §15) · automation `key Return` ก็ไม่ submit เช่นกัน
+
+### ✅ 16.3 flexible chat ใช้ธาตุประจำตัวจากโปรไฟล์ (25 ก.ค. 2569) — payoff ของระบบสมาชิก
+
+เพิ่ม 2 ฟังก์ชันใน `PLAN_ALLOWLIST` ที่ **ใช้วันเกิดของผู้ใช้ที่ server เติมให้ — AI ไม่แตะวันเกิดเลย**:
+| fn | ทำอะไร | args ที่ AI ส่ง |
+|---|---|---|
+| `myElementSeed` | ธาตุประจำตัวจากวันเกิดที่บันทึก | `{}` (ว่างเสมอ — `check` ล้างทุก key ทิ้ง) |
+| `myWuXingVsElement` | เทียบธาตุเรากับธาตุที่ระบุ (chartable) | `{ objectElement }` เท่านั้น |
+
+🔴 **เส้นแบ่งที่แข็งขึ้นกว่าเดิม:** ธาตุประจำตัวเปิดผ่าน fn ห่อ 2 ตัวนี้ **ไม่ใช่เปิด
+`calculateElementSeed` ตรงๆ** — ถ้าเปิด raw AI จะยัดวันเกิด/ค่ามั่วเองได้ · มีเทสต์ล็อกว่า
+`calculateElementSeed`/`dailyPrediction`/`analyzeFengShui`/`checkFullAuspiciousTime` ห้ามอยู่ใน allowlist
+
+**กลไก inject โปรไฟล์ (วันเกิดไม่เคยผ่าน AI):**
+- `FnSpec.needsProfile` + `run(args, ctx?)` · ctx = `PlanProfileContext {dominant, missing, seed}`
+- `buildProfileContext(birthDate)` (plan-run) = pure: วันเกิด ค.ศ. → `calculateElementSeed` ครั้งเดียว
+  (กัน พ.ศ./ปีเสีย → คืน null) · `planRequiresProfile(plan)` บอกว่าต้องมีโปรไฟล์ไหม
+- `interpretPlannerOutput(raw, profileCtx?)` — ถ้าแผนต้องใช้โปรไฟล์แต่ `profileCtx=null` →
+  **needs_input** (`NEEDS_PROFILE_MESSAGE` ชวนล็อกอิน+กรอกวันเกิด) ไม่เดา
+- route `/api/chat` (mode plan): อ่าน `user_profiles_e.birth_date` **ด้วย session ผู้ใช้ (RLS own-row)
+  ไม่ใช่ service role** → `buildProfileContext` → ส่งเข้า `runPlanChat(question, ctx)`
+
+**พิสูจน์ยิง AI จริง (โปรไฟล์จำลอง เกิด 1990-01-15 → ไฟเด่น ขาดลม):**
+| คำถาม | ผล |
+|---|---|
+| "ธาตุประจำตัวฉัน" (มีโปรไฟล์) | ตอบ ธาตุไฟ (จาก engine) |
+| "ธาตุฉันเข้ากับน้ำ/ไม้ อันไหนดีกว่า" | กราฟ bar: น้ำ −2 (พิฆาต), ไม้ −1 — ตัวเรา=ไฟจากโปรไฟล์ |
+| "ธาตุประจำตัวฉัน" (ไม่มีโปรไฟล์) | needs_input ชวนล็อกอิน (1.1s เรียกแค่ planner) |
+
+เทสต์รวม **261/261** (เพิ่ม 11: plan 8 fn, needsProfile, buildProfileContext, needs_input branch)
+⚠️ **ทดสอบ end-to-end บนเว็บจริงยังไม่ได้** — ต้องมี session ที่ล็อกอินเอง (ผมกรอก credential ไม่ได้)
+พิสูจน์ผ่าน script inject โปรไฟล์ตรงเข้า `runPlanChat` แทน
 
 ### ปัญหาที่จะแก้
 ตอนนี้ `/api/chat` ตอบได้เฉพาะจาก context ที่หน้าจอส่งมา — คำถามที่ไม่ตรง Logic ไหนเลย

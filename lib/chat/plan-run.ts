@@ -12,15 +12,51 @@
 // ออกเป็นฟังก์ชัน pure เพื่อให้เทสต์ตรรกะได้โดยไม่ต้องยิง AI จริง
 
 import { generate, type GenerateResult } from "@/lib/ai";
+import { calculateElementSeed } from "@/lib/engine/element";
+import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import {
   validateChatPlan,
   executePlan,
+  planRequiresProfile,
   describeAllowlistForPrompt,
   missingInputPrompt,
   MAX_CALLS_PER_PLAN,
   type PlanExecution,
   type ChatPlan,
+  type PlanProfileContext,
 } from "./plan";
+
+// ---------------------------------------------------------------------------
+// สร้างบริบทโปรไฟล์ (ธาตุประจำตัว) จากวันเกิดที่บันทึกไว้ — ใช้กับ fn "ของฉัน"
+// pure: รับวันเกิด (ค.ศ. 'YYYY-MM-DD') → คำนวณ ElementSeed ครั้งเดียว
+// 🔴 AI ไม่เคยเห็นวันเกิด — server เรียกตัวนี้แล้วส่ง context เข้า executePlan เท่านั้น
+// ---------------------------------------------------------------------------
+
+const ZODIAC_ANIMALS = [
+  "ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง",
+  "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน",
+];
+const zodiacAnimalFromYear = (yearAd: number) => ZODIAC_ANIMALS[(((yearAd - 2020) % 12) + 12) % 12];
+
+export function buildProfileContext(birthDate: string | null | undefined): PlanProfileContext | null {
+  if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
+  const year = Number(birthDate.slice(0, 4));
+  const month = Number(birthDate.slice(5, 7));
+  const day = Number(birthDate.slice(8, 10));
+  // กัน พ.ศ./ปีเสีย (บทเรียน data-quality §5.1) — ข้อมูลเสียถือว่าไม่มีโปรไฟล์
+  const nowYear = new Date().getUTCFullYear();
+  if (year < 1900 || year > nowYear || month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  const seed = calculateElementSeed({
+    day_of_week: thaiDayOfWeek(birthDate),
+    birth_month: month,
+    birth_year_ad: year,
+    birth_day: day,
+    zodiac_year_animal: zodiacAnimalFromYear(year),
+  });
+  // ธาตุ 4-bucket (Fire/Earth/Wood/Water) เป็นสับเซ็ตของ Element5 อยู่แล้ว — ไม่มีทางเป็น Metal
+  return { dominant: seed.dominant, missing: seed.missing, seed };
+}
 
 // ---------------------------------------------------------------------------
 // System prompts — สร้างคำอธิบายฟังก์ชันจาก allowlist จริง (drift ไม่ได้)
@@ -45,9 +81,10 @@ ${describeAllowlistForPrompt()}
 2. args ต้องตรงชนิด: เลขเป็นเลข (ไม่ใส่เครื่องหมายคำพูด), ธาตุใช้ไทย (ไฟ/ดิน/ลม/น้ำ/ทอง) หรืออังกฤษ
 3. ค่าต้องอยู่ในบริบทถูกต้อง: lookup2digit รับ 0-99, lookup3digit รับ 0-999
    — **ห้ามเอาปีเกิด/ปี พ.ศ. ไปใส่ตารางเลขการ์ด**
-4. ถ้าคำถามต้องใช้ข้อมูลที่ผู้ใช้ยังไม่ได้ให้ (เช่น วันเกิด เพื่อคำนวณธาตุประจำตัว) →
-   ใส่ชื่อข้อมูลนั้นใน "missingInputs" และ **อย่าเดาค่าแล้วเรียกฟังก์ชัน**
-   (ตอนนี้ยังไม่มีฟังก์ชันที่คำนวณจากวันเกิด ให้ใช้ missingInputs: ["birthDate"] เสมอถ้าคำถามต้องใช้ธาตุประจำตัว)
+4. คำถามเกี่ยวกับ **ธาตุประจำตัวของผู้ใช้เอง** (ธาตุฉัน/ดวงฉัน/ฉันธาตุอะไร) → ใช้ myElementSeed
+   คำถามเทียบธาตุตัวเองกับธาตุอื่น (ธาตุฉันเข้ากับ [ธาตุ] ไหม) → ใช้ myWuXingVsElement
+   🔴 **ห้ามใส่วันเกิดใน args เด็ดขาด** — ระบบเติมวันเกิดของผู้ใช้ให้เอง (myElementSeed ใช้ args {})
+   ถ้าคำถามต้องใช้ข้อมูลอื่นที่ไม่มีฟังก์ชันรองรับ → ใส่ชื่อข้อมูลนั้นใน "missingInputs" อย่าเดาค่า
 5. ใส่ "chart" เมื่อผู้ใช้ถามเชิงเปรียบเทียบหลายรายการเท่านั้น และทุก call ต้องเป็น fn เดียวกับ series
    — เทียบข้ามฟังก์ชันในกราฟเดียวไม่ได้
 6. จำนวน calls ไม่เกิน ${MAX_CALLS_PER_PLAN}
@@ -123,11 +160,20 @@ export function parsePlannerJson(raw: string): unknown | null {
   return null;
 }
 
+/** ข้อความชวนล็อกอิน/กรอกข้อมูล เมื่อแผนต้องใช้ธาตุประจำตัวแต่ยังไม่มีโปรไฟล์ */
+export const NEEDS_PROFILE_MESSAGE =
+  "คำถามนี้ต้องใช้ธาตุประจำตัวของคุณ ซึ่งคำนวณจากวันเกิด 🙏\n\n" +
+  "กรุณาเข้าสู่ระบบแล้วกรอกข้อมูลพื้นฐาน (วันเกิด) ก่อน แล้วลาลาจะคำนวณให้ได้เลยค่ะ";
+
 /**
  * รับข้อความดิบจาก planner → JSON → validate → (ถ้าผ่าน) execute
+ * profileCtx = โปรไฟล์ผู้ใช้ (ธาตุประจำตัว) ที่ server เติม — null ถ้าไม่ล็อกอิน/ยังไม่กรอก
  * แยกจาก runPlanChat เพื่อเทสต์ได้ทุกสาขาโดยไม่ต้องมี AI จริง
  */
-export function interpretPlannerOutput(rawText: string): PlanInterpretation {
+export function interpretPlannerOutput(
+  rawText: string,
+  profileCtx?: PlanProfileContext | null
+): PlanInterpretation {
   const json = parsePlannerJson(rawText);
   if (json === null) {
     return { status: "unclear", errors: ["planner ไม่ได้คืน JSON ที่อ่านได้"] };
@@ -141,8 +187,13 @@ export function interpretPlannerOutput(rawText: string): PlanInterpretation {
     return { status: "unclear", errors: v.errors };
   }
 
-  // ตัวเลขทุกตัวเกิดตรงนี้ — จาก engine ล้วน planner ไม่ได้แตะ
-  return { status: "answered", plan: v.plan, execution: executePlan(v.plan) };
+  // แผนต้องใช้ธาตุประจำตัว แต่ยังไม่มีโปรไฟล์ → ถามให้ล็อกอิน/กรอกข้อมูล ห้ามเดา
+  if (planRequiresProfile(v.plan) && !profileCtx) {
+    return { status: "needs_input", missingInputs: ["birthProfile"], message: NEEDS_PROFILE_MESSAGE };
+  }
+
+  // ตัวเลขทุกตัวเกิดตรงนี้ — จาก engine ล้วน planner ไม่ได้แตะ (profileCtx เติมวันเกิดให้ fn "ของฉัน")
+  return { status: "answered", plan: v.plan, execution: executePlan(v.plan, profileCtx ?? undefined) };
 }
 
 /** สร้าง input ให้ narrator จากผลจริง — คุมสิ่งที่ AI เห็นให้แคบที่สุด */
@@ -202,7 +253,10 @@ const UNCLEAR_MESSAGE =
   "ขอโทษค่ะ คำถามนี้ยังไม่ตรงกับสิ่งที่ลาลาคำนวณให้ได้ตอนนี้ 🙏 " +
   "ลองถามเรื่องเลขการ์ด (00-99), เลขทะเบียน/เบอร์โทร, หรือเทียบธาตุของสิ่งของหลายชิ้นดูนะคะ";
 
-export async function runPlanChat(question: string): Promise<PlanChatResult> {
+export async function runPlanChat(
+  question: string,
+  profileCtx?: PlanProfileContext | null
+): Promise<PlanChatResult> {
   // ---- จังหวะ 1: planner ----
   const planner = await generate({
     role: "router", // Claude Haiku — ถูกและพอสำหรับงานวางแผน JSON
@@ -213,7 +267,7 @@ export async function runPlanChat(question: string): Promise<PlanChatResult> {
     maxTokens: 500, // แค่ JSON สั้นๆ
   });
 
-  const interp = interpretPlannerOutput(planner.text);
+  const interp = interpretPlannerOutput(planner.text, profileCtx);
 
   if (interp.status === "needs_input") {
     return { status: "needs_input", message: interp.message, missingInputs: interp.missingInputs };
