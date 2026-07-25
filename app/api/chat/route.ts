@@ -18,10 +18,18 @@ import {
   quotaExhaustedMessage,
   CHAT_LOGIC_NAMES,
 } from "@/lib/chat/quota";
+import {
+  runPlanChat,
+  parsePlanUsed,
+  checkPlanQuota,
+  planQuotaExhaustedMessage,
+} from "@/lib/chat/plan-run";
 
 export const runtime = "nodejs";
 
 const QUOTA_COOKIE = "kruth_chat_quota";
+/** cookie แยกสำหรับ plan-chat (โหมดวิเคราะห์อิสระ) — ไม่ปนกับโควตาราย Logic */
+const PLAN_QUOTA_COOKIE = "kruth_plan_quota";
 /** cookie อยู่ 30 วัน — นานพอสำหรับช่วงทดลอง ไม่ยาวจนลืมว่าเคยถาม */
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 /** จำกัดความยาวคำถาม — กันคนวางข้อความยาวมาสูบ token */
@@ -40,6 +48,8 @@ const CHAT_SYSTEM = `คุณคือ "อาจารย์ลาลา" น�
 6. ถ้าผู้ใช้ถามเรื่องที่ไม่เกี่ยวกับผลบนหน้าจอเลย ให้ตอบสั้นๆ แล้วชวนกลับมาที่เรื่องดวง`;
 
 interface ChatBody {
+  /** "context" (ค่าเริ่มต้น) = ถามต่อจากผลบนหน้าจอ · "plan" = วิเคราะห์อิสระ (§16) */
+  mode?: "context" | "plan";
   logicId?: number;
   question?: string;
   /** ผลที่หน้าจอคำนวณได้ — ส่งมาเพื่อให้ AI ตอบโดยอิงของจริง ไม่ใช่เดา */
@@ -70,6 +80,11 @@ export async function POST(req: Request) {
         intercepted: true,
         message: gate.crisis_resource_message,
       });
+    }
+
+    // ---- เส้นทาง "แผน" (โหมดวิเคราะห์อิสระ §16) — คู่กับเส้นทาง context เดิม ----
+    if (body.mode === "plan") {
+      return await handlePlanMode(question);
     }
 
     // ---- 2. โควตา ----
@@ -138,6 +153,55 @@ ${contextJson}
       { status: 500 }
     );
   }
+}
+
+/**
+ * โหมด "แผน" — AI เลือกฟังก์ชัน → engine คำนวณ → AI เล่า (CLAUDE.md §16)
+ * Safety Gate ถูกตรวจไปแล้วใน POST ก่อนเข้าฟังก์ชันนี้
+ */
+async function handlePlanMode(question: string): Promise<NextResponse> {
+  const jar = await cookies();
+  const used = parsePlanUsed(jar.get(PLAN_QUOTA_COOKIE)?.value);
+  const q = checkPlanQuota(used);
+
+  if (!q.allowed) {
+    return NextResponse.json(
+      { quotaExceeded: true, message: planQuotaExhaustedMessage(), used: q.used, remaining: 0, limit: q.limit },
+      { status: 429 }
+    );
+  }
+
+  const result = await runPlanChat(question);
+
+  // ถามข้อมูลเพิ่ม / คำถามนอกขอบเขต → ไม่หักโควตา (ยังไม่ได้คำตอบจริง)
+  if (result.status === "needs_input") {
+    return NextResponse.json({ needsInput: true, message: result.message, missingInputs: result.missingInputs });
+  }
+  if (result.status === "unclear") {
+    return NextResponse.json({ unclear: true, message: result.message });
+  }
+
+  // หักโควตาเฉพาะเมื่อได้คำตอบจริงเท่านั้น
+  const nextUsed = used + 1;
+  const after = checkPlanQuota(nextUsed);
+  const res = NextResponse.json({
+    reply: result.reply,
+    results: result.results,
+    chart: result.chart,
+    caveats: result.caveats,
+    via: { planner: result.plannerVia, narrator: result.narratorVia },
+    used: after.used,
+    remaining: after.remaining,
+    limit: after.limit,
+  });
+  res.cookies.set(PLAN_QUOTA_COOKIE, String(nextUsed), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: COOKIE_MAX_AGE,
+    secure: process.env.NODE_ENV === "production",
+  });
+  return res;
 }
 
 /** GET = ดูโควตาคงเหลือของทุกฟังก์ชัน (ไม่เสียค่า AI) — หน้าเว็บใช้ตอนโหลด */

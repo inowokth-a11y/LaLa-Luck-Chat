@@ -1,0 +1,280 @@
+// AI Chat แบบยืดหยุ่น — เฟส 2: ต่อ AI จริงเข้ากับ "แผน JSON" ของ plan.ts (CLAUDE.md §16)
+//
+// โครง 3 จังหวะ (ห้ามสลับ):
+//   1. planner  (Claude Haiku, role "router")  → คืน JSON "แผน"        ~฿0.05
+//   2. server   → validateChatPlan → executePlan (ตัวเลขจริงจาก engine)  ฿0
+//   3. narrator (gpt-5.5, role "ai2")           → เล่าจากตัวเลขจริง       ~฿0.30
+//
+// 🔴 เส้นแบ่งที่ห้ามข้าม: AI เลือก "ว่าจะเรียกฟังก์ชันไหนด้วยค่าอะไร" เท่านั้น
+//    ตัวเลขทุกตัวมาจาก engine — planner ไม่คำนวณ, narrator ไม่แต่งเลข (จุดขาย §0)
+//
+// ไฟล์นี้เรียก AI ได้ (ต่างจาก plan.ts ที่ต้องบริสุทธิ์) แต่แยกส่วน "ตีความผลของ planner"
+// ออกเป็นฟังก์ชัน pure เพื่อให้เทสต์ตรรกะได้โดยไม่ต้องยิง AI จริง
+
+import { generate, type GenerateResult } from "@/lib/ai";
+import {
+  validateChatPlan,
+  executePlan,
+  describeAllowlistForPrompt,
+  missingInputPrompt,
+  MAX_CALLS_PER_PLAN,
+  type PlanExecution,
+  type ChatPlan,
+} from "./plan";
+
+// ---------------------------------------------------------------------------
+// System prompts — สร้างคำอธิบายฟังก์ชันจาก allowlist จริง (drift ไม่ได้)
+// ---------------------------------------------------------------------------
+
+export function buildPlannerSystem(): string {
+  return `คุณคือ "ตัววางแผน" ของ KRUTH ELEMENT หน้าที่เดียวของคุณคือ **แปลงคำถามผู้ใช้เป็นแผน JSON**
+เพื่อสั่งให้ระบบเรียกฟังก์ชันคำนวณจริง — **คุณห้ามคำนวณเอง ห้ามเดาตัวเลข ห้ามตอบเป็นภาษาคน**
+
+ตอบกลับเป็น JSON object เดียวเท่านั้น (ไม่มีข้อความอื่นนอก JSON) รูปแบบ:
+{
+  "calls": [ { "fn": "ชื่อฟังก์ชัน", "args": { ... }, "label": "ป้ายสั้นๆ (ไม่บังคับ)" } ],
+  "chart": { "type": "bar|radar|table|scale", "label": "หัวข้อกราฟ", "series": "ชื่อฟังก์ชัน" },
+  "missingInputs": [ "ชื่อข้อมูลที่ยังขาด" ]
+}
+
+ฟังก์ชันที่เรียกได้ (มีเท่านี้ ห้ามคิดชื่ออื่น):
+${describeAllowlistForPrompt()}
+
+กฎเหล็ก:
+1. ใช้ได้เฉพาะ fn ในรายการข้างบน — คิดชื่อฟังก์ชันเองไม่ได้
+2. args ต้องตรงชนิด: เลขเป็นเลข (ไม่ใส่เครื่องหมายคำพูด), ธาตุใช้ไทย (ไฟ/ดิน/ลม/น้ำ/ทอง) หรืออังกฤษ
+3. ค่าต้องอยู่ในบริบทถูกต้อง: lookup2digit รับ 0-99, lookup3digit รับ 0-999
+   — **ห้ามเอาปีเกิด/ปี พ.ศ. ไปใส่ตารางเลขการ์ด**
+4. ถ้าคำถามต้องใช้ข้อมูลที่ผู้ใช้ยังไม่ได้ให้ (เช่น วันเกิด เพื่อคำนวณธาตุประจำตัว) →
+   ใส่ชื่อข้อมูลนั้นใน "missingInputs" และ **อย่าเดาค่าแล้วเรียกฟังก์ชัน**
+   (ตอนนี้ยังไม่มีฟังก์ชันที่คำนวณจากวันเกิด ให้ใช้ missingInputs: ["birthDate"] เสมอถ้าคำถามต้องใช้ธาตุประจำตัว)
+5. ใส่ "chart" เมื่อผู้ใช้ถามเชิงเปรียบเทียบหลายรายการเท่านั้น และทุก call ต้องเป็น fn เดียวกับ series
+   — เทียบข้ามฟังก์ชันในกราฟเดียวไม่ได้
+6. จำนวน calls ไม่เกิน ${MAX_CALLS_PER_PLAN}
+7. ถ้าคำถามไม่เกี่ยวกับสิ่งที่ฟังก์ชันเหล่านี้ทำได้เลย → คืน {"calls": []} (ระบบจะจัดการเอง)`;
+}
+
+export function buildNarratorSystem(): string {
+  return `คุณคือ "อาจารย์ลาลา" นักพยากรณ์ของ KRUTH ELEMENT พูดไทย น้ำเสียงอบอุ่น เป็นมิตร ไม่ตัดสิน
+ระบบได้ **คำนวณผลจริงด้วย engine มาให้แล้ว** หน้าที่คุณคือเรียบเรียงผลนั้นให้ผู้ใช้เข้าใจ มีสีสัน
+
+กฎเหล็ก (ห้ามฝ่าฝืน):
+1. ใช้ได้เฉพาะตัวเลข/ธาตุ/ความหมายใน <ผลการคำนวณ> เท่านั้น — **ห้ามแต่งตัวเลขหรือธาตุขึ้นเอง**
+   ถ้า engine ได้ 78 ห้ามพูด 73 เด็ดขาด (คนเชื่อกราฟ/ตัวเลขมากกว่าคำพูด การแต่งเลขคือหลอกลวง)
+2. ถ้ามี "ข้อควรระวัง" (caveat) แนบมา **ต้องบอกผู้ใช้เสมอ** ไม่กลบไว้
+3. ถ้ามีการเปรียบเทียบหลายรายการ ให้ชี้ว่าตัวไหนเด่น/ควรระวัง โดยอิงตัวเลขที่ให้มา
+4. ห้ามฟันธงชะตาชีวิต ห้ามทำนายสุขภาพ/การเงิน/ความตายแบบชี้ขาด ห้ามให้คำแนะนำทางการแพทย์
+5. ตอบกระชับ 2-5 ประโยค เข้าเรื่องเลย ไม่ต้องทวนคำถาม ไม่ต้องอธิบายว่าคำนวณยังไง`;
+}
+
+// ---------------------------------------------------------------------------
+// ตีความผลของ planner — pure (เทสต์ได้โดยไม่ต้องยิง AI)
+// ---------------------------------------------------------------------------
+
+export type PlanInterpretation =
+  | { status: "answered"; plan: ChatPlan; execution: PlanExecution }
+  | { status: "needs_input"; missingInputs: string[]; message: string }
+  | { status: "unclear"; errors: string[] };
+
+/**
+ * แยก JSON ของ "แผน" ออกจากข้อความ planner
+ * ⚠️ ไม่ใช้ extractJson ของ lib/ai — ตัวนั้นหยิบ "{" ตัวท้ายสุด (เหมาะกับ router ที่ JSON
+ *    ไม่ซ้อน) แต่แผนมี object ซ้อน (chart) จะโดนหยิบผิดเป็น chart แทนทั้งแผน
+ *    ตัวนี้เอา object ก้อน **นอกสุด/แรกสุด** ซึ่งคือตัวแผนจริง
+ */
+export function parsePlannerJson(raw: string): unknown | null {
+  const t = raw.trim();
+  // 1) ทั้งก้อนเป็น JSON ล้วน (กรณีปกติ เพราะสั่งให้ตอบ JSON อย่างเดียว)
+  try {
+    return JSON.parse(t);
+  } catch {
+    /* ลองวิธีถัดไป */
+  }
+  // 2) มี ```json fence — เอาเนื้อในทั้งก้อน
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) {
+    try {
+      return JSON.parse(fence[1].trim());
+    } catch {
+      /* ลองวิธีถัดไป */
+    }
+  }
+  // 3) มี prose ปนหน้า/หลัง — จับ object ก้อนแรกที่วงเล็บสมดุล (นอกสุด)
+  const start = t.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < t.length; i++) {
+    const ch = t[i];
+    if (esc) { esc = false; continue; }
+    if (ch === "\\") { esc = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) {
+      try {
+        return JSON.parse(t.slice(start, i + 1));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * รับข้อความดิบจาก planner → JSON → validate → (ถ้าผ่าน) execute
+ * แยกจาก runPlanChat เพื่อเทสต์ได้ทุกสาขาโดยไม่ต้องมี AI จริง
+ */
+export function interpretPlannerOutput(rawText: string): PlanInterpretation {
+  const json = parsePlannerJson(rawText);
+  if (json === null) {
+    return { status: "unclear", errors: ["planner ไม่ได้คืน JSON ที่อ่านได้"] };
+  }
+
+  const v = validateChatPlan(json);
+  if (!v.ok && v.kind === "needs_input") {
+    return { status: "needs_input", missingInputs: v.missingInputs, message: missingInputPrompt(v.missingInputs) };
+  }
+  if (!v.ok) {
+    return { status: "unclear", errors: v.errors };
+  }
+
+  // ตัวเลขทุกตัวเกิดตรงนี้ — จาก engine ล้วน planner ไม่ได้แตะ
+  return { status: "answered", plan: v.plan, execution: executePlan(v.plan) };
+}
+
+/** สร้าง input ให้ narrator จากผลจริง — คุมสิ่งที่ AI เห็นให้แคบที่สุด */
+export function buildNarratorInput(question: string, execution: PlanExecution): string {
+  // ส่งเฉพาะสิ่งจำเป็น: label/fn/args/output + caveat — ไม่ปล่อย field ภายในรก
+  const rows = execution.results.map((r) => ({
+    รายการ: r.label,
+    ฟังก์ชัน: r.fn,
+    ค่าที่ใช้: r.args,
+    ผลลัพธ์: r.output,
+    ...(r.caveat ? { ข้อควรระวัง: r.caveat } : {}),
+  }));
+
+  const chartNote = execution.chart
+    ? `\nมีกราฟเปรียบเทียบชนิด "${execution.chart.type}" หัวข้อ "${execution.chart.label}" — ช่วยชี้ว่ารายการไหนเด่น/ควรระวังจากตัวเลขที่ให้มา`
+    : "";
+
+  const caveatNote = execution.caveats.length
+    ? `\n\nข้อควรระวังที่ต้องบอกผู้ใช้ (ห้ามข้าม):\n${execution.caveats.map((c) => `- ${c}`).join("\n")}`
+    : "";
+
+  return `คำถามของผู้ใช้: ${question}
+
+<ผลการคำนวณ>
+${JSON.stringify(rows, null, 1)}
+</ผลการคำนวณ>${chartNote}${caveatNote}`;
+}
+
+// ---------------------------------------------------------------------------
+// runPlanChat — orchestration เต็ม (เรียก AI 2 จังหวะ)
+// ---------------------------------------------------------------------------
+
+export interface PlanChatAnswered {
+  status: "answered";
+  reply: string;
+  results: PlanExecution["results"];
+  chart: PlanExecution["chart"];
+  caveats: string[];
+  plannerVia: string;
+  narratorVia: string;
+}
+export interface PlanChatNeedsInput {
+  status: "needs_input";
+  message: string;
+  missingInputs: string[];
+}
+export interface PlanChatUnclear {
+  status: "unclear";
+  message: string;
+}
+
+export type PlanChatResult = PlanChatAnswered | PlanChatNeedsInput | PlanChatUnclear;
+
+const via = (r: GenerateResult) => `${r.provider}/${r.model}${r.usedFallback ? " (สำรอง)" : ""}`;
+
+const UNCLEAR_MESSAGE =
+  "ขอโทษค่ะ คำถามนี้ยังไม่ตรงกับสิ่งที่ลาลาคำนวณให้ได้ตอนนี้ 🙏 " +
+  "ลองถามเรื่องเลขการ์ด (00-99), เลขทะเบียน/เบอร์โทร, หรือเทียบธาตุของสิ่งของหลายชิ้นดูนะคะ";
+
+export async function runPlanChat(question: string): Promise<PlanChatResult> {
+  // ---- จังหวะ 1: planner ----
+  const planner = await generate({
+    role: "router", // Claude Haiku — ถูกและพอสำหรับงานวางแผน JSON
+    channel: "web",
+    logicId: 0,
+    system: buildPlannerSystem(),
+    input: question,
+    maxTokens: 500, // แค่ JSON สั้นๆ
+  });
+
+  const interp = interpretPlannerOutput(planner.text);
+
+  if (interp.status === "needs_input") {
+    return { status: "needs_input", message: interp.message, missingInputs: interp.missingInputs };
+  }
+  if (interp.status === "unclear") {
+    console.warn("[plan-chat] แผนใช้ไม่ได้:", interp.errors);
+    return { status: "unclear", message: UNCLEAR_MESSAGE };
+  }
+
+  // ---- จังหวะ 3: narrator (จังหวะ 2 = execute เกิดใน interpret แล้ว) ----
+  const narrator = await generate({
+    role: "ai2", // gpt-5.5 — สีสันดีกว่า
+    channel: "web",
+    logicId: 0,
+    system: buildNarratorSystem(),
+    input: buildNarratorInput(question, interp.execution),
+    maxTokens: 700,
+  });
+
+  return {
+    status: "answered",
+    reply: narrator.text,
+    results: interp.execution.results,
+    chart: interp.execution.chart,
+    caveats: interp.execution.caveats,
+    plannerVia: via(planner),
+    narratorVia: via(narrator),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// โควตาสำหรับ plan-chat — แยกจากโควตาราย Logic (§13) เพราะ plan-chat ไม่ผูก Logic เดียว
+// 🔴 ยังนับจาก cookie ต่อเบราว์เซอร์เหมือน §13 — ล้าง cookie แล้วได้ใหม่
+//    เมื่อมีระบบสมาชิกต้องย้ายไปนับที่ DB (งานเดียวกับที่ค้างใน §13/§15)
+// ---------------------------------------------------------------------------
+
+/** จำนวนคำถาม plan-chat ฟรีต่อเบราว์เซอร์ ในช่วงทดลอง */
+export const FREE_PLAN_QUESTIONS = 3;
+
+/** อ่านยอดที่ใช้ไปจาก cookie — ค่าพังต้องไม่ทำให้ได้โควตาเพิ่ม (เหมือน parseQuota §13) */
+export function parsePlanUsed(raw: string | undefined | null): number {
+  if (!raw) return 0;
+  const n = Number(raw);
+  // ติดลบ/NaN = พยายามปลอม → ปัดเป็น 0 ไม่ใช่เชื่อตาม
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.floor(n);
+}
+
+export interface PlanQuotaCheck {
+  allowed: boolean;
+  used: number;
+  remaining: number;
+  limit: number;
+}
+
+export function checkPlanQuota(used: number): PlanQuotaCheck {
+  const u = Math.max(0, Math.floor(used));
+  const remaining = Math.max(0, FREE_PLAN_QUESTIONS - u);
+  return { allowed: remaining > 0, used: u, remaining, limit: FREE_PLAN_QUESTIONS };
+}
+
+export function planQuotaExhaustedMessage(): string {
+  return `คุณใช้คำถามแบบวิเคราะห์อิสระครบ ${FREE_PLAN_QUESTIONS} คำถามแล้วค่ะ 🙏 เร็ว ๆ นี้จะเปิดให้เติมเครดิตเพื่อถามต่อได้ค่ะ`;
+}

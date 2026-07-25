@@ -1260,11 +1260,44 @@ Scopes              : openid, profile, email
 
 ## 16. 🧠 AI Chat แบบยืดหยุ่น + กราฟเปรียบเทียบ — โครงที่ตกลงไว้ (23 ก.ค. 2569)
 
-> **สถานะ: ✅ เฟส 1 (ชั้น validate) เขียนเสร็จแล้ว 24 ก.ค. 2569** — `lib/chat/plan.ts` +
-> `tests/chat-plan.test.ts` (28 เทสต์) · **ยังไม่ได้ต่อ AI จริง และยังไม่ได้แตะ
-> `app/api/chat/route.ts`** (ตั้งใจหยุดตรงนี้ตามที่ผู้ใช้สั่ง — ให้ด่าน validate ผ่านเทสต์ก่อน)
-> ⏸️ ส่วนที่เหลือ (ต่อ AI + กราฟ + UI) **ทำหลังระบบสมาชิก + แดชบอร์ดต้นทุน** เพราะควรเป็น
-> ฟีเจอร์พรีเมียม (คิด 2-3 เครดิต)
+> **สถานะ: ✅ เฟส 1 + เฟส 2 (backend) เสร็จแล้ว 24 ก.ค. 2569** · ⬜ เหลือ **UI (กราฟ + หน้าใช้งาน)**
+>
+> - **เฟส 1** (ชั้น validate): `lib/chat/plan.ts` + `tests/chat-plan.test.ts` (28 เทสต์)
+> - **เฟส 2** (ต่อ AI จริง): `lib/chat/plan-run.ts` + `tests/chat-plan-run.test.ts` (13 เทสต์) +
+>   เพิ่ม `mode:"plan"` ใน `app/api/chat/route.ts` — **ยิง AI จริงพิสูจน์แล้วครบ 3 เคส (ดู §16.1)**
+> - **เหลือ:** `ChartPanel.tsx` + หน้าเว็บที่เรียก `mode:"plan"` (ตอนนี้มีแต่ API ยังไม่มีหน้า)
+> ⏸️ ควรเป็นฟีเจอร์พรีเมียม (คิด 2-3 เครดิต) — โควตาทดลองตอนนี้ 3 คำถาม/เบราว์เซอร์
+
+### ✅ 16.1 เฟส 2 — สิ่งที่ทำจริง (24 ก.ค. 2569)
+
+**โครง 3 จังหวะใน `runPlanChat()`** (`lib/chat/plan-run.ts`):
+```
+1. planner  Claude Haiku (role "router")  → JSON แผน   → parsePlannerJson → interpretPlannerOutput
+2. server   validateChatPlan → executePlan (ตัวเลขจริง)
+3. narrator gpt-5.5 (role "ai2")           → เล่าจากผลจริง + caveat
+```
+
+🔴 **`parsePlannerJson()` ไม่ใช้ `extractJson` ของ lib/ai** — ตัวนั้นหยิบ `{` **ตัวท้ายสุด**
+(เหมาะกับ router ที่ JSON ไม่ซ้อน) แต่แผนมี object ซ้อน (`chart`) จะโดนหยิบผิดเป็น chart แทนทั้งแผน
+→ เขียนใหม่ให้เอา object **นอกสุด/แรกสุด** (เจอบั๊กนี้ตอนเทสต์ อย่าเผลอกลับไปใช้ extractJson)
+
+**บทบาท AI:** planner ใช้ role `"router"` (Haiku ถูก) · narrator ใช้ role `"ai2"` (gpt-5.5 สีสัน)
+— reuse candidate/fallback chain เดิม ไม่ต้องแก้ชั้น AI
+
+**เส้นทางใน `/api/chat`:** `mode:"plan"` แยกจาก context เดิม · Safety Gate ตรวจก่อนเสมอ ·
+โควตา plan-chat **แยก cookie** (`kruth_plan_quota`, 3 คำถาม) ไม่ปนโควตาราย Logic §13 ·
+หักโควตา**เฉพาะตอนได้คำตอบจริง** (needs_input/unclear ไม่หัก)
+
+**ยิง AI จริงผ่าน `runPlanChat()` — พิสูจน์ครบ 3 พฤติกรรมหลัก:**
+| คำถาม | ผล | เวลา |
+|---|---|---|
+| "88 กับ 99 ทะเบียนไหนดีกว่า" | `lookup2digit`×2 + table → เล่าด้วยธาตุจริง (88=Wood, 99=Fire) | 12.4s |
+| "เบอร์ 08... ดีไหม" | `analyzePhoneNumber` → **caveat "ไม่ verify" ไหลถึงคำตอบ** | 5.9s |
+| "ธาตุประจำตัวฉัน" | ต้องใช้วันเกิด → **needs_input ถามกลับ ไม่เดา** (เรียกแค่ planner) | 2.1s |
+
+ยืนยันเส้นแบ่ง §16: ตัวเลขจาก engine ล้วน · caveat ไม่หาย · ข้อมูลไม่พอ→ถาม · guardrail
+บังคับ 88/99 เป็น `table` เพราะ lookup2digit ไม่ใช่คะแนน (ตรงตามกฎกราฟ)
+ต้นทุนบันทึกอัตโนมัติลง `ai_usage_log` (ตามประมาณการ §16 ~฿0.35/คำถาม: Haiku ~฿0.05 + gpt-5.5 ~฿0.30)
 
 ### ปัญหาที่จะแก้
 ตอนนี้ `/api/chat` ตอบได้เฉพาะจาก context ที่หน้าจอส่งมา — คำถามที่ไม่ตรง Logic ไหนเลย
