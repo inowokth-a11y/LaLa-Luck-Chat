@@ -1,0 +1,171 @@
+/* กราฟเปรียบเทียบ — สีจาก CSS variable ของโทน (ห้าม hardcode hex ตาม §2) */
+
+.panel {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--gold-dim, #a89870);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
+}
+
+.caption {
+  font-family: var(--font-serif-thai), serif;
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 0.85rem;
+  font-weight: 600;
+}
+
+/* ---- bar ---- */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(64px, 30%) 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+.barLabel {
+  font-size: 0.82rem;
+  color: var(--text, var(--ink));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.track {
+  position: relative;
+  height: 18px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  overflow: hidden;
+}
+.fillPos,
+.fillNeg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+}
+.fillPos {
+  background: var(--gold);
+}
+.fillNeg {
+  background: color-mix(in srgb, var(--ink-dim) 55%, var(--gold));
+  opacity: 0.7;
+}
+.zeroLine {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--ink-dim);
+  opacity: 0.5;
+}
+.barVal {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8rem;
+  color: var(--gold);
+  min-width: 2.2ch;
+  text-align: right;
+}
+.axisNote {
+  font-size: 0.72rem;
+  color: var(--text-dim, var(--ink-dim));
+  margin-top: 0.35rem;
+}
+
+/* ---- scale (gauge) ---- */
+.gauge {
+  padding: 1.4rem 0.5rem 0.4rem;
+}
+.gaugeTrack {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  transform: translate(-50%, -50%);
+}
+.dotLabel {
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-family: var(--font-mono), monospace;
+  color: var(--gold);
+}
+.gaugeEnds {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim, var(--ink-dim));
+  margin-top: 0.4rem;
+}
+
+/* ---- radar ---- */
+.radar {
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+  display: block;
+}
+.grid {
+  fill: none;
+  stroke: var(--ink-dim);
+  stroke-opacity: 0.25;
+}
+.spoke {
+  stroke: var(--ink-dim);
+  stroke-opacity: 0.25;
+}
+.area {
+  fill: color-mix(in srgb, var(--gold) 30%, transparent);
+  stroke: var(--gold);
+  stroke-width: 1.5;
+}
+.radarLabel {
+  font-size: 0.68rem;
+  fill: var(--text, var(--ink));
+  font-family: var(--font-sans-thai), sans-serif;
+}
+
+/* ---- table ---- */
+.table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.tableRow {
+  display: grid;
+  grid-template-columns: minmax(56px, 26%) 1fr;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.tableRow:last-child {
+  border-bottom: none;
+}
+.tableLabel {
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+.tableVal {
+  font-size: 0.85rem;
+  color: var(--text, var(--ink));
+  line-height: 1.4;
+}
