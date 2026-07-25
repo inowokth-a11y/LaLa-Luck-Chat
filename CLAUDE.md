@@ -1317,9 +1317,16 @@ Scopes              : openid, profile, email
 ธาตุจริง (88=Wood 💎, 99=Fire 🌍) + คำเล่า → พิมพ์เบอร์โทร → **caveat "ยังไม่ verify" แสดงใต้คำตอบ**
 → โควตาลด 3→2→1 · การ์ดผู้ใช้ชิดขวา/คำตอบชิดซ้าย/note โทนทอง
 
-⚠️ **ยังไม่ได้ทำ:** desktop split-view (§16 ออกแบบ จอ≥1024 กราฟซ้าย/แชทขวา) — ตอนนี้กราฟแทรก
-ในคำตอบแต่ละอัน (mobile-first ใช้ได้ทุกจอ เป็นธรรมชาติกับแชทหลายเทิร์นมากกว่า) · Enter-to-submit
-ทำงานในเบราว์เซอร์จริง (native form) แต่ automation `key Return` ไม่ trigger — ใช้ปุ่ม "ถาม" ทดสอบแทน
+✅ **desktop split-view — ทำแล้ว (25 ก.ค. 2569):** จอ≥1024 = กราฟซ้าย/แชทขวา · มือถือ = คอลัมน์
+เดียว กราฟแทรกในคำตอบ · **ทำด้วย CSS grid + media query ล้วน ไม่มี JS แยกจอ** (ตาม §16):
+กราฟถูก render 2 ที่ (เวที `.stage` ซ้าย + `.inlineChart` ในคำตอบ) แล้วสลับโชว์/ซ่อนด้วย
+`@media(min-width:1024px)` — `.stage` โชว์กราฟล่าสุด (sticky), `.inlineChart` ซ่อน · `latestChart`
+เป็น data logic (หากราฟล่าสุดจาก entries) ไม่ใช่ logic แยกจอ · ทดสอบ browser จริงทั้ง 1280 และ 375
+- `renderReply()` เรนเดอร์ `**ตัวหนา**` ของ markdown ที่ gpt ส่งมา (เดิมโชว์ `**` ดิบ)
+
+🐛 **เครื่องมือ:** ปุ่ม/ฟอร์มบน dev server แรกโหลดมัก **ไม่ hydrate ทันที** → คลิก/พิมพ์ไม่เข้า
+React state (input.value ว่าง) · แก้ด้วย reload + native setter+`dispatchEvent('input')` แล้ว
+`form.requestSubmit()` (ตรงกับบันทึกเครื่องมือ §15) · automation `key Return` ก็ไม่ submit เช่นกัน
 
 ### ปัญหาที่จะแก้
 ตอนนี้ `/api/chat` ตอบได้เฉพาะจาก context ที่หน้าจอส่งมา — คำถามที่ไม่ตรง Logic ไหนเลย

@@ -13,6 +13,54 @@
   gap: 1rem;
 }
 
+/* ---- layout: มือถือ = คอลัมน์เดียว · จอ ≥1024 = กราฟซ้าย/แชทขวา (§16) ---- */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+/* เวทีกราฟซ้าย + inlineChart สลับกันด้วย CSS ล้วน ไม่มี JS แยกจอ */
+.stage {
+  display: none;
+}
+.inlineChart {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .page {
+    max-width: 1080px;
+  }
+  .layout {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .stage {
+    display: block;
+    position: sticky;
+    top: 1.5rem;
+  }
+  .inlineChart {
+    display: none; /* กราฟย้ายไปเวทีซ้ายแทน */
+  }
+}
+
+.stageEmpty {
+  font-size: 0.85rem;
+  color: var(--text-dim, var(--ink-dim));
+  line-height: 1.6;
+  padding: 1.5rem 1.2rem;
+  border: 1px dashed var(--gold-dim, #a89870);
+  border-radius: 6px;
+  text-align: center;
+}
+
 .head {
   display: flex;
   flex-direction: column;

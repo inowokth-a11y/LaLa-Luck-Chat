@@ -29,6 +29,17 @@ const EXAMPLES = [
   "เลข 7 หมายถึงอะไร",
 ];
 
+/** เรนเดอร์ **ตัวหนา** ของ markdown ที่ narrator (gpt) มักส่งมา — ที่เหลือคงข้อความเดิม */
+function renderReply(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((seg, i) =>
+    seg.length > 4 && seg.startsWith("**") && seg.endsWith("**") ? (
+      <strong key={i}>{seg.slice(2, -2)}</strong>
+    ) : (
+      <span key={i}>{seg}</span>
+    )
+  );
+}
+
 export default function FlexibleChatPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [input, setInput] = useState("");
@@ -75,6 +86,17 @@ export default function FlexibleChatPage() {
     }
   }
 
+  // กราฟล่าสุด — ใช้เฉพาะ "เวทีซ้าย" บนจอใหญ่ (desktop split-view §16)
+  // เป็น data logic ไม่ใช่ logic แยกจอ — การสลับซ้าย-ขวา/แทรก ทำด้วย CSS media query ล้วน
+  let latestChart: ChartData | undefined;
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const e = entries[i];
+    if (e.kind === "ai" && e.chart) {
+      latestChart = e.chart;
+      break;
+    }
+  }
+
   return (
     <main className={`tone-marble ${styles.page}`}>
       <header className={styles.head}>
@@ -98,52 +120,70 @@ export default function FlexibleChatPage() {
         </div>
       )}
 
-      <div className={styles.thread}>
-        {entries.map((entry, i) => {
-          if (entry.kind === "user") return <div key={i} className={styles.user}>{entry.text}</div>;
-          if (entry.kind === "crisis") return <div key={i} className={styles.crisis}>{entry.text}</div>;
-          if (entry.kind === "note") return <div key={i} className={styles.note}>{entry.text}</div>;
-          return (
-            <div key={i} className={styles.aiBlock}>
-              {entry.chart && <ChartPanel chart={entry.chart} />}
-              <div className={styles.ai}>{entry.reply}</div>
-              {entry.caveats.length > 0 && (
-                <div className={styles.caveats}>
-                  {entry.caveats.map((c, j) => (
-                    <p key={j}>⚠️ {c}</p>
-                  ))}
+      <div className={styles.layout}>
+        {/* เวทีกราฟซ้าย — แสดงเฉพาะจอ ≥1024 (CSS ซ่อนบนมือถือ) */}
+        <aside className={styles.stage}>
+          {latestChart ? (
+            <ChartPanel chart={latestChart} />
+          ) : (
+            <p className={styles.stageEmpty}>กราฟเปรียบเทียบจะปรากฏที่นี่เมื่อคุณถามคำถามที่เทียบหลายรายการ</p>
+          )}
+        </aside>
+
+        <section className={styles.conversation}>
+          <div className={styles.thread}>
+            {entries.map((entry, i) => {
+              if (entry.kind === "user") return <div key={i} className={styles.user}>{entry.text}</div>;
+              if (entry.kind === "crisis") return <div key={i} className={styles.crisis}>{entry.text}</div>;
+              if (entry.kind === "note") return <div key={i} className={styles.note}>{entry.text}</div>;
+              return (
+                <div key={i} className={styles.aiBlock}>
+                  {/* มือถือ: กราฟแทรกในคำตอบ · จอใหญ่: ซ่อน (ไปโชว์บนเวทีซ้ายแทน) */}
+                  {entry.chart && (
+                    <div className={styles.inlineChart}>
+                      <ChartPanel chart={entry.chart} />
+                    </div>
+                  )}
+                  <div className={styles.ai}>{renderReply(entry.reply)}</div>
+                  {entry.caveats.length > 0 && (
+                    <div className={styles.caveats}>
+                      {entry.caveats.map((c, j) => (
+                        <p key={j}>⚠️ {c}</p>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-        {busy && <div className={styles.ai}>กำลังคำนวณและเรียบเรียง…</div>}
+              );
+            })}
+            {busy && <div className={styles.ai}>กำลังคำนวณและเรียบเรียง…</div>}
+          </div>
+
+          {error && <p className={styles.error}>⚠️ {error}</p>}
+
+          {!exhausted && (
+            <form
+              className={styles.form}
+              onSubmit={(e) => {
+                e.preventDefault();
+                ask(input);
+              }}
+            >
+              <input
+                type="text"
+                className={styles.input}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="พิมพ์คำถามของคุณ…"
+                maxLength={500}
+                disabled={busy}
+              />
+              <button type="submit" className={styles.send} disabled={busy || !input.trim()}>
+                {busy ? "…" : "ถาม"}
+              </button>
+            </form>
+          )}
+        </section>
       </div>
-
-      {error && <p className={styles.error}>⚠️ {error}</p>}
-
-      {!exhausted && (
-        <form
-          className={styles.form}
-          onSubmit={(e) => {
-            e.preventDefault();
-            ask(input);
-          }}
-        >
-          <input
-            type="text"
-            className={styles.input}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="พิมพ์คำถามของคุณ…"
-            maxLength={500}
-            disabled={busy}
-          />
-          <button type="submit" className={styles.send} disabled={busy || !input.trim()}>
-            {busy ? "…" : "ถาม"}
-          </button>
-        </form>
-      )}
 
       <p className={styles.foot}>
         ตัวเลขและกราฟทั้งหมดมาจากการคำนวณของ engine — AI ทำหน้าที่เลือกสูตรที่ใช้และเรียบเรียงเท่านั้น
