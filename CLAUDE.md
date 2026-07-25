@@ -1188,9 +1188,16 @@ git status                    # ตรวจว่าไม่มี .env.local 
 >   วันนี้/เดือนนี้/ปีนี้/ทักษาจร — เอา "(Logic N)" ออก · **comment ในโค้ด/`logicId=` prop เก็บไว้** (ผู้ใช้ไม่เห็น)
 >   · เวลาเพิ่ม UI ใหม่ ห้ามโชว์คำว่า "Logic <เลข>" ให้ผู้ใช้เห็นอีก
 >
-> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ใช้ `user_profiles_e` จริงในการคำนวณ (prefill /profile /fortune +
-> ป้อน birthDate ให้ flexible chat §16 ที่ยังตอบ needs_input) · ผูกเครดิต/subscription กับ auth_uid ·
-> ย้ายโควตา plan-chat/แชทจาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login บนทุกหน้า
+> **✅ สไลซ์ 1.6 (25 ก.ค. 2569) — prefill /profile /fortune จาก user_profiles_e:**
+> - `app/(liff)/_components/useStoredProfile.ts` — hook อ่านโปรไฟล์ **ผ่าน auth-browser (มี session)**
+>   ไม่ใช่ `lib/supabase/client.ts` ธรรมดา (ไม่งั้น RLS own-row คืน 0 แถว) · ไม่ล็อกอิน = profile null (หน้าใช้ได้ปกติ)
+> - /profile + /fortune: useEffect เติมค่าจาก profile **เฉพาะช่องที่ยังว่าง** (ไม่ทับที่ผู้ใช้พิมพ์เอง)
+>   + โน้ต "✓ เติมข้อมูลจากบัญชีของคุณ" · ทดสอบ anon จริง: ฟอร์มว่าง ไม่มี notice ไม่พัง ไม่มี console error
+>   (prefill ตอนล็อกอินจริงยังไม่ได้ทดสอบ — ต้องมี session ที่ล็อกอินเองไม่ได้)
+>
+> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ป้อน birthDate ให้ flexible chat §16 (ตอนนี้ยังตอบ needs_input) —
+> ต้องเปิดฟังก์ชันที่ใช้วันเกิดใน PLAN_ALLOWLIST + inject โปรไฟล์เข้า runPlanChat · ผูกเครดิต/subscription
+> กับ auth_uid · ย้ายโควตา plan-chat/แชทจาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login ทุกหน้า
 
 ผู้ใช้เลือก: **Google + Facebook + LINE Login** (Instagram ทำไม่ได้ — Basic Display API
 ปิดถาวร 4 ธ.ค. 2024 และ Meta ไม่อนุมัติแอปที่ใช้ IG ทำ authentication)

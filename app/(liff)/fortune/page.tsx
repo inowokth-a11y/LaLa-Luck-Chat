@@ -7,7 +7,7 @@
 // ✅ ลัคนาใช้สูตรดาราศาสตร์มาตรฐาน (lib/engine/ascendant.ts) แล้ว — วิธีอันโตนาทีเดิม
 // พิสูจน์แล้วว่าผิด (วนได้แค่ 9 ราศี/วัน) ดู CLAUDE.md §5.2
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { calculateLagna, julianDay } from "@/lib/engine/lagna";
 import { calculateAscendant } from "@/lib/engine/ascendant";
 import { dailyPrediction, getMoonSign } from "@/lib/engine/daily";
@@ -16,6 +16,7 @@ import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import { provincesByRegion, provinceByKey } from "@/lib/provinces";
 import styles from "./fortune.module.css";
 import FunctionChat from "../_components/FunctionChat";
+import { useStoredProfile } from "../_components/useStoredProfile";
 
 type Daily = ReturnType<typeof dailyPrediction>;
 type Monthly = ReturnType<typeof monthlyPrediction>;
@@ -43,6 +44,19 @@ export default function FortunePage() {
   const [province, setProvince] = useState("bangkok");
   const [error, setError] = useState<string | null>(null);
   const [r, setR] = useState<Result | null>(null);
+  const [prefilled, setPrefilled] = useState(false);
+
+  // เติมวันเกิด/เวลา/จังหวัด จากโปรไฟล์ที่ผู้ใช้กรอกไว้ (ไม่ทับค่าที่ผู้ใช้พิมพ์เอง)
+  const { profile } = useStoredProfile();
+  useEffect(() => {
+    if (!profile) return;
+    let did = false;
+    if (profile.birth_date) setBirthDate((v) => (v ? v : ((did = true), profile.birth_date!)));
+    if (profile.birth_time) setBirthTime((v) => (v ? v : ((did = true), profile.birth_time!)));
+    // province มีค่าเริ่มต้น "bangkok" อยู่แล้ว จึงเติมเฉพาะเมื่อผู้ใช้ยังไม่เปลี่ยน = ยังเป็น bangkok
+    if (profile.birth_province) setProvince((v) => (v !== "bangkok" ? v : ((did = true), profile.birth_province!)));
+    if (did) setPrefilled(true);
+  }, [profile]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,6 +116,11 @@ export default function FortunePage() {
       </header>
 
       <form onSubmit={onSubmit} className={styles.panel}>
+        {prefilled && (
+          <p className={styles.hint} style={{ color: "var(--gold)" }}>
+            ✓ เติมข้อมูลจากบัญชีของคุณให้แล้ว — แก้ไขได้ตามต้องการ
+          </p>
+        )}
         <div className={styles.row}>
           <label className={styles.field}>
             <span>วันเกิด (ค.ศ.)</span>

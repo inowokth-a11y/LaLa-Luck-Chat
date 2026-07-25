@@ -4,13 +4,14 @@
 // พอร์ตจาก legacy-artifacts/intake_form.html
 // โทน: ☀️ สว่างหินอ่อน (.tone-marble) ตาม CLAUDE.md §2 — หน้านี้เป็น "ข้อมูล/ผลลัพธ์ถาวร"
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { computeCardIdString, thaiDayOfWeek } from "@/lib/engine/card-id";
 import { calculateElementSeed, THAI_LABEL_4, type ElementSeedResult } from "@/lib/engine/element";
 import { cardImageUrl } from "@/lib/cards";
 import { supabase } from "@/lib/supabase/client";
 import styles from "./profile.module.css";
 import FunctionChat from "../_components/FunctionChat";
+import { useStoredProfile } from "../_components/useStoredProfile";
 
 interface CardRow {
   energy_id: string;
@@ -51,6 +52,19 @@ export default function ProfilePage() {
   const [card, setCard] = useState<CardRow | null>(null);
   const [cardId, setCardId] = useState<string | null>(null);
   const [seed, setSeed] = useState<ElementSeedResult | null>(null);
+  const [prefilled, setPrefilled] = useState(false);
+
+  // เติมข้อมูลจากโปรไฟล์ที่ผู้ใช้กรอกไว้ (ไม่ทับค่าที่ผู้ใช้พิมพ์เองแล้ว)
+  const { profile } = useStoredProfile();
+  useEffect(() => {
+    if (!profile) return;
+    let did = false;
+    if (profile.first_name) setFirstName((v) => (v ? v : ((did = true), profile.first_name!)));
+    if (profile.last_name) setLastName((v) => (v ? v : ((did = true), profile.last_name!)));
+    if (profile.birth_date) setBirthDate((v) => (v ? v : ((did = true), profile.birth_date!)));
+    if (profile.birth_time) setBirthTime((v) => (v ? v : ((did = true), profile.birth_time!)));
+    if (did) setPrefilled(true);
+  }, [profile]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,6 +117,11 @@ export default function ProfilePage() {
       </header>
 
       <form onSubmit={onSubmit} className={styles.panel}>
+        {prefilled && (
+          <p className={styles.hint} style={{ color: "var(--gold)" }}>
+            ✓ เติมข้อมูลจากบัญชีของคุณให้แล้ว — แก้ไขได้ตามต้องการ
+          </p>
+        )}
         <div className={styles.row}>
           <label className={styles.field}>
             <span>ชื่อ</span>
