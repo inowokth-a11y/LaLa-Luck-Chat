@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const TOOLS: { href: string; label: string; primary?: boolean }[] = [
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา (วิเคราะห์อิสระ · AI)", primary: true },
   { href: "/profile", label: "🔮 โปรไฟล์พลังงาน (Logic 1)" },
@@ -56,6 +58,20 @@ export default function Home() {
           </a>
         ))}
       </nav>
+
+      <Link
+        href="/login"
+        style={{
+          fontFamily: "var(--font-sans-thai)",
+          fontSize: "0.85rem",
+          color: "var(--gold)",
+          opacity: 0.8,
+          marginTop: "1rem",
+          textDecoration: "underline",
+        }}
+      >
+        เข้าสู่ระบบ / สมัครสมาชิก
+      </Link>
     </main>
   );
 }

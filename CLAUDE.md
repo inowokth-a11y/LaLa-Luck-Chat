@@ -1142,7 +1142,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 237/237
 | หน้า LIFF 6 หน้า | ✅ profile · fortune · dream · oracle · compatibility · fengshui |
 | API | ✅ dream · oracle · chat · logic/router · line/webhook |
 | **AI Chat แบบยืดหยุ่น เฟส 1** | ✅ `lib/chat/plan.ts` — ชั้น validate เสร็จ **ยังไม่ต่อ AI** (§16) |
-| Supabase | ✅ migration 000-019 รันจริงแล้ว |
+| Supabase | ✅ migration 000-020 รันจริงแล้ว (020 = user_identities สำหรับระบบสมาชิก) |
 | GitHub | ✅ `inowokth-a11y/LaLa-Luck-Chat` |
 | Vercel | ✅ deploy สำเร็จ (Hobby) — **โปรเจกต์จริงคือ `lala-lucky-chat` → `https://lala-lucky-chat.vercel.app`** (verify ทุก path 200) · ⏸️ ใช้ vercel.app ไปก่อน ยังไม่ซื้อโดเมน |
 
@@ -1157,7 +1157,27 @@ git status                    # ตรวจว่าไม่มี .env.local 
 
 ### คิวงานถัดไป (เรียงตามที่ตกลงกับผู้ใช้)
 
-**1. ระบบสมาชิก — รอผู้ใช้เอา OAuth key มา**
+**1. ระบบสมาชิก — ✅ สไลซ์ 1 (auth + สะพานตัวตน) เสร็จแล้ว 25 ก.ค. 2569**
+
+> ✅ **โค้ดพร้อมใช้บน production** (`lala-lucky-chat.vercel.app`) — เดิมบล็อกเพราะรอโดเมน
+> ตอนนี้ใช้ vercel.app แล้ว จึงทำได้ · ปุ่ม Google ทดสอบจริงแล้ว **redirect ไป accounts.google.com
+> ได้** (Google provider เปิดใน Supabase แล้ว) — ยังไม่ complete round-trip เพราะห้ามกรอก credential
+>
+> **ไฟล์ที่ทำ (สไลซ์ 1):**
+> - `supabase/migrations/020_user_identities.sql` — ตารางสะพาน `auth.users`(UUID) ↔ ตัวตน E
+>   **ไม่แตะตาราง `users` ของ D** · RLS: อ่านได้แค่แถวตัวเอง เขียนผ่าน service role · รันจริงแล้ว
+>   (verify anon: อ่าน 0 แถว, insert ถูกปฏิเสธ 42501)
+> - `@supabase/ssr` (ติดตั้งใหม่) + `lib/supabase/{auth-browser,auth-server,middleware}.ts` + `middleware.ts` ราก (refresh session)
+> - `app/login/page.tsx` — Google/Facebook/LINE(`custom:line`) + magic link · โทนสว่าง
+> - `app/auth/callback/route.ts` — แลก code → upsert `user_identities` (service role) →
+>   **เชื่อม D อัตโนมัติเมื่อ LINE userId ตรงกับ `users.line_user_id`** (อ่านอย่างเดียว ไม่แก้ users)
+>
+> 🔴 **ผู้ใช้ต้องทำเองบน Supabase Dashboard ก่อนใช้จริงบน prod:** ตั้ง **Site URL** +
+> **Redirect allow-list** = `https://lala-lucky-chat.vercel.app/**` (Authentication → URL Configuration)
+> ไม่งั้น OAuth จะ redirect กลับไม่ได้ · dev localhost ใช้ได้อยู่แล้ว (Supabase อนุญาต localhost)
+>
+> ⬜ **สไลซ์ถัดไป (ยังไม่ทำ):** ผูกเครดิต/subscription กับ auth_uid · ย้ายโควตา plan-chat/แชท
+> จาก cookie ไป DB (§13) · หน้า account เต็ม · ปุ่มสถานะ login บนทุกหน้า (ตอนนี้มีลิงก์ที่หน้าแรก)
 
 ผู้ใช้เลือก: **Google + Facebook + LINE Login** (Instagram ทำไม่ได้ — Basic Display API
 ปิดถาวร 4 ธ.ค. 2024 และ Meta ไม่อนุมัติแอปที่ใช้ IG ทำ authentication)
@@ -1171,7 +1191,7 @@ Callback URL ที่ใช้ทุกเจ้า: `https://umffopbnkqyvzbbjy
 |---|---|---|
 | **Facebook** | ✅ ตั้ง Redirect URI + เปิด OAuth เว็บ/ไคลเอ็นต์ + บังคับ HTTPS แล้ว | ⚠️ **แอปยังไม่เผยแพร่** → ล็อกอินได้เฉพาะ Admin/Developer/Tester · ต้องผ่าน App Review ขอ `email`+`public_profile` ก่อนเปิดสาธารณะ (หลายวัน) |
 | **LINE** | ✅ สร้าง Custom Auth Provider แล้ว | Channel ID `2008551146` |
-| **Google** | ❓ ยังไม่ยืนยันว่าทำแล้วหรือยัง | ทำเร็วสุด ~10 นาที ไม่ต้องรอ review |
+| **Google** | ✅ เปิดแล้ว (ยืนยัน 25 ก.ค. — ปุ่มพาไป accounts.google.com ได้จริง) | — |
 
 ✅ **ยืนยันแล้วว่า Supabase มี Custom Auth Provider ให้ใช้จริง** (เดิมธงไว้ว่าไม่แน่ใจเรื่องแผนฟรี)
 
