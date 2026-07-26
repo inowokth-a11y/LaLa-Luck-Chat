@@ -8,6 +8,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
+import { motifElement, scoreLabelComposition, recommendForBrand } from "@/lib/engine/label";
 
 const EL_COLOR: Record<string, string> = { Wood: "#2f5c42", Fire: "#a83a1e", Earth: "#a97c1f", Metal: "#6b6255", Water: "#1f4d63" };
 
@@ -36,12 +37,48 @@ function LabelComposer() {
   const [brand, setBrand] = useState(params.get("brand") ?? "");
   const [tagline, setTagline] = useState("");
   const [sizeKey, setSizeKey] = useState(SIZES[0].key);
+  const [motif, setMotif] = useState("");
+  const [bgUrl, setBgUrl] = useState<string | null>(null);
+  const [bgBusy, setBgBusy] = useState(false);
+  const [bgError, setBgError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const size = useMemo(() => SIZES.find((s) => s.key === sizeKey)!, [sizeKey]);
   const proxied = logoUrl ? `/api/logo/download?url=${encodeURIComponent(logoUrl)}&name=logo` : "";
+  const bgProxied = bgUrl ? `/api/logo/download?url=${encodeURIComponent(bgUrl)}&name=bg` : "";
+  const orientation = size.w > size.h ? "landscape" : size.h > size.w ? "portrait" : "square";
+
+  // วิเคราะห์องค์ประกอบจากลวดลายที่พิมพ์ (ฟรี ทันที) — ธาตุลวดลาย ↔ ธาตุแบรนด์
+  const analysis = useMemo(() => {
+    const mEl = motif.trim() ? motifElement(motif) : null;
+    if (!mEl) return null;
+    const r = scoreLabelComposition({ brandElement: el, components: [{ kind: "ลวดลาย", label: motif.trim(), element: mEl }] });
+    return { motifEl: mEl, comp: r.components[0] };
+  }, [motif, el]);
+  const recs = useMemo(() => recommendForBrand(el, []).slice(0, 3), [el]);
+
+  async function genArtwork() {
+    if (bgBusy) return;
+    setBgBusy(true);
+    setBgError(null);
+    try {
+      const res = await fetch("/api/label/artwork", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ brandElement: el, motif: motif.trim(), orientation }),
+      });
+      const d = await res.json();
+      if (d.needsLogin) setBgError("ต้องเข้าสู่ระบบก่อนสร้างพื้นหลัง AI");
+      else if (d.error) setBgError(d.error);
+      else setBgUrl(d.imageUrl);
+    } catch (e) {
+      setBgError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBgBusy(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -58,25 +95,43 @@ function LabelComposer() {
         canvas.height = H;
         const ctx = canvas.getContext("2d")!;
 
-        // พื้นหลัง: ครีมอ่อน + แถบสีธาตุด้านบน + กรอบบางสีธาตุ (สไตล์ฉลากมืออาชีพ พิมพ์ประหยัดหมึก)
-        ctx.fillStyle = "#faf7f0";
-        ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = color;
-        ctx.fillRect(0, 0, W, Math.round(H * 0.055));
-        ctx.fillRect(0, H - Math.round(H * 0.055), W, Math.round(H * 0.055));
+        const loadImg = (src: string) =>
+          new Promise<HTMLImageElement>((res, rej) => {
+            const im = new Image();
+            im.crossOrigin = "anonymous"; // โหลดผ่านพร็อกซี same-origin → canvas ไม่ taint
+            im.onload = () => res(im);
+            im.onerror = () => rej(new Error("โหลดรูปไม่สำเร็จ"));
+            im.src = src;
+          });
+
+        // พื้นหลัง: AI artwork (ถ้ามี) แบบ cover + ฉาบครีมโปร่งแสงให้อ่านง่าย · ไม่งั้นครีม+แถบสีธาตุ
+        if (bgProxied) {
+          const bg = await loadImg(bgProxied);
+          if (cancelled) return;
+          const s = Math.max(W / bg.width, H / bg.height);
+          const dw = bg.width * s, dh = bg.height * s;
+          ctx.drawImage(bg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+          // การ์ดครีมตรงกลาง → ลาย AI เป็นกรอบขอบ · กลางสะอาด อ่านง่าย + กลบตัวอักษรมั่วที่ FLUX อาจใส่
+          const m = Math.round(Math.min(W, H) * 0.1);
+          const rad = Math.round(Math.min(W, H) * 0.04);
+          ctx.fillStyle = "rgba(250,247,240,0.93)";
+          ctx.beginPath();
+          ctx.roundRect(m, m, W - 2 * m, H - 2 * m, rad);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = "#faf7f0";
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = color;
+          ctx.fillRect(0, 0, W, Math.round(H * 0.055));
+          ctx.fillRect(0, H - Math.round(H * 0.055), W, Math.round(H * 0.055));
+        }
         ctx.strokeStyle = color;
         ctx.lineWidth = Math.max(2, Math.round(W * 0.006));
         ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, W - ctx.lineWidth * 2, H - ctx.lineWidth * 2);
 
         // โลโก้ (ถ้ามี) — วางกลางบน
         if (proxied) {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          await new Promise<void>((res, rej) => {
-            img.onload = () => res();
-            img.onerror = () => rej(new Error("โหลดโลโก้ไม่สำเร็จ"));
-            img.src = proxied;
-          });
+          const img = await loadImg(proxied);
           if (cancelled) return;
           const logoH = Math.round(H * 0.42);
           const logoW = logoH * (img.width / img.height || 1);
@@ -113,7 +168,7 @@ function LabelComposer() {
     return () => {
       cancelled = true;
     };
-  }, [brand, tagline, size, proxied, color]);
+  }, [brand, tagline, size, proxied, bgProxied, color]);
 
   const S = styles;
   const dlName = `label-${(brand.trim() || "brand").replace(/[^a-zA-Z0-9ก-๙._-]/g, "-")}-${size.w}x${size.h}mm.png`;
@@ -140,6 +195,25 @@ function LabelComposer() {
         </div>
         <input style={S.input} value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="ชื่อแบรนด์" maxLength={60} />
         <input style={S.input} value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="สโลแกน/คำโปรย (ไม่บังคับ)" maxLength={80} />
+
+        {/* พื้นหลัง AI + วิเคราะห์องค์ประกอบธาตุ */}
+        <label style={{ ...S.label, marginTop: "0.3rem" }}>ลวดลาย/พื้นหลัง (AI · ไม่บังคับ)</label>
+        <input style={S.input} value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="เช่น สวนผลไม้ · ลายไทย · สายน้ำ · ภูเขา" maxLength={160} />
+
+        {analysis && (
+          <p style={{ fontSize: "0.78rem", color: analysis.comp.score >= 1 ? "var(--good,#2f6b3f)" : analysis.comp.score < 0 ? "var(--bad,#a83a1e)" : "var(--text-dim,#6b6255)", lineHeight: 1.5 }}>
+            {analysis.comp.score >= 1 ? "✓" : analysis.comp.score < 0 ? "⚠️" : "•"} ลวดลายนี้ธาตุ{THAI_LABEL_5[analysis.motifEl]} · {analysis.comp.relation}
+          </p>
+        )}
+        <p style={{ fontSize: "0.74rem", color: "var(--text-dim,#6b6255)", lineHeight: 1.5 }}>
+          💡 ลวดลายที่เข้ากับธาตุ{THAI_LABEL_5[el]}: {recs.map((r) => r.motifs[0]).join(" · ")}
+        </p>
+
+        <button type="button" style={{ ...S.download, background: bgUrl ? "transparent" : color, color: bgUrl ? color : "#faf7f0", border: bgUrl ? `1px solid ${color}` : "none", alignSelf: "flex-start" }} onClick={genArtwork} disabled={bgBusy}>
+          {bgBusy ? "กำลังสร้างพื้นหลัง…" : bgUrl ? "🔄 สร้างพื้นหลังใหม่" : "🎨 สร้างพื้นหลัง AI (1 ครั้ง = 1 เครดิต)"}
+        </button>
+        {bgUrl && <button type="button" style={{ ...S.chip, alignSelf: "flex-start" }} onClick={() => setBgUrl(null)}>เอาพื้นหลังออก (กลับเป็นพื้นเรียบ)</button>}
+        {bgError && <p style={S.warn}>⚠️ {bgError}</p>}
       </div>
 
       {error && <p style={S.warn}>⚠️ {error}</p>}
