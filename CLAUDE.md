@@ -957,7 +957,17 @@ config อยู่ที่ `lib/credits/pricing.ts` (+ `tests/credits-pricing.
 **กำไรทั้งธุรกิจยังขึ้นกับ cache hit rate** (ดูในแดชบอร์ดแอดมิน §12)
 
 ⬜ **ยังไม่ทำ:** ตาราง balance เครดิต + wiring หักเครดิตจริงตอนใช้ + top-up/payment (Omise) —
-config เรทพร้อมแล้ว รอต่อระบบชำระเงิน · fal image-gen ต้องรอ `FAL_KEY` (ผู้ใช้สมัครเอง)
+config เรทพร้อมแล้ว รอต่อระบบชำระเงิน
+
+### ✅ โลโก้ fal (Logic 19) — โค้ดพร้อมแล้ว 25 ก.ค. 2569 · ⚠️ รอ `FAL_KEY` เพื่อทดสอบจริง
+`lib/image/fal.ts` (client, verify API contract จาก fal docs: `POST fal.run/{model}` + header `Key`) +
+`app/api/logo/route.ts` + `app/(liff)/logo/page.tsx` · โหมด "โลโก้" ในแชท → ลิงก์ `/logo`
+- โมเดล: FLUX schnell (preview ~฿0.22) · Recraft V3 vector (SVG ใช้เชิงพาณิชย์ได้ ~฿2.88)
+- prompt จาก `logoPromptText()` (Logic 19) เลือกสไตล์ตามธาตุของผู้ใช้ (จากโปรไฟล์)
+- 🔴 **gate เข้ม**: ต้องล็อกอิน + โควตา `chat_usage_e` bucket "logo" (ฟรี 3 ครั้ง) — กันเปลือง fal
+- ทดสอบ local: GET → `fal_available:false` · POST → 503 graceful (ยังไม่มีคีย์) ·
+  ⚠️ **ยังไม่ได้ยิง fal จริง** — ต้องตั้ง `FAL_KEY` (.env.local + Vercel) + ล็อกอินก่อนถึงจะเทสต์ได้
+- ⬜ ยังไม่เก็บภาพลง Supabase Storage (URL fal ชั่วคราว) · ⚠️ prompt ยังปนไทย-อังกฤษ (ตาราง §5 ยังไม่ verify)
 
 ### 🔴 ช่องว่างใหญ่: เว็บไม่มีระบบผู้ใช้เลย
 
