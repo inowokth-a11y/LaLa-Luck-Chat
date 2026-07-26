@@ -158,6 +158,16 @@ test("ใช้ครบแล้วถูกปิด", () => {
   assert.equal(q.remaining, 0);
 });
 
+test("🎁 โบนัส (รางวัลคอมเมนต์) ขยายเพดานฟรี = FREE + bonus", () => {
+  // ใช้ครบ FREE แล้ว แต่มีโบนัส 2 → ยังถามได้อีก 2
+  const q = checkPlanQuota(FREE_PLAN_QUESTIONS, 2);
+  assert.equal(q.allowed, true);
+  assert.equal(q.limit, FREE_PLAN_QUESTIONS + 2);
+  assert.equal(q.remaining, 2);
+  // โบนัสติดลบ/พัง ไม่ทำให้เพดานลด
+  assert.equal(checkPlanQuota(0, -5).limit, FREE_PLAN_QUESTIONS);
+});
+
 test("🔴 cookie ค่าเพี้ยน (ติดลบ/NaN/ทศนิยม/พัง) ต้องไม่ให้โควตาเกิน", () => {
   for (const bad of [undefined, null, "", "-100", "abc", "1e999", "2.9"]) {
     const used = parsePlanUsed(bad as string);

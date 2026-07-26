@@ -11,6 +11,7 @@ import { getAdminEmails, isAdminEmail } from "@/lib/admin/access";
 import { computeUsageStats, type UsageRow, type UsageStats } from "@/lib/admin/usage-stats";
 import { summarizeQuestions, type QuestionRow } from "@/lib/admin/question-stats";
 import AdminAssistant from "./AdminAssistant";
+import FeedbackAdmin from "./FeedbackAdmin";
 
 export const dynamic = "force-dynamic"; // อ่าน session + DB ทุกครั้ง
 
@@ -40,6 +41,14 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false })
     .limit(2000);
   const q = summarizeQuestions((qRows as QuestionRow[] | null) ?? []);
+
+  // ความเห็นผู้ใช้ (feedback) — อ่านด้วย service role
+  const { data: fbRows } = await svc
+    .from("feedback")
+    .select("message,rating,created_at")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  const feedback = (fbRows as { message: string; rating: number | null; created_at: string }[] | null) ?? [];
 
   return (
     <main className="tone-marble" style={S.page}>
@@ -123,6 +132,21 @@ export default async function AdminPage() {
             {q.recentUnclear.map((u, i) => (
               <div key={i} style={{ ...S.td, borderBottom: "1px solid color-mix(in srgb,var(--ink) 8%,transparent)", fontSize: "0.85rem" }}>
                 “{u.question}” <span style={{ ...S.dim, fontSize: "0.7rem" }}>· {u.created_at.slice(0, 10)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <FeedbackAdmin />
+
+      <Card title={`ความเห็นจากผู้ใช้ (${feedback.length})`}>
+        {feedback.length === 0 ? <Empty /> : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+            {feedback.map((f, i) => (
+              <div key={i} style={{ ...S.td, borderBottom: "1px solid color-mix(in srgb,var(--ink) 8%,transparent)", fontSize: "0.85rem" }}>
+                {f.rating ? <span style={{ color: "var(--gold)" }}>{"★".repeat(f.rating)}</span> : null} “{f.message}”
+                <span style={{ ...S.dim, fontSize: "0.7rem" }}> · {f.created_at.slice(0, 10)}</span>
               </div>
             ))}
           </div>

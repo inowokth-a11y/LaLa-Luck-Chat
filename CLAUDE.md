@@ -1060,6 +1060,19 @@ route `/api/chat` แยก 2 ทางในทั้ง plan-mode และ co
 plan 1→2 (atomic) · bucket แยกกัน (logic:4 เริ่มที่ 1) · ⚠️ ยังไม่ได้ทดสอบ end-to-end บนเว็บตอนล็อกอิน
 (ต้องมี session — ผมล็อกอินเองไม่ได้) · ⬜ ยังไม่ผูก **เครดิตเติมเงิน** (ยกเพดานเมื่อจ่าย) — สไลซ์ถัดไป+payment
 
+**✅ เพิ่ม 27 ก.ค. — โบนัสเครดิต (ขยายโควตาฟรีเป็นรางวัล):** `migration 025` เพิ่มคอลัมน์ `bonus`
+ใน `chat_usage_e` + RPC `add_chat_bonus` (service role) · `checkPlanQuota(used, bonus)` เพดานฟรี = FREE+bonus
+
+### ✅ ระบบความเห็นผู้ใช้ + คำถามที่แอดมินตั้ง + รางวัลคอมเมนต์ (27 ก.ค. 2569)
+
+`migration 024` (feedback + feedback_prompts) · `lib/feedback/validate.ts` (5 เทสต์) ·
+`/api/feedback` (ส่งความเห็น — เปิดทุกคน) · `/api/admin/feedback-prompts` (แอดมินตั้ง/เปิด-ปิดคำถาม, gate) ·
+`FeedbackBox` (หน้า /chat) · `FeedbackAdmin` + รายการความเห็นในแดชบอร์ด
+- 🔴 **รางวัล 1 เครดิต กันฟาร์ม 2 ชั้น:** (1) ต้อง "ตอบคำถามที่แอดมินตั้ง" (มี `promptId` = บอทถามก่อน)
+  (2) **ครั้งเดียวต่อคำถามต่อคน** (นับ feedback ของ user+prompt = 1 ถึงให้) · ความเห็นทั่วไป = ฟรีแต่ไม่ได้เครดิต
+- RLS verify: feedback anon อ่าน 0 · prompts anon อ่านเฉพาะ active · write/rpc anon ปฏิเสธ 42501
+- `ADMIN_EMAILS` = whootthira@gmail.com, inowok.th@gmail.com (ตั้งใน .env.local แล้ว · **ต้องตั้งใน Vercel ด้วย**)
+
 **กันปลอมแปลงฝั่ง cookie (anon) ได้เท่าที่ทำได้** (ทดสอบยิงจริง): ค่าติดลบ/ไม่ใช่ตัวเลข/JSON พัง →
 ปัดเป็น 0 · ทศนิยมปัดลง · `httpOnly` กัน JS แก้ตรงๆ
 

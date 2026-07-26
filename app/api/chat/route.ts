@@ -26,7 +26,7 @@ import {
   planQuotaExhaustedMessage,
 } from "@/lib/chat/plan-run";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
-import { getDbUsage, bumpDbUsage, planBucket, logicBucket } from "@/lib/chat/usage-db";
+import { getDbUsage, getDbUsageBonus, bumpDbUsage, planBucket, logicBucket } from "@/lib/chat/usage-db";
 import { lotteryIntercept } from "@/lib/chat/lottery";
 import { logQuestion } from "@/lib/chat/question-log";
 import type { PlanProfileContext } from "@/lib/chat/plan";
@@ -215,9 +215,17 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
     console.warn("[chat/plan] อ่าน session/โปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่ล็อกอิน", e);
   }
 
-  // โควตา: ล็อกอิน → นับที่ DB (ผูก auth_uid, ล้าง cookie ไม่รีเซ็ต) · ไม่ล็อกอิน → cookie
-  const used = userId ? await getDbUsage(userId, planBucket()) : parsePlanUsed(jar.get(PLAN_QUOTA_COOKIE)?.value);
-  const q = checkPlanQuota(used);
+  // โควตา: ล็อกอิน → นับที่ DB (ผูก auth_uid) + โบนัสจากรางวัล · ไม่ล็อกอิน → cookie (ไม่มีโบนัส)
+  let used: number;
+  let bonus = 0;
+  if (userId) {
+    const ub = await getDbUsageBonus(userId, planBucket());
+    used = ub.used;
+    bonus = ub.bonus;
+  } else {
+    used = parsePlanUsed(jar.get(PLAN_QUOTA_COOKIE)?.value);
+  }
+  const q = checkPlanQuota(used, bonus);
   if (!q.allowed) {
     return NextResponse.json(
       { quotaExceeded: true, message: planQuotaExhaustedMessage(), used: q.used, remaining: 0, limit: q.limit },

@@ -11,6 +11,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import ChartPanel, { type ChartData } from "../_components/ChartPanel";
 import { useStoredProfile } from "../_components/useStoredProfile";
+import FeedbackBox from "../_components/FeedbackBox";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./chat.module.css";
@@ -274,6 +275,8 @@ export default function FlexibleChatPage() {
         ตัวเลขและกราฟทั้งหมดมาจากการคำนวณของ engine — AI ทำหน้าที่เลือกสูตรที่ใช้และเรียบเรียงเท่านั้น
         ไม่ได้แต่งตัวเลขเอง
       </p>
+
+      <FeedbackBox />
     </main>
   );
 }

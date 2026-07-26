@@ -327,10 +327,12 @@ export interface PlanQuotaCheck {
   limit: number;
 }
 
-export function checkPlanQuota(used: number): PlanQuotaCheck {
+/** bonus = โควตาฟรีเพิ่มเติมจากรางวัล (คอมเมนต์ ฯลฯ) → เพดานฟรี = FREE + bonus */
+export function checkPlanQuota(used: number, bonus = 0): PlanQuotaCheck {
   const u = Math.max(0, Math.floor(used));
-  const remaining = Math.max(0, FREE_PLAN_QUESTIONS - u);
-  return { allowed: remaining > 0, used: u, remaining, limit: FREE_PLAN_QUESTIONS };
+  const limit = FREE_PLAN_QUESTIONS + Math.max(0, Math.floor(bonus));
+  const remaining = Math.max(0, limit - u);
+  return { allowed: remaining > 0, used: u, remaining, limit };
 }
 
 export function planQuotaExhaustedMessage(): string {
