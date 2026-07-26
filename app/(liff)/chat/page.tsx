@@ -26,6 +26,7 @@ const MODES: Mode[] = [
   { key: "chat", label: "แชท", icon: "💬", kind: "active" },
   { key: "oracle", label: "เสี่ยงทาย", icon: "🎴", kind: "link", href: "/oracle" },
   { key: "logo", label: "โลโก้", icon: "🎨", kind: "link", href: "/logo" },
+  { key: "timing", label: "ฤกษ์", icon: "🗓️", kind: "link", href: "/timing" },
 ];
 
 const ZODIAC_ANIMALS = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];

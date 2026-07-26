@@ -967,7 +967,22 @@ config เรทพร้อมแล้ว รอต่อระบบชำร
 - 🔴 **gate เข้ม**: ต้องล็อกอิน + โควตา `chat_usage_e` bucket "logo" (ฟรี 3 ครั้ง) — กันเปลือง fal
 - ทดสอบ local: GET → `fal_available:false` · POST → 503 graceful (ยังไม่มีคีย์) ·
   ⚠️ **ยังไม่ได้ยิง fal จริง** — ต้องตั้ง `FAL_KEY` (.env.local + Vercel) + ล็อกอินก่อนถึงจะเทสต์ได้
-- ⬜ ยังไม่เก็บภาพลง Supabase Storage (URL fal ชั่วคราว) · ⚠️ prompt ยังปนไทย-อังกฤษ (ตาราง §5 ยังไม่ verify)
+**อัปเดต 25 ก.ค. — โลโก้ครบวงจร + ยิง fal จริงแล้ว (FAL_KEY ใส่ใน .env.local แล้ว):**
+- `logoImagePrompt()` (naming.ts) อังกฤษล้วน + บังคับ no-text (แยกจาก `logoPromptText` ที่ล็อก golden)
+  — ยิง fal จริงยืนยัน no-text หายแล้ว (เดิม FLUX ใส่คำ "COFFEE")
+- 🔴 **ตัวอักษรไทย: โมเดลภาพสะกดผิด** (Ideogram v3 ทดสอบแล้ว "คอฟฟี่"→"คอนลี้") →
+  **ใช้ font-overlay ฝั่ง browser (Canvas + Noto Thai) วางชื่อทับไอคอน** = สะกดถูก 100% ทุกภาษา
+  โหลดไอคอนผ่านพร็อกซี `/api/logo/download` (same-origin) → canvas ไม่ taint → export PNG ได้
+- เลือกสไตล์ 5 ธาตุ + โชว์คะแนน `wuXingScore` (ธาตุเรา↔สไตล์) ฟรีก่อนสร้าง · ช่อง extra requirements
+- ปุ่มเซฟจริง (พร็อกซี Content-Disposition attachment · จำกัด *.fal.media กัน SSRF)
+- ⬜ ยังไม่เก็บภาพลง Supabase Storage (URL fal ชั่วคราว) · ⬜ ฉลาก (label composite) เป็นงานถัดไป
+
+### ✅ โหมดฤกษ์ `/timing` (Logic 3) — เสร็จ 25 ก.ค. 2569 · คำนวณ client ล้วน ฿0
+`lib/engine/timing.ts` (`rankAuspiciousDays`, 7 เทสต์) + `app/(liff)/timing/page.tsx` · โหมด "ฤกษ์" ในแชท → `/timing`
+- เลือกงาน (เปิดบริษัท/ทะเบียนรถ/ขึ้นบ้าน = **ธงชัย** · เจรจา = **อธิบดี** · ทั่วไป) + ช่วงวัน → จัดอันดับวันดี/เลี่ยง + ฤกษ์รายชั่วโมง
+- ต่อยอด `checkDayKalaYoke` + `bestTimeToday` · ปี จ.ศ. เปลี่ยน 16 เม.ย. (คิดขอบเขตแล้ว)
+- 🔴 caveat กาลโยคแสดงทุกครั้ง (§3.6) · ยังไม่รวมชั้นดวงส่วนตัว (ลัคนายังไม่ verify)
+- ทดสอบ browser จริง: จัดอันดับ + ฤกษ์อุบากอง + avoid section ครบ (ไม่ต้องล็อกอิน — client ล้วน)
 
 ### 🔴 ช่องว่างใหญ่: เว็บไม่มีระบบผู้ใช้เลย
 

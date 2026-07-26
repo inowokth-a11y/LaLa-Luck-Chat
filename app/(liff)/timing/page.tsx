@@ -1,0 +1,125 @@
+"use client";
+
+// โหมดฤกษ์ (Logic 3) — เลือกงาน + ช่วงวัน → จัดอันดับวันดี/เลี่ยง + ฤกษ์รายชั่วโมง
+// คำนวณฝั่ง client ล้วน (กาลโยค+อุบากอง) — ฟรี ฿0 ไม่ใช้ AI · โทนสว่างหินอ่อน (§2)
+// 🔴 caveat กาลโยคแสดงทุกครั้ง (§3.6)
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { rankAuspiciousDays, ACTIVITIES, type DayRanking, type Verdict } from "@/lib/engine/timing";
+
+const TH_MONTH = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+function thDate(iso: string, dayTh: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${dayTh} ${d} ${TH_MONTH[m]} ${y + 543}`;
+}
+const addDays = (base: Date, n: number) => {
+  const dt = new Date(base);
+  dt.setDate(dt.getDate() + n);
+  return dt.toISOString().slice(0, 10);
+};
+const VERDICT: Record<Verdict, { label: string; color: string }> = {
+  excellent: { label: "ฤกษ์ดีมาก", color: "var(--good,#2f6b3f)" },
+  good: { label: "วันดี", color: "var(--gold)" },
+  neutral: { label: "กลาง", color: "var(--text-dim,#6b6255)" },
+  avoid: { label: "ควรเลี่ยง", color: "var(--bad,#a83a1e)" },
+};
+
+export default function TimingPage() {
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [activityKey, setActivityKey] = useState("open_company");
+  const [fromISO, setFromISO] = useState(today);
+  const [toISO, setToISO] = useState(() => addDays(new Date(), 30));
+
+  const activity = ACTIVITIES.find((a) => a.key === activityKey)!;
+  const { days, caveat } = useMemo(
+    () => rankAuspiciousDays({ fromISO, toISO, emphasis: activity.emphasis }),
+    [fromISO, toISO, activity.emphasis]
+  );
+
+  const recommended = days.filter((d) => d.score > 0).slice(0, 12);
+  const avoid = days.filter((d) => d.verdict === "avoid").slice(0, 8);
+
+  const S = styles;
+  return (
+    <main className="tone-marble" style={S.page}>
+      <header style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+        <h1 style={S.h1}>หาฤกษ์ดี</h1>
+        <p style={S.sub}>เลือกงานที่จะทำ + ช่วงวันที่ — ระบบจัดอันดับวันดีและฤกษ์รายชั่วโมงให้ (คำนวณจากกาลโยค + อุบากอง)</p>
+      </header>
+
+      <div style={S.form}>
+        <div>
+          <span style={S.label}>ทำอะไร</span>
+          <div style={S.chips}>
+            {ACTIVITIES.map((a) => (
+              <button key={a.key} type="button" onClick={() => setActivityKey(a.key)} style={{ ...S.chip, ...(a.key === activityKey ? S.chipActive : {}) }}>
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "0.7rem", flexWrap: "wrap" }}>
+          <label style={S.field}><span style={S.label}>ตั้งแต่</span><input type="date" value={fromISO} min={today} onChange={(e) => setFromISO(e.target.value)} style={S.input} /></label>
+          <label style={S.field}><span style={S.label}>ถึง</span><input type="date" value={toISO} min={fromISO} onChange={(e) => setToISO(e.target.value)} style={S.input} /></label>
+        </div>
+      </div>
+
+      <section>
+        <h2 style={S.h2}>วันแนะนำสำหรับ &ldquo;{activity.label}&rdquo;</h2>
+        {recommended.length === 0 ? (
+          <p style={S.note}>ช่วงที่เลือกไม่มีวันที่เด่นชัด — ลองขยายช่วงวัน หรือดูวันที่ควรเลี่ยงด้านล่างประกอบ</p>
+        ) : (
+          <div style={S.list}>{recommended.map((d) => <DayCard key={d.dateISO} d={d} />)}</div>
+        )}
+      </section>
+
+      {avoid.length > 0 && (
+        <details>
+          <summary style={{ ...S.h2, cursor: "pointer" }}>วันที่ควรเลี่ยง ({avoid.length})</summary>
+          <div style={{ ...S.list, marginTop: "0.6rem" }}>{avoid.map((d) => <DayCard key={d.dateISO} d={d} />)}</div>
+        </details>
+      )}
+
+      <p style={S.caveat}>⚠️ {caveat}</p>
+      <Link href="/chat" style={{ ...S.note, color: "var(--gold)" }}>← กลับไปแชท</Link>
+    </main>
+  );
+}
+
+function DayCard({ d }: { d: DayRanking }) {
+  const v = VERDICT[d.verdict];
+  return (
+    <div style={{ ...styles.card, borderLeft: `3px solid ${v.color}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
+        <strong style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1rem" }}>{thDate(d.dateISO, d.dayOfWeekTh)}</strong>
+        <span style={{ fontSize: "0.78rem", color: v.color, fontWeight: 600 }}>{v.label}</span>
+      </div>
+      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", margin: "0.35rem 0" }}>
+        {d.goodTypes.map((t) => <span key={t} style={{ ...styles.badge, color: "var(--good,#2f6b3f)", borderColor: "var(--good,#2f6b3f)" }}>✦ {t}</span>)}
+        {d.badTypes.map((t) => <span key={t} style={{ ...styles.badge, color: "var(--bad,#a83a1e)", borderColor: "var(--bad,#a83a1e)" }}>⚠ {t}</span>)}
+        {d.goodTypes.length === 0 && d.badTypes.length === 0 && <span style={styles.note}>ไม่มีกาลโยคเด่นในวันนี้</span>}
+      </div>
+      <span style={styles.note}>🕐 ฤกษ์รายชั่วโมง (อุบากอง): {d.bestHour.range} — {d.bestHour.yam} ({d.bestHour.meaning})</span>
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  page: { minHeight: "100vh", background: "var(--bg)", color: "var(--text,var(--ink))", maxWidth: 620, margin: "0 auto", padding: "2.5rem 1.2rem 4rem", display: "flex", flexDirection: "column", gap: "1.1rem" },
+  h1: { fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--gold)", margin: 0 },
+  h2: { fontFamily: "var(--font-serif-thai)", fontSize: "1.1rem", color: "var(--gold)", margin: "0 0 0.6rem" },
+  sub: { fontSize: "0.9rem", color: "var(--text-dim,var(--ink-dim))", lineHeight: 1.5 },
+  form: { display: "flex", flexDirection: "column", gap: "0.9rem", border: "1px solid var(--gold-dim,#a89870)", borderRadius: 8, padding: "1.1rem", background: "color-mix(in srgb,var(--gold) 5%,transparent)" },
+  label: { fontSize: "0.8rem", color: "var(--text-dim,var(--ink-dim))", display: "block", marginBottom: "0.35rem" },
+  chips: { display: "flex", flexWrap: "wrap", gap: "0.4rem" },
+  chip: { fontFamily: "var(--font-sans-thai)", fontSize: "0.82rem", padding: "0.45rem 0.9rem", borderRadius: 999, border: "1px solid var(--gold-dim,#a89870)", background: "transparent", color: "var(--text,var(--ink))", cursor: "pointer" },
+  chipActive: { background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", borderColor: "var(--gold)", fontWeight: 600 },
+  field: { display: "flex", flexDirection: "column", flex: 1, minWidth: 130 },
+  input: { fontFamily: "var(--font-mono)", fontSize: "0.9rem", padding: "0.55rem 0.7rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "var(--surface,transparent)", color: "var(--text,var(--ink))" },
+  list: { display: "flex", flexDirection: "column", gap: "0.6rem" },
+  card: { padding: "0.8rem 1rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "color-mix(in srgb,var(--gold) 4%,transparent)", display: "flex", flexDirection: "column" },
+  badge: { fontSize: "0.72rem", padding: "0.1rem 0.5rem", borderRadius: 999, border: "1px solid" },
+  note: { fontSize: "0.77rem", color: "var(--text-dim,var(--ink-dim))", lineHeight: 1.5 },
+  caveat: { fontSize: "0.76rem", color: "var(--text-dim,var(--ink-dim))", lineHeight: 1.6, borderTop: "1px solid color-mix(in srgb,var(--ink) 10%,transparent)", paddingTop: "0.8rem" },
+};
