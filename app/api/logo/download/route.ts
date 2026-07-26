@@ -24,9 +24,16 @@ export async function GET(req: Request) {
   } catch {
     return NextResponse.json({ error: "url ไม่ถูกต้อง" }, { status: 400 });
   }
-  // อนุญาตเฉพาะ https + โฮสต์ของ fal (กันเอาไปพร็อกซีดึงอย่างอื่น)
-  if (parsed.protocol !== "https:" || !/(^|\.)fal\.media$/.test(parsed.hostname)) {
-    return NextResponse.json({ error: "อนุญาตดาวน์โหลดเฉพาะรูปจาก fal เท่านั้น" }, { status: 400 });
+  // อนุญาตเฉพาะ https + โฮสต์ของ fal หรือ Supabase Storage ของโปรเจกต์ (กันพร็อกซีดึงอย่างอื่น = SSRF)
+  let supabaseHost = "";
+  try {
+    supabaseHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    /* ไม่มี env ก็เหลือแค่ fal */
+  }
+  const allowed = /(^|\.)fal\.media$/.test(parsed.hostname) || (supabaseHost !== "" && parsed.hostname === supabaseHost);
+  if (parsed.protocol !== "https:" || !allowed) {
+    return NextResponse.json({ error: "อนุญาตดาวน์โหลดเฉพาะรูปจาก fal / Storage ของเราเท่านั้น" }, { status: 400 });
   }
 
   try {

@@ -11,6 +11,7 @@ import { buildProfileContext } from "@/lib/chat/plan-run";
 import { isFalAvailable, falLogoPreview, falLogoVector } from "@/lib/image/fal";
 import { logoImagePrompt } from "@/lib/engine/naming";
 import { wuXingScore, type Element5 } from "@/lib/engine/element";
+import { storeLogoImage } from "@/lib/image/store";
 
 export const runtime = "nodejs";
 export const maxDuration = 120; // Recraft อาจใช้เวลาหลายวินาที
@@ -91,12 +92,17 @@ export async function POST(req: Request) {
     const prompt = logoImagePrompt(logoElement, brandName, extra);
     const image = variant === "vector" ? await falLogoVector(prompt) : await falLogoPreview(prompt);
 
+    // เก็บลง Supabase Storage ให้ถาวร (URL fal ชั่วคราว) — ล้มเหลวใช้ URL fal แทน
+    const storedUrl = await storeLogoImage(user.id, image.url, image.contentType);
+    const imageUrl = storedUrl ?? image.url;
+
     // หักโควตาหลังสำเร็จเท่านั้น
     const bumped = await bumpDbUsage(user.id, LOGO_BUCKET);
     const nowUsed = bumped ?? used + 1;
 
     return NextResponse.json({
-      imageUrl: image.url,
+      imageUrl,
+      stored: storedUrl !== null,
       contentType: image.contentType,
       prompt,
       element: logoElement, // ธาตุสไตล์ของโลโก้
@@ -106,7 +112,7 @@ export async function POST(req: Request) {
       used: nowUsed,
       remaining: Math.max(0, FREE_LOGO_TRIAL - nowUsed),
       limit: FREE_LOGO_TRIAL,
-      note: "URL รูปจาก fal เป็นชั่วคราว — ถ้าจะเก็บถาวรควรดาวน์โหลด (ระบบเก็บลง Storage เป็นงานถัดไป)",
+      note: storedUrl ? "เก็บถาวรใน Storage แล้ว" : "เก็บ Storage ไม่สำเร็จ — URL นี้เป็นชั่วคราว ควรดาวน์โหลดไว้",
     });
   } catch (err) {
     console.error("[logo] error", err);
