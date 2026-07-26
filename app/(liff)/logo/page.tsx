@@ -228,6 +228,12 @@ export default function LogoPage() {
             </div>
           )}
           <a href={downloadHref(result, brand)} download style={{ ...S.download, background: "transparent", color: "var(--gold)", border: "1px solid var(--gold-dim,#a89870)" }}>⬇ เซฟไอคอนอย่างเดียว</a>
+          <Link
+            href={`/label?logo=${encodeURIComponent(result.imageUrl)}&brand=${encodeURIComponent(brand.trim())}&el=${encodeURIComponent(result.element)}`}
+            style={{ ...S.download, background: "transparent", color: "var(--gold)", border: "1px solid var(--gold-dim,#a89870)" }}
+          >
+            🏷️ ทำฉลากต่อ
+          </Link>
           <p style={S.note}>เหลือ {result.remaining}/{result.limit} ครั้ง (ช่วงทดลอง)</p>
           <canvas ref={canvasRef} style={{ display: "none" }} />
           <details style={{ marginTop: "0.4rem", alignSelf: "stretch" }}>

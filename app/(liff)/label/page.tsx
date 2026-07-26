@@ -1,0 +1,183 @@
+"use client";
+
+// หน้าออกแบบฉลาก — ต่อจากโลโก้ (รับ logo/brand/el ผ่าน query)
+// ประกอบฝั่ง browser (Canvas) ที่ขนาดพิมพ์จริง (มม. × 300 DPI) · ตัวอักษรฟอนต์จริง (ไทยสะกดถูก)
+// โหลดโลโก้ผ่านพร็อกซี same-origin → canvas ไม่ taint → export PNG ได้ · ฟรี ฿0 (ไม่เรียก AI)
+
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
+
+const EL_COLOR: Record<string, string> = { Wood: "#2f5c42", Fire: "#a83a1e", Earth: "#a97c1f", Metal: "#6b6255", Water: "#1f4d63" };
+
+interface Size {
+  key: string;
+  label: string;
+  w: number; // มม.
+  h: number;
+}
+const SIZES: Size[] = [
+  { key: "rect_9x5", label: "สี่เหลี่ยม 9×5 ซม.", w: 90, h: 50 },
+  { key: "bottle_6x8", label: "ฉลากขวด 6×8 ซม.", w: 60, h: 80 },
+  { key: "square_5", label: "จัตุรัส 5×5 ซม.", w: 50, h: 50 },
+  { key: "tag_5x7", label: "ป้ายแขวน 5×7 ซม.", w: 50, h: 70 },
+];
+const DPI = 300;
+const mmToPx = (mm: number) => Math.round((mm / 25.4) * DPI);
+const MAX_PX = 2400; // กันภาพใหญ่เกิน
+
+function LabelComposer() {
+  const params = useSearchParams();
+  const logoUrl = params.get("logo") ?? "";
+  const el = (params.get("el") as Element5) ?? "Earth";
+  const color = EL_COLOR[el] ?? "#a97c1f";
+
+  const [brand, setBrand] = useState(params.get("brand") ?? "");
+  const [tagline, setTagline] = useState("");
+  const [sizeKey, setSizeKey] = useState(SIZES[0].key);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const size = useMemo(() => SIZES.find((s) => s.key === sizeKey)!, [sizeKey]);
+  const proxied = logoUrl ? `/api/logo/download?url=${encodeURIComponent(logoUrl)}&name=logo` : "";
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      setError(null);
+      try {
+        let W = mmToPx(size.w), H = mmToPx(size.h);
+        const scale = Math.min(1, MAX_PX / Math.max(W, H));
+        W = Math.round(W * scale);
+        H = Math.round(H * scale);
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext("2d")!;
+
+        // พื้นหลัง: ครีมอ่อน + แถบสีธาตุด้านบน + กรอบบางสีธาตุ (สไตล์ฉลากมืออาชีพ พิมพ์ประหยัดหมึก)
+        ctx.fillStyle = "#faf7f0";
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, W, Math.round(H * 0.055));
+        ctx.fillRect(0, H - Math.round(H * 0.055), W, Math.round(H * 0.055));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(2, Math.round(W * 0.006));
+        ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, W - ctx.lineWidth * 2, H - ctx.lineWidth * 2);
+
+        // โลโก้ (ถ้ามี) — วางกลางบน
+        if (proxied) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          await new Promise<void>((res, rej) => {
+            img.onload = () => res();
+            img.onerror = () => rej(new Error("โหลดโลโก้ไม่สำเร็จ"));
+            img.src = proxied;
+          });
+          if (cancelled) return;
+          const logoH = Math.round(H * 0.42);
+          const logoW = logoH * (img.width / img.height || 1);
+          ctx.drawImage(img, (W - logoW) / 2, Math.round(H * 0.12), logoW, logoH);
+        }
+
+        try { await (document as Document & { fonts?: FontFaceSet }).fonts?.ready; } catch { /* ฟอนต์ระบบก็เรนเดอร์ไทยถูก */ }
+        if (cancelled) return;
+
+        // ชื่อแบรนด์ (serif) — ย่ออัตโนมัติ
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        let bs = Math.round(H * 0.11);
+        do {
+          ctx.font = `bold ${bs}px 'Noto Serif Thai', 'Noto Sans Thai', serif`;
+          if (ctx.measureText(brand || "แบรนด์ของคุณ").width <= W * 0.82 || bs <= 20) break;
+          bs -= 3;
+        } while (bs > 20);
+        ctx.fillText(brand || "แบรนด์ของคุณ", W / 2, Math.round(H * 0.66));
+
+        // สโลแกน (sans) — ถ้ามี
+        if (tagline.trim()) {
+          ctx.fillStyle = "#6b6255";
+          ctx.font = `${Math.round(H * 0.05)}px 'Noto Sans Thai', sans-serif`;
+          ctx.fillText(tagline.trim(), W / 2, Math.round(H * 0.8));
+        }
+
+        if (!cancelled) setPreview(canvas.toDataURL("image/png"));
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [brand, tagline, size, proxied, color]);
+
+  const S = styles;
+  const dlName = `label-${(brand.trim() || "brand").replace(/[^a-zA-Z0-9ก-๙._-]/g, "-")}-${size.w}x${size.h}mm.png`;
+
+  return (
+    <main className="tone-marble" style={S.page}>
+      <header>
+        <h1 style={S.h1}>ออกแบบฉลาก</h1>
+        <p style={S.sub}>
+          จากโลโก้ + ธาตุ<strong style={{ color }}>{el && THAI_LABEL_5[el] ? ` ${THAI_LABEL_5[el]}` : ""}</strong> ของคุณ ·
+          ตัวอักษรฟอนต์จริง (ไทยสะกดถูก) · ไฟล์พิมพ์ 300 DPI
+        </p>
+        {!logoUrl && <p style={S.warn}>ยังไม่มีโลโก้ — ไปสร้างที่ <Link href="/logo" style={{ color }}>หน้าโลโก้</Link> แล้วกด &ldquo;ทำฉลากต่อ&rdquo; จะได้ฉลากที่มีโลโก้ค่ะ</p>}
+      </header>
+
+      <div style={S.form}>
+        <label style={S.label}>ขนาดฉลาก</label>
+        <div style={S.chips}>
+          {SIZES.map((s) => (
+            <button key={s.key} type="button" onClick={() => setSizeKey(s.key)} style={{ ...S.chip, ...(sizeKey === s.key ? { ...S.chipActive, background: color, borderColor: color } : {}) }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <input style={S.input} value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="ชื่อแบรนด์" maxLength={60} />
+        <input style={S.input} value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="สโลแกน/คำโปรย (ไม่บังคับ)" maxLength={80} />
+      </div>
+
+      {error && <p style={S.warn}>⚠️ {error}</p>}
+
+      <section style={S.result}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- dataURL จาก canvas */}
+        {preview && <img src={preview} alt="ตัวอย่างฉลาก" style={{ ...S.img, aspectRatio: `${size.w}/${size.h}` }} />}
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+        {preview && (
+          <a href={preview} download={dlName} style={{ ...S.download, background: color }}>⬇ เซฟฉลาก ({size.w}×{size.h} มม. · 300 DPI)</a>
+        )}
+      </section>
+
+      <Link href="/logo" style={{ ...S.sub, color, marginTop: "0.5rem" }}>← กลับไปหน้าโลโก้</Link>
+    </main>
+  );
+}
+
+export default function LabelPage() {
+  return (
+    <Suspense fallback={<main className="tone-marble" style={styles.page}><p style={{ opacity: 0.7 }}>กำลังโหลด…</p></main>}>
+      <LabelComposer />
+    </Suspense>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  page: { minHeight: "100vh", background: "var(--bg)", color: "var(--text,var(--ink))", maxWidth: 560, margin: "0 auto", padding: "2.5rem 1.2rem 4rem", display: "flex", flexDirection: "column", gap: "1rem" },
+  h1: { fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--gold)", margin: 0 },
+  sub: { fontSize: "0.9rem", color: "var(--text-dim,var(--ink-dim))", lineHeight: 1.5 },
+  warn: { fontSize: "0.82rem", color: "var(--bad,#a83a1e)", lineHeight: 1.5 },
+  form: { display: "flex", flexDirection: "column", gap: "0.7rem", border: "1px solid var(--gold-dim,#a89870)", borderRadius: 8, padding: "1.1rem", background: "color-mix(in srgb,var(--gold) 5%,transparent)" },
+  label: { fontSize: "0.82rem", color: "var(--text,var(--ink))" },
+  chips: { display: "flex", flexWrap: "wrap", gap: "0.4rem" },
+  chip: { fontFamily: "var(--font-sans-thai)", fontSize: "0.8rem", padding: "0.45rem 0.85rem", borderRadius: 999, border: "1px solid var(--gold-dim,#a89870)", background: "transparent", color: "var(--text,var(--ink))", cursor: "pointer" },
+  chipActive: { color: "#faf7f0", fontWeight: 600 },
+  input: { fontFamily: "var(--font-sans-thai)", fontSize: "0.95rem", padding: "0.7rem 1rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "var(--surface,transparent)", color: "var(--text,var(--ink))" },
+  result: { display: "flex", flexDirection: "column", gap: "0.7rem", alignItems: "center" },
+  img: { width: "100%", maxWidth: 380, borderRadius: 4, boxShadow: "0 2px 12px rgba(0,0,0,0.12)", objectFit: "contain" },
+  download: { fontFamily: "var(--font-sans-thai)", fontWeight: 600, fontSize: "0.9rem", color: "#faf7f0", padding: "0.65rem 1.4rem", borderRadius: 8, textDecoration: "none" },
+};
