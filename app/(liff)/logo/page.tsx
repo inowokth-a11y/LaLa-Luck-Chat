@@ -5,11 +5,46 @@
 //    (คำนวณด้วย wuXingScore ฟรี — ไม่เสียค่า gen) ให้ผู้ใช้เทียบก่อนเลือกสร้าง
 // 🔴 ต้องล็อกอิน (route กันไว้ เพราะ fal เสียเงินจริง) · โทนสว่างหินอ่อน (§2)
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { calculateElementSeed, wuXingScore, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
+
+// สีตัวอักษรตามธาตุ (เข้มพอ contrast บนพื้นขาว)
+const EL_COLOR: Record<string, string> = { Wood: "#2f5c42", Fire: "#a83a1e", Earth: "#a97c1f", Metal: "#555555", Water: "#1f4d63" };
+
+/** วาดไอคอน (AI) + ชื่อแบรนด์ (ฟอนต์ไทยจริง) ลง canvas → คืน dataURL · เบราว์เซอร์เรนเดอร์ไทยถูกเป๊ะ */
+async function compositeLogo(canvas: HTMLCanvasElement, iconSrc: string, text: string, color: string): Promise<string> {
+  const img = new Image();
+  img.crossOrigin = "anonymous"; // โหลดผ่านพร็อกซี same-origin → canvas ไม่ taint → export ได้
+  await new Promise<void>((res, rej) => {
+    img.onload = () => res();
+    img.onerror = () => rej(new Error("โหลดไอคอนไม่สำเร็จ"));
+    img.src = iconSrc;
+  });
+  try { await (document as Document & { fonts?: FontFaceSet }).fonts?.ready; } catch { /* ฟอนต์ระบบก็เรนเดอร์ไทยถูก */ }
+
+  const W = 1024, textBand = 220, H = 1024 + textBand;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
+  ctx.drawImage(img, 0, 0, W, 1024);
+  // ชื่อแบรนด์ — ย่อขนาดอัตโนมัติถ้ายาวเกินกรอบ
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  let size = 110;
+  do {
+    ctx.font = `bold ${size}px 'Noto Sans Thai', 'Noto Serif Thai', system-ui, sans-serif`;
+    if (ctx.measureText(text).width <= W - 120 || size <= 40) break;
+    size -= 6;
+  } while (size > 40);
+  ctx.fillText(text, W / 2, 1024 + textBand / 2);
+  return canvas.toDataURL("image/png");
+}
 
 type Variant = "preview" | "vector";
 const ELEMENTS: Element5[] = ["Wood", "Fire", "Earth", "Metal", "Water"];
@@ -76,6 +111,19 @@ export default function LogoPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
+  const [composed, setComposed] = useState<string | null>(null); // โลโก้พร้อมชื่อ (dataURL)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // วางชื่อแบรนด์ทับไอคอนที่ AI สร้าง — ฟอนต์ไทยจริง สะกดถูก 100%
+  useEffect(() => {
+    setComposed(null);
+    if (!result || !canvasRef.current) return;
+    const iconSrc = `/api/logo/download?url=${encodeURIComponent(result.imageUrl)}&name=icon`;
+    const color = EL_COLOR[result.element] ?? "#2b2620";
+    compositeLogo(canvasRef.current, iconSrc, brand.trim(), color)
+      .then(setComposed)
+      .catch(() => setComposed(null));
+  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ดีฟอลต์สไตล์ = ธาตุประจำตัว (กลมกลืนที่สุด) · คะแนนแต่ละธาตุเทียบกับธาตุเรา (ฟรี)
   const chosen = style ?? me?.dominant ?? "Earth";
@@ -171,8 +219,17 @@ export default function LogoPage() {
               {harmonyBadge(result.harmony.final_score).emoji} ความเข้ากับธาตุคุณ: {result.harmony.relation_th}
             </p>
           )}
-          <a href={downloadHref(result, brand)} download style={S.download}>⬇ เซฟรูปโลโก้</a>
+          {composed && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", alignItems: "center", width: "100%", borderTop: "1px dashed var(--gold-dim,#a89870)", paddingTop: "0.8rem" }}>
+              <span style={S.note}>โลโก้พร้อมชื่อ (ตัวอักษรไทยสะกดถูกเป๊ะ — วางด้วยฟอนต์จริง)</span>
+              {/* eslint-disable-next-line @next/next/no-img-element -- dataURL จาก canvas */}
+              <img src={composed} alt={`โลโก้ ${brand} พร้อมชื่อ`} style={{ ...S.img, maxWidth: 260 }} />
+              <a href={composed} download={`logo-${brand.trim().replace(/[^a-zA-Z0-9ก-๙._-]/g, "-") || "logo"}-named.png`} style={S.download}>⬇ เซฟโลโก้พร้อมชื่อ</a>
+            </div>
+          )}
+          <a href={downloadHref(result, brand)} download style={{ ...S.download, background: "transparent", color: "var(--gold)", border: "1px solid var(--gold-dim,#a89870)" }}>⬇ เซฟไอคอนอย่างเดียว</a>
           <p style={S.note}>เหลือ {result.remaining}/{result.limit} ครั้ง (ช่วงทดลอง)</p>
+          <canvas ref={canvasRef} style={{ display: "none" }} />
           <details style={{ marginTop: "0.4rem", alignSelf: "stretch" }}>
             <summary style={S.note}>ดู prompt ที่ใช้</summary>
             <p style={{ ...S.note, marginTop: "0.4rem" }}>{result.prompt}</p>
