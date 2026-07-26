@@ -86,6 +86,71 @@
   color: var(--text-dim, var(--ink-dim));
 }
 
+/* ผลทำนายแรกจากโปรไฟล์ */
+.reading {
+  border: 1px solid var(--gold-dim, #a89870);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.readingLabel {
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.readingMain {
+  font-family: var(--font-serif-thai), serif;
+  font-size: 1.15rem;
+  color: var(--text, var(--ink));
+}
+.readingMain strong {
+  color: var(--gold);
+}
+.readingDim {
+  font-size: 0.9rem;
+  color: var(--text-dim, var(--ink-dim));
+}
+.readingHint {
+  font-size: 0.78rem;
+  color: var(--text-dim, var(--ink-dim));
+  line-height: 1.5;
+}
+
+/* ปุ่มสลับโหมด (ใต้ช่องแชท) */
+.modes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.3rem;
+}
+.modeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-sans-thai), sans-serif;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold-dim, #a89870);
+  background: transparent;
+  color: var(--text, var(--ink));
+  text-decoration: none;
+  cursor: pointer;
+}
+.modeBtn:hover {
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+}
+.modeActive {
+  background: var(--gold);
+  color: var(--marble-bg, #f4f0e6);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+
 /* ตัวอย่างคำถาม */
 .examples {
   display: flex;

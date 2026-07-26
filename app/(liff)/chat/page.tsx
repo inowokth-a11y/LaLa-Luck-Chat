@@ -7,9 +7,49 @@
 //    Safety Gate ทำที่ server (app/api/chat/route.ts) ฝั่งนี้แค่แสดงข้อความช่วยเหลือ
 //    (ห้ามพ่วงปุ่ม/การตลาดตอนแสดงข้อความวิกฤต — ตรงกับกฎ LINE webhook/FunctionChat)
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import ChartPanel, { type ChartData } from "../_components/ChartPanel";
+import { useStoredProfile } from "../_components/useStoredProfile";
+import { calculateElementSeed } from "@/lib/engine/element";
+import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./chat.module.css";
+
+// โหมดในช่องแชทเดียว — เพิ่มฟังก์ชันใหม่ได้ด้วยการเติมในลิสต์นี้ (extensible ตามที่ออกแบบ)
+//   active = ทำงานในช่องนี้เลย · link = ไปหน้าเต็ม (พิธีกรรม) · soon = กำลังมา
+type Mode =
+  | { key: string; label: string; icon: string; kind: "active" }
+  | { key: string; label: string; icon: string; kind: "link"; href: string }
+  | { key: string; label: string; icon: string; kind: "soon"; message: string };
+
+const MODES: Mode[] = [
+  { key: "chat", label: "แชท", icon: "💬", kind: "active" },
+  { key: "oracle", label: "เสี่ยงทาย", icon: "🎴", kind: "link", href: "/oracle" },
+  { key: "logo", label: "โลโก้", icon: "🎨", kind: "soon", message: "โหมดสร้างโลโก้กำลังมาเร็ว ๆ นี้ 🎨 (กำลังเชื่อมระบบสร้างภาพ fal)" },
+];
+
+const ZODIAC_ANIMALS = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];
+const zodiacAnimalFromYear = (y: number) => ZODIAC_ANIMALS[(((y - 2020) % 12) + 12) % 12];
+
+/** ผลทำนายแรกจากวันเกิดที่บันทึกไว้ — ธาตุประจำตัว (คำนวณ client-side จาก engine ล้วน) */
+function firstReading(birthDate?: string | null): { dominant_th: string; missing_th: string[] } | null {
+  if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
+  const year = +birthDate.slice(0, 4), month = +birthDate.slice(5, 7), day = +birthDate.slice(8, 10);
+  const now = new Date().getUTCFullYear();
+  if (year < 1900 || year > now || month < 1 || month > 12 || day < 1 || day > 31) return null;
+  try {
+    const seed = calculateElementSeed({
+      day_of_week: thaiDayOfWeek(birthDate),
+      birth_month: month,
+      birth_year_ad: year,
+      birth_day: day,
+      zodiac_year_animal: zodiacAnimalFromYear(year),
+    });
+    return { dominant_th: seed.dominant_th, missing_th: seed.missing_th };
+  } catch {
+    return null;
+  }
+}
 
 interface AiEntry {
   kind: "ai";
@@ -48,6 +88,15 @@ export default function FlexibleChatPage() {
   const [limit, setLimit] = useState(3);
   const [exhausted, setExhausted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ผลทำนายแรกจากข้อมูลที่กรอกไว้ (เฉพาะผู้ล็อกอิน+มีโปรไฟล์) — โชว์เหนือช่องแชท
+  const { profile } = useStoredProfile();
+  const reading = useMemo(() => firstReading(profile?.birth_date), [profile]);
+
+  function pickMode(m: Mode) {
+    if (m.kind === "soon") setEntries((e) => [...e, { kind: "note", text: m.message }]);
+    // active = อยู่โหมดนี้แล้ว · link = เป็น <Link> อยู่แล้ว ไม่ต้องทำอะไรที่นี่
+  }
 
   async function ask(question: string) {
     if (!question.trim() || busy) return;
@@ -108,6 +157,17 @@ export default function FlexibleChatPage() {
           {remaining === null ? `ช่วงทดลอง ถามได้ ${limit} คำถาม` : `เหลือ ${remaining}/${limit} คำถาม`}
         </span>
       </header>
+
+      {reading && (
+        <section className={styles.reading}>
+          <span className={styles.readingLabel}>✦ ผลเบื้องต้นจากข้อมูลของคุณ</span>
+          <p className={styles.readingMain}>
+            ธาตุประจำตัว: <strong>{reading.dominant_th}</strong>
+            {reading.missing_th.length > 0 && <span className={styles.readingDim}> · ธาตุที่ขาด {reading.missing_th.join(" / ")}</span>}
+          </p>
+          <p className={styles.readingHint}>ถามต่อในช่องแชทด้านล่างได้เลย เช่น &ldquo;ธาตุฉันเข้ากับสีอะไร&rdquo; หรือ &ldquo;ทะเบียน 88 เข้ากับฉันไหม&rdquo;</p>
+        </section>
+      )}
 
       {entries.length === 0 && (
         <div className={styles.examples}>
@@ -182,6 +242,27 @@ export default function FlexibleChatPage() {
               </button>
             </form>
           )}
+
+          {/* ปุ่มสลับโหมด — ช่องแชทเดียว เลือกฟังก์ชัน (เพิ่มโหมดใหม่ได้จาก MODES) */}
+          <nav className={styles.modes} aria-label="เลือกฟังก์ชัน">
+            {MODES.map((m) =>
+              m.kind === "link" ? (
+                <Link key={m.key} href={m.href} className={styles.modeBtn}>
+                  <span aria-hidden>{m.icon}</span> {m.label}
+                </Link>
+              ) : (
+                <button
+                  key={m.key}
+                  type="button"
+                  className={`${styles.modeBtn} ${m.kind === "active" ? styles.modeActive : ""}`}
+                  onClick={() => pickMode(m)}
+                  aria-current={m.kind === "active" ? "page" : undefined}
+                >
+                  <span aria-hidden>{m.icon}</span> {m.label}
+                </button>
+              )
+            )}
+          </nav>
         </section>
       </div>
 
