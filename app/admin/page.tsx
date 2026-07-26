@@ -10,6 +10,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmails, isAdminEmail } from "@/lib/admin/access";
 import { computeUsageStats, type UsageRow, type UsageStats } from "@/lib/admin/usage-stats";
 import { summarizeQuestions, type QuestionRow } from "@/lib/admin/question-stats";
+import AdminAssistant from "./AdminAssistant";
 
 export const dynamic = "force-dynamic"; // อ่าน session + DB ทุกครั้ง
 
@@ -58,6 +59,8 @@ export default async function AdminPage() {
         <Tile label="Cache hit rate" value={pct(stats.cacheHitRate)} sub={`${stats.cacheHits} ฮิต`} />
         <Tile label="อัตราล่ม" value={pct(stats.failRate)} sub={`${stats.failures} ครั้ง`} warn={stats.failRate > 0.1} />
       </section>
+
+      <AdminAssistant />
 
       <Card title="ต้นทุนรายวัน (14 วันล่าสุด)">
         {stats.byDay.length === 0 ? <Empty /> : (
