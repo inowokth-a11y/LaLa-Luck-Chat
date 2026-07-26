@@ -101,6 +101,20 @@ export default async function AdminPage() {
         )}
       </Card>
 
+      <Card title="✅ คำถามที่ระบบตอบได้ (ล่าสุด)">
+        {q.recentAnswered.length === 0 ? (
+          <p style={S.note}>ยังไม่มีคำถามที่ตอบได้ในบันทึก</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+            {q.recentAnswered.map((a, i) => (
+              <div key={i} style={{ ...S.td, borderBottom: "1px solid color-mix(in srgb,var(--ink) 8%,transparent)", fontSize: "0.85rem" }}>
+                “{a.question}” <span style={{ ...S.dim, fontSize: "0.7rem" }}>· ใช้ {a.fns.join(", ") || "—"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
       <Card title="🔴 คำถามที่ยังตอบไม่ได้ (จัดลำดับฟีเจอร์ถัดไป)">
         {q.recentUnclear.length === 0 ? (
           <p style={S.note}>ยังไม่มีคำถามที่ตอบไม่ได้ — ดีมาก แปลว่า engine ครอบคลุมสิ่งที่ผู้ใช้ถาม</p>

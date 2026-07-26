@@ -17,6 +17,7 @@ const questions: QuestionSummary = {
   total: 12, byStatus: [{ status: "answered", count: 8 }, { status: "unclear", count: 4 }],
   answeredRate: 0.67, topFns: [{ fn: "lookup2digit", count: 5 }],
   recentUnclear: [{ question: "ดูเนื้อคู่ให้หน่อย", created_at: "2569-07-26" }],
+  recentAnswered: [{ question: "เลข 88 ดีไหม", fns: ["lookup2digit"], created_at: "2569-07-26" }],
 };
 
 test("context มีตัวเลขจริงครบ + คำถาม unclear (สำหรับจัดลำดับฟีเจอร์)", () => {

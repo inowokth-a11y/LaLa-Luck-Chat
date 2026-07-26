@@ -26,14 +26,17 @@ test("นับตามสถานะ + answered rate + top fns", () => {
   assert.equal(s.topFns[0].count, 2);
 });
 
-test("🔴 คำถาม unclear ถูกดึงมาโชว์ (สิ่งที่ยังตอบไม่ได้)", () => {
+test("🔴 แยกคำถามที่ตอบได้ / ตอบไม่ได้ (โชว์ทั้งสองฝั่งบนแดชบอร์ด)", () => {
   const s = summarizeQuestions([
     row({ status: "unclear", question: "ดูดวงเนื้อคู่", created_at: "2569-07-26T12:00:00Z" }),
-    row({ status: "answered" }),
+    row({ status: "answered", question: "เลข 88 ดีไหม", fns: ["lookup2digit"] }),
     row({ status: "unclear", question: "ทำนายไพ่ยิปซี", created_at: "2569-07-26T11:00:00Z" }),
   ]);
   assert.equal(s.recentUnclear.length, 2);
   assert.ok(s.recentUnclear.some((u) => u.question === "ดูดวงเนื้อคู่"));
+  assert.equal(s.recentAnswered.length, 1);
+  assert.equal(s.recentAnswered[0].question, "เลข 88 ดีไหม");
+  assert.deepEqual(s.recentAnswered[0].fns, ["lookup2digit"]);
 });
 
 test("จำกัดจำนวน unclear ที่โชว์", () => {
