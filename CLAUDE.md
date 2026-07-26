@@ -1250,8 +1250,15 @@ Scopes              : openid, profile, email
 **2. ย้ายโควตาแชทไป DB** — ตอนนี้นับจาก cookie (`kruth_chat_quota`) ล้างแล้วได้ใหม่
 ต้องย้ายไป `users` + `ai_usage_log` ถึงจะขายเครดิตได้จริง (ทำหลังมีระบบสมาชิก)
 
-**3. แดชบอร์ดแอดมิน** — ข้อมูลพร้อมแล้วใน `ai_usage_log` (ดู §12)
-ตัวเลขที่ต้องดู: cache hit rate · ต้นทุนเฉลี่ย/คำทำนาย · ผู้ใช้ที่แพงที่สุด
+**3. แดชบอร์ดแอดมิน — ✅ เสร็จแล้ว 25 ก.ค. 2569**
+`app/admin/page.tsx` (Server Component) + `lib/admin/{access,usage-stats}.ts` (aggregator pure, 8 เทสต์)
+- gate ด้วยอีเมล: env **`ADMIN_EMAILS`** (คั่นจุลภาค) · default = ไม่มีแอดมิน (ปฏิเสธทุกคน) ·
+  ไม่ใช่แอดมิน → `redirect("/")` (ทดสอบแล้ว: ไม่ล็อกอิน/ไม่ตรง → เด้งออก)
+- query `ai_usage_log` ด้วย service role (ตารางไม่มี RLS policy = client อ่านไม่ได้)
+- แสดง: ต้นทุนรวม/เฉลี่ยต่อคำถาม · cache hit rate · อัตราล่ม · ต้นทุนรายวัน 14 วัน · แยก role/model/ผู้ใช้
+- verify aggregator กับข้อมูลจริง 49 แถว: ฿10.95 รวม · เฉลี่ย ฿0.22/ครั้ง · ล่ม 14% (openai 500/503 ตอนเทสต์)
+- 🔴 **ต้องตั้ง `ADMIN_EMAILS` ใน .env.local (dev) + Vercel env (prod)** ก่อนใช้ · ⚠️ เรนเดอร์เต็มยังไม่ได้
+  ทดสอบใน browser (ต้องมี admin session — ผมล็อกอินเองไม่ได้) พิสูจน์ผ่าน aggregator + gate redirect แทน
 
 **4. dream matching → Intl.Segmenter/FTS** — ยังใช้ substring อยู่ (over-match คำสั้น)
 
