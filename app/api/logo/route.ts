@@ -9,7 +9,8 @@ import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage } from "@/lib/chat/usage-db";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { isFalAvailable, falLogoPreview, falLogoVector } from "@/lib/image/fal";
-import { logoPromptText } from "@/lib/engine/naming";
+import { logoImagePrompt } from "@/lib/engine/naming";
+import { wuXingScore, type Element5 } from "@/lib/engine/element";
 
 export const runtime = "nodejs";
 export const maxDuration = 120; // Recraft อาจใช้เวลาหลายวินาที
@@ -23,7 +24,10 @@ interface Body {
   brandName?: string;
   element?: string;
   variant?: "preview" | "vector";
+  /** ความต้องการเพิ่มเติมของผู้ใช้ (free-text) — เสริมเข้า prompt */
+  extra?: string;
 }
+const MAX_EXTRA_LEN = 200;
 
 export async function POST(req: Request) {
   try {
@@ -65,19 +69,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // ---- ธาตุ: รับจากผู้ใช้ (ถ้าถูกต้อง) → โปรไฟล์ → default ----
-    let element = ELEMENTS.includes(String(body.element)) ? String(body.element) : null;
-    if (!element) {
-      const { data: prof } = await supabase
-        .from("user_profiles_e")
-        .select("birth_date")
-        .eq("auth_uid", user.id)
-        .maybeSingle();
-      element = buildProfileContext(prof?.birth_date)?.dominant ?? "Earth";
-    }
+    // ---- ธาตุ: ธาตุประจำตัวผู้ใช้ (เพื่อคะแนน) + ธาตุสไตล์โลโก้ (ผู้ใช้เลือก/ดีฟอลต์) ----
+    const { data: prof } = await supabase
+      .from("user_profiles_e")
+      .select("birth_date")
+      .eq("auth_uid", user.id)
+      .maybeSingle();
+    const ctx = buildProfileContext(prof?.birth_date); // {dominant, missing, seed} | null
+    const userElement = ctx?.dominant ?? null;
 
-    // ---- prompt (Logic 19) → fal ----
-    const prompt = logoPromptText(element, brandName);
+    const chosen = ELEMENTS.includes(String(body.element)) ? String(body.element) : null;
+    const logoElement = chosen ?? userElement ?? "Earth";
+
+    // คะแนนความสอดคล้อง/ขัดแย้งของสไตล์โลโก้กับธาตุประจำตัว (ฟรี — engine เดียวกับ compatibility)
+    const harmony = userElement
+      ? wuXingScore(userElement as Element5, logoElement as Element5, (ctx?.missing ?? []) as Element5[])
+      : null;
+
+    // ---- prompt อังกฤษล้วน + ความต้องการเพิ่มเติมของผู้ใช้ (Logic 19) → fal ----
+    const extra = (body.extra ?? "").slice(0, MAX_EXTRA_LEN);
+    const prompt = logoImagePrompt(logoElement, brandName, extra);
     const image = variant === "vector" ? await falLogoVector(prompt) : await falLogoPreview(prompt);
 
     // หักโควตาหลังสำเร็จเท่านั้น
@@ -88,7 +99,9 @@ export async function POST(req: Request) {
       imageUrl: image.url,
       contentType: image.contentType,
       prompt,
-      element,
+      element: logoElement, // ธาตุสไตล์ของโลโก้
+      userElement, // ธาตุประจำตัว (null ถ้ายังไม่มีโปรไฟล์)
+      harmony, // คะแนน wuXingScore สไตล์โลโก้ ↔ ธาตุประจำตัว (null ถ้าไม่มีโปรไฟล์)
       variant,
       used: nowUsed,
       remaining: Math.max(0, FREE_LOGO_TRIAL - nowUsed),

@@ -107,3 +107,26 @@ export function logoPromptText(element: string, brandName: string): string {
     `scalable simple icon suitable for app logo, white background`
   );
 }
+
+// เวอร์ชันอังกฤษล้วนสำหรับส่งเข้าโมเดลสร้างภาพ (fal) — โมเดลเข้าใจอังกฤษดีกว่า + บังคับ "no text" เข้ม
+// ⚠️ แยกจาก logoPromptText (ที่ล็อก golden จาก Python) โดยตั้งใจ — ตัวนี้ปรับได้อิสระตามผลจริง
+const LOGO_STYLE_EN: Record<string, { shape: string; color: string; mood: string }> = {
+  Wood: { shape: "organic curved branch-like forms", color: "green", mood: "growth, freshness" },
+  Fire: { shape: "sharp upward-pointing angular forms", color: "red-orange", mood: "energetic, dynamic" },
+  Earth: { shape: "stable grounded square forms with a wide base", color: "golden brown", mood: "stable, trustworthy" },
+  Metal: { shape: "minimal circular shapes with sharp clean lines", color: "silver and white", mood: "precise, modern" },
+  Water: { shape: "smooth flowing wave-like curves", color: "blue", mood: "flexible, deep" },
+};
+
+/** prompt อังกฤษล้วนสำหรับ fal · extra = ความต้องการเพิ่มเติมของผู้ใช้ (คุมความยาว/บรรทัดแล้ว) */
+export function logoImagePrompt(element: string, brandName: string, extra?: string | null): string {
+  const s = LOGO_STYLE_EN[element] ?? LOGO_STYLE_EN.Earth;
+  const clean = (extra ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, 200);
+  return (
+    `minimalist flat vector logo icon for a brand named "${brandName}", ` +
+    `${s.shape}, primary color ${s.color}, mood: ${s.mood}, ` +
+    `clean geometric symbol, icon only, absolutely no text, no letters, no words, ` +
+    `centered composition, solid white background, high contrast, professional app logo` +
+    (clean ? `, additional requirements: ${clean}` : "")
+  );
+}
