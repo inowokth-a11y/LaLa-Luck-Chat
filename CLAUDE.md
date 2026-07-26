@@ -1297,6 +1297,19 @@ Scopes              : openid, profile, email
 - verify aggregator กับข้อมูลจริง 49 แถว: ฿10.95 รวม · เฉลี่ย ฿0.22/ครั้ง · ล่ม 14% (openai 500/503 ตอนเทสต์)
 - 🔴 **ต้องตั้ง `ADMIN_EMAILS` ใน .env.local (dev) + Vercel env (prod)** ก่อนใช้ · ⚠️ เรนเดอร์เต็มยังไม่ได้
   ทดสอบใน browser (ต้องมี admin session — ผมล็อกอินเองไม่ได้) พิสูจน์ผ่าน aggregator + gate redirect แทน
+- **เพิ่ม 25 ก.ค.:** ส่วน "ประวัติคำถามแชท" — นับสถานะ (ตอบได้/ตอบไม่ได้) + **ลิสต์คำถาม unclear ล่าสุด**
+  (= สิ่งที่ผู้ใช้อยากได้แต่ยังไม่มี engine → จัดลำดับฟีเจอร์ถัดไป) · `lib/admin/question-stats.ts` (4 เทสต์)
+
+### ✅ นโยบายเลขเด็ด/หวย + เก็บประวัติคำถาม (25 ก.ค. 2569)
+
+**เลขเด็ด/หวย** (`lib/chat/lottery.ts`, 6 เทสต์): ดักก่อน AI/โควตา (หลัง Safety Gate) → **ไม่ทำนาย**
++ เตือนเล่นการพนันอย่างมีสติ + ชวนกลับมาที่การคำนวณจริง · 🔴 **แยกหวยจากเลขทะเบียน/เบอร์/มงคล**:
+คำแข็ง (หวย/งวด/ล็อตเตอรี่) ดักเสมอ · คำอ่อน (เลขเด็ด) ดักเฉพาะไม่มีบริบทเลขจริง (ทะเบียน/เบอร์/มงคล/ธาตุ)
+→ "เลขเด็ดทะเบียนรถ" ผ่านไปคำนวณ · route คืน `{declined:true}` → frontend โชว์เป็นโน้ต ไม่คิดโควตา
+
+**ประวัติคำถาม** (`migration 023 chat_question_log` + `lib/chat/question-log.ts`): log ทุกคำถาม plan-chat
+(answered/needs_input/**unclear**) fire-and-forget · 🔒 service role เท่านั้น (ไม่มี RLS policy · verify anon อ่าน 0)
+· ไม่ log คำถามที่โดน safety/เลขเด็ด (ถูกดักก่อน) · unclear = ความต้องการที่ยังไม่มี engine
 
 **4. dream matching → Intl.Segmenter/FTS** — ยังใช้ substring อยู่ (over-match คำสั้น)
 

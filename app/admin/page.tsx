@@ -9,6 +9,7 @@ import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmails, isAdminEmail } from "@/lib/admin/access";
 import { computeUsageStats, type UsageRow, type UsageStats } from "@/lib/admin/usage-stats";
+import { summarizeQuestions, type QuestionRow } from "@/lib/admin/question-stats";
 
 export const dynamic = "force-dynamic"; // อ่าน session + DB ทุกครั้ง
 
@@ -30,6 +31,14 @@ export default async function AdminPage() {
 
   const stats = computeUsageStats((rows as UsageRow[] | null) ?? []);
   const maxDay = Math.max(1, ...stats.byDay.map((d) => d.costThb));
+
+  // ประวัติคำถาม (เน้น unclear = สิ่งที่ยังตอบไม่ได้ → จัดลำดับฟีเจอร์)
+  const { data: qRows } = await svc
+    .from("chat_question_log")
+    .select("question,status,fns,created_at")
+    .order("created_at", { ascending: false })
+    .limit(2000);
+  const q = summarizeQuestions((qRows as QuestionRow[] | null) ?? []);
 
   return (
     <main className="tone-marble" style={S.page}>
@@ -78,6 +87,29 @@ export default async function AdminPage() {
         <Table head={["ผู้ใช้", "ครั้ง", "ต้นทุนรวม"]}
           rows={stats.topSpenders.map((u) => [u.userId, String(u.calls), baht(u.costThb)])} />
         <p style={S.note}>ส่วนใหญ่ยัง &ldquo;(ไม่ล็อกอิน)&rdquo; — จะแยกรายคนได้ชัดเมื่อผูกการใช้งานกับ auth_uid ครบทุก flow</p>
+      </Card>
+
+      <Card title={`ประวัติคำถามแชท (${q.total}) · ตอบได้ ${pct(q.answeredRate)}`}>
+        {q.total === 0 ? <Empty /> : (
+          <Table head={["สถานะ", "จำนวน"]} rows={q.byStatus.map((s) => [
+            s.status === "answered" ? "ตอบได้" : s.status === "unclear" ? "ยังตอบไม่ได้" : "ขอข้อมูลเพิ่ม",
+            String(s.count),
+          ])} />
+        )}
+      </Card>
+
+      <Card title="🔴 คำถามที่ยังตอบไม่ได้ (จัดลำดับฟีเจอร์ถัดไป)">
+        {q.recentUnclear.length === 0 ? (
+          <p style={S.note}>ยังไม่มีคำถามที่ตอบไม่ได้ — ดีมาก แปลว่า engine ครอบคลุมสิ่งที่ผู้ใช้ถาม</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+            {q.recentUnclear.map((u, i) => (
+              <div key={i} style={{ ...S.td, borderBottom: "1px solid color-mix(in srgb,var(--ink) 8%,transparent)", fontSize: "0.85rem" }}>
+                “{u.question}” <span style={{ ...S.dim, fontSize: "0.7rem" }}>· {u.created_at.slice(0, 10)}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       <p style={S.note}>

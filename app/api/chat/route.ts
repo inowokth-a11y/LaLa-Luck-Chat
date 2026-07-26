@@ -27,6 +27,8 @@ import {
 } from "@/lib/chat/plan-run";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage, planBucket, logicBucket } from "@/lib/chat/usage-db";
+import { lotteryIntercept } from "@/lib/chat/lottery";
+import { logQuestion } from "@/lib/chat/question-log";
 import type { PlanProfileContext } from "@/lib/chat/plan";
 
 export const runtime = "nodejs";
@@ -84,6 +86,12 @@ export async function POST(req: Request) {
         intercepted: true,
         message: gate.crisis_resource_message,
       });
+    }
+
+    // ---- 1.5 เลขเด็ด/หวย — นโยบายไม่ทำนาย (ก่อน AI/โควตา ไม่คิดเงิน) ----
+    const lottery = lotteryIntercept(question);
+    if (lottery) {
+      return NextResponse.json({ declined: true, message: lottery.message });
     }
 
     // ---- เส้นทาง "แผน" (โหมดวิเคราะห์อิสระ §16) — คู่กับเส้นทาง context เดิม ----
@@ -221,11 +229,17 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
 
   // ถามข้อมูลเพิ่ม / คำถามนอกขอบเขต → ไม่หักโควตา (ยังไม่ได้คำตอบจริง)
   if (result.status === "needs_input") {
+    logQuestion({ question, status: "needs_input", userId });
     return NextResponse.json({ needsInput: true, message: result.message, missingInputs: result.missingInputs });
   }
   if (result.status === "unclear") {
+    // 🔴 คำถามที่ engine ยังตอบไม่ได้ — เก็บไว้จัดลำดับฟีเจอร์ถัดไป (§16)
+    logQuestion({ question, status: "unclear", userId });
     return NextResponse.json({ unclear: true, message: result.message });
   }
+
+  // ตอบได้ — เก็บพร้อมฟังก์ชันที่ใช้
+  logQuestion({ question, status: "answered", fns: [...new Set(result.results.map((r) => r.fn))], userId });
 
   // หักโควตาเฉพาะเมื่อได้คำตอบจริงเท่านั้น
   let afterUsed = used + 1;

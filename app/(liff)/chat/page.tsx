@@ -116,6 +116,9 @@ export default function FlexibleChatPage() {
 
       if (d.intercepted) {
         setEntries((e) => [...e, { kind: "crisis", text: d.message }]);
+      } else if (d.declined) {
+        // นโยบายเลขเด็ด/หวย — แสดงเป็นโน้ต ไม่ใช่คำตอบ ไม่คิดโควตา
+        setEntries((e) => [...e, { kind: "note", text: d.message }]);
       } else if (d.quotaExceeded) {
         setEntries((e) => [...e, { kind: "note", text: d.message }]);
         setRemaining(0);

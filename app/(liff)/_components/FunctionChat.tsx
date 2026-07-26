@@ -60,6 +60,9 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
       if (d.intercepted) {
         // ข้อความช่วยเหลือ — แสดงเดี่ยวๆ ไม่พ่วงอย่างอื่น และไม่คิดโควตา
         setCrisis(d.message);
+      } else if (d.declined) {
+        // นโยบายเลขเด็ด/หวย — แสดงเป็นโน้ต ไม่คิดโควตา
+        setNotice(d.message);
       } else if (d.quotaExceeded) {
         setNotice(d.message);
         setRemaining(0);
