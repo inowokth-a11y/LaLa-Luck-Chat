@@ -18,8 +18,8 @@ export const FAL_MODELS = {
   logoPreview: "fal-ai/flux/schnell",
   /** โลโก้เวกเตอร์ SVG ใช้เชิงพาณิชย์ได้ (~฿2.88) — Recraft V3 */
   logoVector: "fal-ai/recraft/v3/text-to-image",
-  /** พื้นหลัง/ลวดลายฉลาก — FLUX schnell (ถูก) · ไม่มีตัวอักษร (overlay ข้อความเองทีหลัง) */
-  labelArtwork: "fal-ai/flux/schnell",
+  /** พื้นหลัง/ลวดลายฉลาก — Recraft V3 (คมกว่า ไม่ค่อยใส่ตัวอักษรมั่ว) · ~฿1.44-2.88 */
+  labelArtwork: "fal-ai/recraft/v3/text-to-image",
 } as const;
 
 export type LabelOrientation = "landscape" | "portrait" | "square";
@@ -64,9 +64,11 @@ export function falLogoVector(prompt: string): Promise<FalImageResult> {
   });
 }
 
-/** พื้นหลังฉลาก — เลือก preset ตามอัตราส่วนฉลาก (composite แบบ cover ทีหลังได้) */
+// ⚠️ ใช้ digital_illustration (raster PNG) ไม่ใช่ vector_illustration (คืน SVG — composite ลง canvas ยุ่ง:
+//    ไม่มี intrinsic size + เสี่ยง taint) · Recraft raster คุณภาพสูงและไม่ใส่ตัวอักษรมั่วเหมือน FLUX
+/** พื้นหลังฉลาก — Recraft V3 (raster) · preset ตามอัตราส่วน */
 export function falLabelArtwork(prompt: string, orientation: LabelOrientation): Promise<FalImageResult> {
   const image_size =
     orientation === "landscape" ? "landscape_4_3" : orientation === "portrait" ? "portrait_4_3" : "square_hd";
-  return falGenerate(FAL_MODELS.labelArtwork, { prompt, image_size, num_images: 1 });
+  return falGenerate(FAL_MODELS.labelArtwork, { prompt, style: "digital_illustration", image_size });
 }

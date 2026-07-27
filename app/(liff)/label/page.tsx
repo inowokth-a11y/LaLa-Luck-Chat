@@ -104,42 +104,42 @@ function LabelComposer() {
             im.src = src;
           });
 
-        // พื้นหลัง: AI artwork (ถ้ามี) แบบ cover + ฉาบครีมโปร่งแสงให้อ่านง่าย · ไม่งั้นครีม+แถบสีธาตุ
-        if (bgProxied) {
+        // พื้นหลัง: AI artwork (Recraft ให้กรอบลาย + กลางครีมสะอาดอยู่แล้ว) แบบ cover · ไม่งั้นครีม+แถบสีธาตุ+กรอบ
+        const hasBg = Boolean(bgProxied);
+        if (hasBg) {
           const bg = await loadImg(bgProxied);
           if (cancelled) return;
           const s = Math.max(W / bg.width, H / bg.height);
           const dw = bg.width * s, dh = bg.height * s;
           ctx.drawImage(bg, (W - dw) / 2, (H - dh) / 2, dw, dh);
-          // การ์ดครีมตรงกลาง → ลาย AI เป็นกรอบขอบ · กลางสะอาด อ่านง่าย + กลบตัวอักษรมั่วที่ FLUX อาจใส่
-          const m = Math.round(Math.min(W, H) * 0.1);
-          const rad = Math.round(Math.min(W, H) * 0.04);
-          ctx.fillStyle = "rgba(250,247,240,0.93)";
-          ctx.beginPath();
-          ctx.roundRect(m, m, W - 2 * m, H - 2 * m, rad);
-          ctx.fill();
         } else {
           ctx.fillStyle = "#faf7f0";
           ctx.fillRect(0, 0, W, H);
           ctx.fillStyle = color;
           ctx.fillRect(0, 0, W, Math.round(H * 0.055));
           ctx.fillRect(0, H - Math.round(H * 0.055), W, Math.round(H * 0.055));
+          ctx.strokeStyle = color;
+          ctx.lineWidth = Math.max(2, Math.round(W * 0.006));
+          ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, W - ctx.lineWidth * 2, H - ctx.lineWidth * 2);
         }
-        ctx.strokeStyle = color;
-        ctx.lineWidth = Math.max(2, Math.round(W * 0.006));
-        ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, W - ctx.lineWidth * 2, H - ctx.lineWidth * 2);
 
-        // โลโก้ (ถ้ามี) — วางกลางบน
+        // โลโก้ (ถ้ามี) — วางกลางบน (มี bg ขยับลงนิดให้พ้นกรอบลาย)
         if (proxied) {
           const img = await loadImg(proxied);
           if (cancelled) return;
-          const logoH = Math.round(H * 0.42);
+          const logoH = Math.round(H * 0.36);
           const logoW = logoH * (img.width / img.height || 1);
-          ctx.drawImage(img, (W - logoW) / 2, Math.round(H * 0.12), logoW, logoH);
+          ctx.drawImage(img, (W - logoW) / 2, Math.round(H * (hasBg ? 0.16 : 0.12)), logoW, logoH);
         }
 
         try { await (document as Document & { fonts?: FontFaceSet }).fonts?.ready; } catch { /* ฟอนต์ระบบก็เรนเดอร์ไทยถูก */ }
         if (cancelled) return;
+
+        // halo บางๆ หลังตัวอักษร (กันอ่านไม่ออกถ้าลายพื้นรก) — ครีมบนมี bg
+        if (hasBg) {
+          ctx.shadowColor = "rgba(250,247,240,0.95)";
+          ctx.shadowBlur = Math.round(H * 0.04);
+        }
 
         // ชื่อแบรนด์ (serif) — ย่ออัตโนมัติ
         ctx.fillStyle = color;
@@ -151,7 +151,7 @@ function LabelComposer() {
           if (ctx.measureText(brand || "แบรนด์ของคุณ").width <= W * 0.82 || bs <= 20) break;
           bs -= 3;
         } while (bs > 20);
-        ctx.fillText(brand || "แบรนด์ของคุณ", W / 2, Math.round(H * 0.66));
+        ctx.fillText(brand || "แบรนด์ของคุณ", W / 2, Math.round(H * 0.64));
 
         // สโลแกน (sans) — ถ้ามี
         if (tagline.trim()) {
@@ -159,6 +159,7 @@ function LabelComposer() {
           ctx.font = `${Math.round(H * 0.05)}px 'Noto Sans Thai', sans-serif`;
           ctx.fillText(tagline.trim(), W / 2, Math.round(H * 0.8));
         }
+        ctx.shadowBlur = 0; // reset halo
 
         if (!cancelled) setPreview(canvas.toDataURL("image/png"));
       } catch (e) {
@@ -210,7 +211,7 @@ function LabelComposer() {
         </p>
 
         <button type="button" style={{ ...S.download, background: bgUrl ? "transparent" : color, color: bgUrl ? color : "#faf7f0", border: bgUrl ? `1px solid ${color}` : "none", alignSelf: "flex-start" }} onClick={genArtwork} disabled={bgBusy}>
-          {bgBusy ? "กำลังสร้างพื้นหลัง…" : bgUrl ? "🔄 สร้างพื้นหลังใหม่" : "🎨 สร้างพื้นหลัง AI (1 ครั้ง = 1 เครดิต)"}
+          {bgBusy ? "กำลังสร้างพื้นหลัง…" : bgUrl ? "🔄 สร้างพื้นหลังใหม่" : "🎨 สร้างพื้นหลัง AI (Recraft · ช่วงทดลองฟรี)"}
         </button>
         {bgUrl && <button type="button" style={{ ...S.chip, alignSelf: "flex-start" }} onClick={() => setBgUrl(null)}>เอาพื้นหลังออก (กลับเป็นพื้นเรียบ)</button>}
         {bgError && <p style={S.warn}>⚠️ {bgError}</p>}
