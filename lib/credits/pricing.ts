@@ -48,6 +48,8 @@ export const ACTION_RATES: ActionRate[] = [
   { key: "logo_preview", label: "โลโก้ตัวอย่าง (FLUX)", costThb: 0.22, credits: 1, category: "logo" },
   { key: "logo_vector", label: "โลโก้เวกเตอร์ SVG (Recraft V3)", costThb: 2.88, credits: 7, category: "logo",
     note: "เวกเตอร์ ขยายไม่แตก ใช้เชิงพาณิชย์ได้" },
+  { key: "label_artwork", label: "พื้นหลังฉลาก AI (Recraft V3)", costThb: 2.88, credits: 7, category: "logo",
+    note: "ต้นทุนเดียวกับโลโก้เวกเตอร์ (Recraft V3) จึงเรทเท่ากัน" },
 ];
 
 export interface CreditPackage {

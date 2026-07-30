@@ -7,6 +7,8 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage } from "@/lib/chat/usage-db";
+import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { isFalAvailable, falLogoPreview, falLogoVector } from "@/lib/image/fal";
 import { logoImagePrompt } from "@/lib/engine/naming";
@@ -56,15 +58,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // ---- โควตา (กันเปลือง fal) ----
+    // ---- โควตาฟรี → หมดแล้วตกเส้นเครดิต (logo_preview=1 · logo_vector=7 ตามเรท §12) ----
     const used = await getDbUsage(user.id, LOGO_BUCKET);
-    if (used >= FREE_LOGO_TRIAL) {
+    const cost = creditCost(variant === "vector" ? "logo_vector" : "logo_preview");
+    const balance = await getCreditBalance(user.id);
+    const charge = decideCharge({
+      freeRemaining: Math.max(0, FREE_LOGO_TRIAL - used),
+      loggedIn: true, // ผ่าน gate ล็อกอินมาแล้ว
+      balance,
+      cost,
+    });
+    if (charge.mode === "denied") {
       return NextResponse.json(
         {
           quotaExceeded: true,
-          message: `ช่วงทดลองสร้างโลโก้ได้ ${FREE_LOGO_TRIAL} ครั้ง — เร็ว ๆ นี้เติมเครดิตเพื่อสร้างต่อได้ค่ะ`,
+          message: `ช่วงทดลองสร้างโลโก้ฟรีครบ ${FREE_LOGO_TRIAL} ครั้งแล้วค่ะ\n${chargeDeniedMessage(charge)}`,
           used,
           limit: FREE_LOGO_TRIAL,
+          credits: charge.balance,
+          creditCost: charge.cost,
         },
         { status: 429 }
       );
@@ -96,11 +108,20 @@ export async function POST(req: Request) {
     const storedUrl = await storeLogoImage(user.id, image.url, image.contentType);
     const imageUrl = storedUrl ?? image.url;
 
-    // หักโควตาหลังสำเร็จเท่านั้น
-    const bumped = await bumpDbUsage(user.id, LOGO_BUCKET);
-    const nowUsed = bumped ?? used + 1;
+    // หักหลังสำเร็จเท่านั้น — เส้นฟรี bump โควตา · เส้นเครดิต spend_credits
+    let nowUsed = used;
+    let creditsLeft: number | null = null;
+    if (charge.mode === "credits") {
+      const spent = await spendCredits(user.id, charge.cost, variant === "vector" ? "logo_vector" : "logo_preview", LOGO_BUCKET);
+      if (spent.ok) creditsLeft = spent.balance;
+      else console.warn("[logo] หักเครดิตไม่สำเร็จหลังสร้างภาพแล้ว (race/พัง)", spent.reason);
+    } else {
+      const bumped = await bumpDbUsage(user.id, LOGO_BUCKET);
+      nowUsed = bumped ?? used + 1;
+    }
 
     return NextResponse.json({
+      ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       imageUrl,
       stored: storedUrl !== null,
       contentType: image.contentType,

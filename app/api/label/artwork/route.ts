@@ -5,6 +5,8 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage } from "@/lib/chat/usage-db";
+import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { isFalAvailable, falLabelArtwork, type LabelOrientation } from "@/lib/image/fal";
 import { storeLogoImage } from "@/lib/image/store";
 import { motifElement, scoreLabelComposition, LABEL_COMPOSITION_CAVEAT } from "@/lib/engine/label";
@@ -47,11 +49,24 @@ export async function POST(req: Request) {
     const user = data.user;
     if (!user) return NextResponse.json({ needsLogin: true, error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
 
-    // โควตา
+    // โควตาฟรี → หมดแล้วตกเส้นเครดิต (label_artwork = 7 เครดิต ตามเรท §12)
     const used = await getDbUsage(user.id, LABEL_BUCKET);
-    if (used >= FREE_LABEL_TRIAL) {
+    const cost = creditCost("label_artwork");
+    const balance = await getCreditBalance(user.id);
+    const charge = decideCharge({
+      freeRemaining: Math.max(0, FREE_LABEL_TRIAL - used),
+      loggedIn: true, // ผ่าน gate ล็อกอินมาแล้ว
+      balance,
+      cost,
+    });
+    if (charge.mode === "denied") {
       return NextResponse.json(
-        { quotaExceeded: true, error: `ใช้สิทธิ์สร้างพื้นหลังฟรีครบ ${FREE_LABEL_TRIAL} ครั้งแล้ว` },
+        {
+          quotaExceeded: true,
+          error: `ใช้สิทธิ์สร้างพื้นหลังฟรีครบ ${FREE_LABEL_TRIAL} ครั้งแล้ว\n${chargeDeniedMessage(charge)}`,
+          credits: charge.balance,
+          creditCost: charge.cost,
+        },
         { status: 429 }
       );
     }
@@ -84,10 +99,20 @@ export async function POST(req: Request) {
     const storedUrl = await storeLogoImage(user.id, image.url, image.contentType);
     const imageUrl = storedUrl ?? image.url;
 
-    const bumped = await bumpDbUsage(user.id, LABEL_BUCKET);
-    const nowUsed = bumped ?? used + 1;
+    // หักหลังสำเร็จเท่านั้น — เส้นฟรี bump โควตา · เส้นเครดิต spend_credits
+    let nowUsed = used;
+    let creditsLeft: number | null = null;
+    if (charge.mode === "credits") {
+      const spent = await spendCredits(user.id, charge.cost, "label_artwork", LABEL_BUCKET);
+      if (spent.ok) creditsLeft = spent.balance;
+      else console.warn("[label/artwork] หักเครดิตไม่สำเร็จหลังสร้างภาพแล้ว (race/พัง)", spent.reason);
+    } else {
+      const bumped = await bumpDbUsage(user.id, LABEL_BUCKET);
+      nowUsed = bumped ?? used + 1;
+    }
 
     return NextResponse.json({
+      ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       imageUrl,
       stored: storedUrl !== null,
       prompt,

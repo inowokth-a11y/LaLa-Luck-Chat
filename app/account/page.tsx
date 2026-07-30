@@ -21,6 +21,8 @@ interface View {
     birth_province: string | null;
   } | null;
   linkedToPlatformD: boolean;
+  /** เครดิตคงเหลือ (0 = ยังไม่มีกระเป๋า/ยังไม่เคยเติม) */
+  credits: number;
 }
 
 const PROVIDER_LABEL: Record<string, string> = {
@@ -47,9 +49,10 @@ export default function AccountPage() {
         router.replace("/login?next=/account");
         return;
       }
-      const [{ data: prof }, { data: ident }] = await Promise.all([
+      const [{ data: prof }, { data: ident }, { data: wallet }] = await Promise.all([
         supabase.from("user_profiles_e").select("first_name,last_name,birth_date,birth_time,birth_province").eq("auth_uid", user.id).maybeSingle(),
         supabase.from("user_identities").select("provider,display_name,platform_d_user_id").eq("auth_uid", user.id).maybeSingle(),
+        supabase.from("credit_wallet_e").select("balance").eq("auth_uid", user.id).maybeSingle(),
       ]);
       if (!active) return;
       const meta = user.user_metadata ?? {};
@@ -59,6 +62,7 @@ export default function AccountPage() {
         displayName: (ident?.display_name ?? meta.name ?? meta.full_name) ?? null,
         profile: (prof as View["profile"]) ?? null,
         linkedToPlatformD: Boolean(ident?.platform_d_user_id),
+        credits: wallet?.balance ?? 0,
       });
       setReady(true);
     })();
@@ -118,6 +122,7 @@ export default function AccountPage() {
         <Row label="เข้าสู่ระบบด้วย" value={view.provider ? PROVIDER_LABEL[view.provider] ?? view.provider : "—"} />
         <Row label="อีเมล" value={view.email ?? "— (บัญชีนี้ไม่มีอีเมล)"} />
         {view.linkedToPlatformD && <Row label="เชื่อมกับบัญชีเดิม" value="✓ เชื่อมแล้ว (KRUTH)" />}
+        <Row label="เครดิตคงเหลือ" value={`${view.credits} เครดิต`} />
       </section>
 
       <section style={card}>

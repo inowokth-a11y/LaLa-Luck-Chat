@@ -27,6 +27,8 @@ import {
 } from "@/lib/chat/plan-run";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, getDbUsageBonus, bumpDbUsage, planBucket, logicBucket } from "@/lib/chat/usage-db";
+import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { lotteryIntercept } from "@/lib/chat/lottery";
 import { logQuestion } from "@/lib/chat/question-log";
 import type { PlanProfileContext } from "@/lib/chat/plan";
@@ -117,17 +119,27 @@ export async function POST(req: Request) {
     const state = userId ? { [String(logicId)]: dbUsed } : cookieState;
     const q = checkQuota(state, logicId);
 
-    if (!q.allowed) {
+    if (!q.allowed && q.reason === "logic_not_enabled") {
+      return NextResponse.json(
+        { quotaExceeded: true, message: "ฟังก์ชันนี้ยังไม่เปิดให้ถามคำถามค่ะ", used: q.used, remaining: 0, limit: q.limit },
+        { status: 429 }
+      );
+    }
+
+    // ฟรีหมด → ลองเส้นเครดิต (§12) — ตรวจยอดก่อน แต่**หักหลัง AI ตอบสำเร็จเท่านั้น**
+    const cost = creditCost("chat_question");
+    const balance = userId ? await getCreditBalance(userId) : 0;
+    const charge = decideCharge({ freeRemaining: q.remaining, loggedIn: Boolean(userId), balance, cost });
+    if (charge.mode === "denied") {
       return NextResponse.json(
         {
           quotaExceeded: true,
-          message:
-            q.reason === "logic_not_enabled"
-              ? "ฟังก์ชันนี้ยังไม่เปิดให้ถามคำถามค่ะ"
-              : quotaExhaustedMessage(logicId),
+          message: `${quotaExhaustedMessage(logicId)}\n\n${chargeDeniedMessage(charge)}`,
           used: q.used,
           remaining: 0,
           limit: q.limit,
+          credits: charge.balance,
+          creditCost: charge.cost,
         },
         { status: 429 }
       );
@@ -152,10 +164,17 @@ ${contextJson}
       maxTokens: 700, // ตอบสั้น 2-4 ประโยค — กันร่ายยาวเสียเงินฟรี
     });
 
-    // หักโควตาหลัง AI ตอบสำเร็จเท่านั้น — AI ล่มแล้วยังเสียสิทธิ์ถือว่าไม่ยุติธรรม
-    // ล็อกอิน → bump DB (atomic) · ไม่ล็อกอิน → cookie
+    // หักหลัง AI ตอบสำเร็จเท่านั้น — AI ล่มแล้วยังเสียสิทธิ์/เครดิตถือว่าไม่ยุติธรรม
+    // เส้นฟรี: ล็อกอิน → bump DB (atomic) · ไม่ล็อกอิน → cookie
+    // เส้นเครดิต: spend_credits (atomic ใน DB — ยิงพร้อมกันยอดไม่มีทางติดลบ) ไม่แตะโควตาฟรี
     let afterState = consumeQuota(state, logicId);
-    if (userId) {
+    let creditsLeft: number | null = null;
+    if (charge.mode === "credits" && userId) {
+      afterState = state; // โควตาฟรีคงเดิม (หมดแล้ว) — จ่ายด้วยเครดิตแทน
+      const spent = await spendCredits(userId, charge.cost, "chat_question", bucket);
+      if (spent.ok) creditsLeft = spent.balance;
+      else console.warn("[chat] หักเครดิตไม่สำเร็จหลัง AI ตอบแล้ว (race/พัง) — ไม่เก็บย้อนหลัง", spent.reason);
+    } else if (userId) {
       const bumped = await bumpDbUsage(userId, bucket);
       afterState = { [String(logicId)]: bumped ?? dbUsed + 1 };
     }
@@ -167,6 +186,7 @@ ${contextJson}
       used: after.used,
       remaining: after.remaining,
       limit: after.limit,
+      ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
     });
     // cookie เฉพาะผู้ไม่ล็อกอิน — ผู้ล็อกอินใช้ DB เป็นแหล่งจริง
     if (!userId) {
@@ -226,9 +246,22 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
     used = parsePlanUsed(jar.get(PLAN_QUOTA_COOKIE)?.value);
   }
   const q = checkPlanQuota(used, bonus);
-  if (!q.allowed) {
+
+  // ฟรีหมด → ลองเส้นเครดิต (§12) — ตรวจยอดก่อน แต่หักหลังได้คำตอบจริงเท่านั้น
+  const cost = creditCost("chat_question");
+  const balance = userId ? await getCreditBalance(userId) : 0;
+  const charge = decideCharge({ freeRemaining: q.remaining, loggedIn: Boolean(userId), balance, cost });
+  if (charge.mode === "denied") {
     return NextResponse.json(
-      { quotaExceeded: true, message: planQuotaExhaustedMessage(), used: q.used, remaining: 0, limit: q.limit },
+      {
+        quotaExceeded: true,
+        message: `${planQuotaExhaustedMessage()}\n\n${chargeDeniedMessage(charge)}`,
+        used: q.used,
+        remaining: 0,
+        limit: q.limit,
+        credits: charge.balance,
+        creditCost: charge.cost,
+      },
       { status: 429 }
     );
   }
@@ -249,13 +282,21 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
   // ตอบได้ — เก็บพร้อมฟังก์ชันที่ใช้
   logQuestion({ question, status: "answered", fns: [...new Set(result.results.map((r) => r.fn))], userId });
 
-  // หักโควตาเฉพาะเมื่อได้คำตอบจริงเท่านั้น
-  let afterUsed = used + 1;
-  if (userId) {
-    const bumped = await bumpDbUsage(userId, planBucket());
-    if (bumped !== null) afterUsed = bumped;
+  // หักเฉพาะเมื่อได้คำตอบจริงเท่านั้น — เส้นฟรี bump โควตา · เส้นเครดิต spend_credits (ไม่แตะโควตาฟรี)
+  let afterUsed = used;
+  let creditsLeft: number | null = null;
+  if (charge.mode === "credits" && userId) {
+    const spent = await spendCredits(userId, charge.cost, "chat_question", planBucket());
+    if (spent.ok) creditsLeft = spent.balance;
+    else console.warn("[chat/plan] หักเครดิตไม่สำเร็จหลังได้คำตอบ (race/พัง) — ไม่เก็บย้อนหลัง", spent.reason);
+  } else {
+    afterUsed = used + 1;
+    if (userId) {
+      const bumped = await bumpDbUsage(userId, planBucket());
+      if (bumped !== null) afterUsed = bumped;
+    }
   }
-  const after = checkPlanQuota(afterUsed);
+  const after = checkPlanQuota(afterUsed, bonus);
   const res = NextResponse.json({
     reply: result.reply,
     results: result.results,
@@ -265,6 +306,7 @@ async function handlePlanMode(question: string): Promise<NextResponse> {
     used: after.used,
     remaining: after.remaining,
     limit: after.limit,
+    ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
   });
   // cookie เฉพาะผู้ไม่ล็อกอิน — ผู้ล็อกอินใช้ DB เป็นแหล่งจริง ไม่ต้องเขียน cookie
   if (!userId) {

@@ -587,7 +587,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 311/311 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 319/319 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -956,8 +956,24 @@ config อยู่ที่ `lib/credits/pricing.ts` (+ `tests/credits-pricing.
 → คิดฝันตามต้นทุนแคช (2 เครดิต) ไม่ใช่ต้นทุน AI-1 · `DREAM_AI1_BUILD_COST_THB` เก็บไว้อ้างอิง
 **กำไรทั้งธุรกิจยังขึ้นกับ cache hit rate** (ดูในแดชบอร์ดแอดมิน §12)
 
-⬜ **ยังไม่ทำ:** ตาราง balance เครดิต + wiring หักเครดิตจริงตอนใช้ + top-up/payment (Omise) —
-config เรทพร้อมแล้ว รอต่อระบบชำระเงิน
+✅ **กระเป๋าเครดิต + หักจริงตอนใช้ — ทำแล้ว (30 ก.ค. 2569):**
+- `migration 027` (รันบน prod แล้ว): `credit_wallet_e` (balance, check ≥0) + `credit_ledger_e`
+  (ทุกความเคลื่อนไหว + balance_after) + RPC `spend_credits`/`grant_credits` (service role เท่านั้น,
+  atomic — spend ใช้ `UPDATE ... WHERE balance >= จำนวน` ยอดติดลบเป็นไปไม่ได้แม้ยิงพร้อมกัน,
+  คืน -1=ไม่พอ / -2=จำนวนผิด แทน raise เพื่อให้ route แยกกรณีได้)
+- `lib/credits/charge.ts` (**pure** — `decideCharge`: ฟรีก่อน → หมดแล้วเครดิต (ต้องล็อกอิน) → ไม่พอ=ปฏิเสธ,
+  8 เทสต์) + `lib/credits/wallet.ts` (service wrapper — อ่านพังถือว่า 0 ไม่ใช่ได้ใช้ฟรี)
+- **wiring ครบ 4 จุด:** `/api/chat` (context + plan, 1 เครดิต/คำถาม) · `/api/logo` (preview 1 / vector 7) ·
+  `/api/label/artwork` (7 — เพิ่ม key `label_artwork` ใน ACTION_RATES, ผ่านกฎ ≥500% ที่ 6.08×)
+  ทุกจุดคงหลักเดิม: **ตรวจยอดก่อนเรียก AI/fal แต่หักหลังสำเร็จเท่านั้น** · 429 มี `credits`/`creditCost` ให้ UI
+- `/api/admin/credits` (gate ADMIN_EMAILS): POST เติมมือ (ledger เก็บอีเมลแอดมิน, เพดาน 500/ครั้ง) ·
+  GET ดูยอด+ledger — **เป็นช่องเติมเดียวจนกว่าจะมี Omise**
+- หน้า `/account` แสดง "เครดิตคงเหลือ" (RLS own-row read)
+- **verify กับ prod จริง:** anon อ่าน wallet/ledger 0 แถว · insert/RPC ปฏิเสธ 42501 · grant 10→spend 7→
+  spend เกิน=-1→spend 0=-2 · ledger ครบ · route 429 anon ทั้ง 2 โหมดขึ้นข้อความเครดิต · เส้นฟรียังปกติ
+  ⚠️ เส้นหักเครดิตผ่านเว็บจริงยังไม่ได้ทดสอบ (ต้องมี session ล็อกอิน) — พิสูจน์ระดับ RPC + pure logic แทน
+⬜ **ยังไม่ทำ:** ปุ่มเติมเงิน/ชำระเงิน (Omise) — ต้องมีบัญชี/คีย์ Omise ก่อน · ยังไม่หักเครดิต oracle/dream
+  (มีเรทแล้วแต่สองหน้านี้ยังไม่มี gate ล็อกอิน — ต้องตัดสินใจก่อนว่าจะบังคับล็อกอินไหม)
 
 ### ✅ โลโก้ fal (Logic 19) — โค้ดพร้อมแล้ว 25 ก.ค. 2569 · ⚠️ รอ `FAL_KEY` เพื่อทดสอบจริง
 `lib/image/fal.ts` (client, verify API contract จาก fal docs: `POST fal.run/{model}` + header `Key`) +
@@ -1192,7 +1208,7 @@ rAF มีไว้ให้ภาพลื่นเท่านั้น (พ�
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 311/311
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 319/319
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1200,8 +1216,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 311/311
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **311 tests** · tsc + build ผ่าน |
-| Supabase | ✅ **migration 000-026** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos`) |
+| Engine + ทุกฟีเจอร์ | ✅ **319 tests** · tsc + build ผ่าน (30 ก.ค.) |
+| Supabase | ✅ **migration 000-027** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
@@ -1221,8 +1237,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 311/311
 
 ### 🎯 คิวที่เหลือจริง (เริ่มเซสชันใหม่ตรงนี้ได้เลย — เรียงตามที่คุยกับผู้ใช้)
 
-1. **ระบบเครดิต/ชำระเงินเต็ม (Omise)** — เรทพร้อมใน `lib/credits/pricing.ts` · โครงหักโควตา (`chat_usage_e`) + โบนัสพร้อม
-   · ที่เหลือ: ตาราง balance เครดิต + wiring หักเครดิตจริงตอนใช้ (โลโก้/ฉลาก/แชท) + ปุ่มเติมเงิน (Omise) + ยกเพดานเมื่อจ่าย
+1. **ระบบเครดิต — ✅ กระเป๋า+หักจริงเสร็จ 30 ก.ค. 2569 (ดู §12)** · ที่เหลือ: ปุ่มเติมเงิน (Omise —
+   ต้องมีบัญชี/คีย์จากผู้ใช้ก่อน) + ตัดสินใจว่า oracle/dream จะบังคับล็อกอินเพื่อหักเครดิตไหม
 2. **🔴 การตัดสินระดับ §4 (ต้องถามผู้ใช้):** ทิศทางความสัมพันธ์ธาตุใน `wuXingScore` — ปัจจุบัน "แบรนด์ให้กำเนิดองค์ประกอบ=+2"
    ทำให้ "สวนผลไม้(ไม้) กับแบรนด์ไฟ = -1 (สูบพลัง)" ไม่ใช่ "+บำรุง(木生火)" · ถ้าจะพลิกกระทบ ฮวงจุ้ย/compat/ฉลาก ทั้งหมด
 3. **จูนฉลาก**: prompt Recraft ให้ดันลายไปขอบมากขึ้น (บางทีลายเด่นกลาง-ขวาทับข้อความ) · ระดับพิมพ์ (PDF/bleed/CMYK)

@@ -336,5 +336,5 @@ export function checkPlanQuota(used: number, bonus = 0): PlanQuotaCheck {
 }
 
 export function planQuotaExhaustedMessage(): string {
-  return `คุณใช้คำถามแบบวิเคราะห์อิสระครบ ${FREE_PLAN_QUESTIONS} คำถามแล้วค่ะ 🙏 เร็ว ๆ นี้จะเปิดให้เติมเครดิตเพื่อถามต่อได้ค่ะ`;
+  return `คุณใช้คำถามแบบวิเคราะห์อิสระครบ ${FREE_PLAN_QUESTIONS} คำถามแล้วค่ะ 🙏 ถามต่อได้ด้วยเครดิต (คำถามละ 1 เครดิต)`;
 }

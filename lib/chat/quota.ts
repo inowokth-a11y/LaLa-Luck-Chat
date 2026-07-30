@@ -80,5 +80,5 @@ export function consumeQuota(state: QuotaState, logicId: number): QuotaState {
 /** ข้อความบอกผู้ใช้เมื่อโควตาหมด — ตรงไปตรงมา ไม่หลอกว่าจะได้เพิ่มฟรี */
 export function quotaExhaustedMessage(logicId: number): string {
   const name = CHAT_LOGIC_NAMES[logicId] ?? "ฟังก์ชันนี้";
-  return `คุณใช้คำถามฟรีของ "${name}" ครบ ${FREE_QUESTIONS_PER_LOGIC} คำถามแล้วค่ะ 🙏\n\nช่วงทดลองนี้ให้ถามได้ฟังก์ชันละ ${FREE_QUESTIONS_PER_LOGIC} คำถาม — เร็ว ๆ นี้จะเปิดให้เติมเครดิตเพื่อถามต่อได้ไม่จำกัดค่ะ`;
+  return `คุณใช้คำถามฟรีของ "${name}" ครบ ${FREE_QUESTIONS_PER_LOGIC} คำถามแล้วค่ะ 🙏 ถามต่อได้ด้วยเครดิต (คำถามละ 1 เครดิต)`;
 }
