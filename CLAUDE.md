@@ -587,7 +587,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 237/237 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 311/311 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -597,7 +597,7 @@ cd /Users/freeman/Desktop/kruth-element
 ### ✅ ทำเสร็จแล้ว
 | ส่วน | สถานะ |
 |---|---|
-| Engine ทั้งหมด (รวม router) | ✅ 237 tests ผ่าน (พอร์ตครบทุกตัวแล้ว) |
+| Engine ทั้งหมด (รวม router) | ✅ 311 tests ผ่าน (พอร์ตครบทุกตัวแล้ว) |
 | Supabase | ✅ migration 000-017 + seed รันจริง 22 ตาราง (§7) |
 | หน้า `/profile` (Logic 1) | ✅ ทดสอบใน browser จริง — การ์ด+ธาตุ+ประวัติบุคคล |
 | หน้า `/fortune` (Logic 8-11) | ✅ ทดสอบจริง — ลัคนา/รายวัน/เดือน/ปี/ทักษาจร |
@@ -1192,20 +1192,43 @@ rAF มีไว้ให้ภาพลื่นเท่านั้น (พ�
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 237/237
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 311/311
 ```
+⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
-### สถานะล่าสุด (อัปเดต 24 ก.ค. 2569)
+### 🆕 สถานะล่าสุด (อัปเดต 27 ก.ค. 2569 — เซสชันใหญ่: journey เปิดธุรกิจ + สมาชิก + แดชบอร์ด)
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine ทุกตัว (รวม router, ascendant, oracle, compatibility) | ✅ **237 tests** (เดิม 209 + 28 ของ chat-plan) |
-| หน้า LIFF 6 หน้า | ✅ profile · fortune · dream · oracle · compatibility · fengshui |
-| API | ✅ dream · oracle · chat · logic/router · line/webhook |
-| **AI Chat แบบยืดหยุ่น เฟส 1** | ✅ `lib/chat/plan.ts` — ชั้น validate เสร็จ **ยังไม่ต่อ AI** (§16) |
-| Supabase | ✅ migration 000-021 รันจริงแล้ว (020 = user_identities, 021 = user_profiles_e) |
-| GitHub | ✅ `inowokth-a11y/LaLa-Luck-Chat` |
-| Vercel | ✅ deploy สำเร็จ (Hobby) — **โปรเจกต์จริงคือ `lala-lucky-chat` → `https://lala-lucky-chat.vercel.app`** (verify ทุก path 200) · ⏸️ ใช้ vercel.app ไปก่อน ยังไม่ซื้อโดเมน |
+| Engine + ทุกฟีเจอร์ | ✅ **311 tests** · tsc + build ผ่าน |
+| Supabase | ✅ **migration 000-026** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos`) |
+| Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
+
+**✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
+- **AI Chat ยืดหยุ่น (§16)** ครบเฟส 1+2+UI + desktop split-view + ใช้ธาตุประจำตัวจากโปรไฟล์ (`/chat`)
+- **ระบบสมาชิกครบ**: auth (Google/FB/LINE+magic link) · onboarding · prefill · หน้า `/account` · ชิปสถานะทุกหน้า · โควตา→DB (`chat_usage_e`) + โบนัสเครดิต
+- **โลโก้ (`/logo`)**: fal (FLUX preview / Recraft vector) · prompt อังกฤษ no-text · เลือกสไตล์ธาตุ+คะแนน · overlay ชื่อไทยด้วยฟอนต์จริง (canvas) · เก็บ Supabase Storage ถาวร · ปุ่มดาวน์โหลด (พร็อกซี)
+- **ฉลาก (`/label`)**: composite ขนาดพิมพ์ 300 DPI · พื้นหลัง AI **Recraft V3** (ไม่มีตัวอักษรมั่ว) ตามธาตุ+ลวดลาย · engine คะแนนองค์ประกอบ `lib/engine/label.ts` (MOTIF_TO_ELEMENT)
+- **ฤกษ์ (`/timing`)**: `lib/engine/timing.ts` จัดอันดับวันดี (เปิดบริษัท/ทะเบียนรถ/ขึ้นบ้าน=ธงชัย · เจรจา=อธิบดี) + อุบากอง · ฟรี ฿0
+- **เลขเด็ด/หวย**: `lib/chat/lottery.ts` ดักไม่ทำนาย + เตือนพนัน (แยกจากทะเบียน/เบอร์)
+- **แดชบอร์ดแอดมิน (`/admin`)**: ต้นทุน/cache/ล่ม/รายวัน + ประวัติคำถาม + **AI สรุป/แชทบอทแอดมิน** + จัดการ feedback prompt · gate `ADMIN_EMAILS`
+- **ความเห็นผู้ใช้**: `FeedbackBox` (`/chat`) ฟรี + รางวัล 1 เครดิต (ตอบ prompt แอดมิน ครั้งแรก/คำถาม กันฟาร์ม)
+- **เรทเครดิต**: `lib/credits/pricing.ts` (กำไร ≥500%) — ยังไม่ผูกหักจริง/ชำระเงิน
+
+🔴 **ต้องตั้งใน Vercel env ก่อนฟีเจอร์ AI-image/แอดมินทำงานบน prod:** `FAL_KEY` · `ADMIN_EMAILS=whootthira@gmail.com,inowok.th@gmail.com` (มีใน .env.local แล้ว) → แล้ว redeploy
+
+🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
+
+### 🎯 คิวที่เหลือจริง (เริ่มเซสชันใหม่ตรงนี้ได้เลย — เรียงตามที่คุยกับผู้ใช้)
+
+1. **ระบบเครดิต/ชำระเงินเต็ม (Omise)** — เรทพร้อมใน `lib/credits/pricing.ts` · โครงหักโควตา (`chat_usage_e`) + โบนัสพร้อม
+   · ที่เหลือ: ตาราง balance เครดิต + wiring หักเครดิตจริงตอนใช้ (โลโก้/ฉลาก/แชท) + ปุ่มเติมเงิน (Omise) + ยกเพดานเมื่อจ่าย
+2. **🔴 การตัดสินระดับ §4 (ต้องถามผู้ใช้):** ทิศทางความสัมพันธ์ธาตุใน `wuXingScore` — ปัจจุบัน "แบรนด์ให้กำเนิดองค์ประกอบ=+2"
+   ทำให้ "สวนผลไม้(ไม้) กับแบรนด์ไฟ = -1 (สูบพลัง)" ไม่ใช่ "+บำรุง(木生火)" · ถ้าจะพลิกกระทบ ฮวงจุ้ย/compat/ฉลาก ทั้งหมด
+3. **จูนฉลาก**: prompt Recraft ให้ดันลายไปขอบมากขึ้น (บางทีลายเด่นกลาง-ขวาทับข้อความ) · ระดับพิมพ์ (PDF/bleed/CMYK)
+4. **ลายกนก = ไฟ หรือ ไม้** (`MOTIF_TO_ELEMENT` §5 ยังไม่ verify) — ตอนนี้ตั้งไฟ พลิกได้จุดเดียว
+5. **Logic ที่ยังไม่ทำ**: 5,6 (Vision) · 12,16 (มีตารางไม่มีหน้า) · 13,15,17 — ดูจาก `chat_question_log` (คำถาม unclear) ว่าผู้ใช้อยากได้อะไรจริง
+6. **dream matching → Intl.Segmenter ทุกจุด** · **ลัคนายังไม่ตรวจกับดวงจริง** (§5.2 หนี้ความถูกต้อง)
 
 ### ก่อน commit ทุกครั้ง
 
