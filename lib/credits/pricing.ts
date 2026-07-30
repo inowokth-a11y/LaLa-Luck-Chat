@@ -50,6 +50,8 @@ export const ACTION_RATES: ActionRate[] = [
     note: "เวกเตอร์ ขยายไม่แตก ใช้เชิงพาณิชย์ได้" },
   { key: "label_artwork", label: "พื้นหลังฉลาก AI (Recraft V3)", costThb: 2.88, credits: 7, category: "logo",
     note: "ต้นทุนเดียวกับโลโก้เวกเตอร์ (Recraft V3) จึงเรทเท่ากัน" },
+  { key: "vision_motif", label: "อ่านลวดลาย/รูปทรงจากภาพ (AI vision)", costThb: 0.08, credits: 1, category: "logo",
+    note: "Haiku 4.5 วัดจริง 30 ก.ค. 2569: ฿0.051 (in 1,084/out 69, ภาพ ~370px) → ตั้ง 0.08 เผื่อภาพเต็ม 768px · แคช hash = ซ้ำฟรี" },
 ];
 
 export interface CreditPackage {

@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 330/330 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 339/339 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -1219,7 +1219,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 330/330
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 339/339
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1227,8 +1227,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 330/330
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **330 tests** · tsc + build ผ่าน (30 ก.ค. — รวมทาง "ค" wuXingScore) |
-| Supabase | ✅ **migration 000-028** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
+| Engine + ทุกฟีเจอร์ | ✅ **339 tests** · tsc + build ผ่าน (30 ก.ค. — รวมทาง "ค" wuXingScore) |
+| Supabase | ✅ **migration 000-029** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
@@ -1270,8 +1270,25 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 330/330
      ทุกการ gen (โลโก้/ฉลาก: prompt/ธาตุ/ลวดลาย/composition ค่าตายตัว ณ เวลาสร้าง) ผ่าน
      `lib/image/generation-log.ts` (fire-and-forget) → **ฉลากจากระบบเราวิเคราะห์ย้อนหลังได้ฟรี
      ไม่ต้องใช้ AI อ่านภาพ** · ⚠️ ตาราง log ยังไม่มีหน้า UI แสดง (ดูผ่าน admin/SQL ไปก่อน)
-   ⬜ เฟสถัดไป: vision จำแนกลวดลาย (enum จาก MOTIF/SHAPE_TO_ELEMENT + confidence + validate
-   แบบ `validateAiClassification`) เป็นฟีเจอร์เครดิต ~1-2 เครดิต · เริ่มจากภาพนำเข้าใน /label
+   ✅ **เฟส 2 vision จำแนกลวดลาย — เสร็จ 30 ก.ค. 2569 (ผู้ใช้อนุมัติ spec + ราคา):**
+   - **ท่อ:** client ย่อ ≤768px ผ่าน canvas (JPEG — ล้าง EXIF/GPS ฟรี, พื้นโปร่งใส→ขาว) →
+     `/api/label/vision`: ตรวจ magic bytes (`lib/vision/image.ts` — Buffer.from ไม่ throw กับ
+     base64 เพี้ยน ต้องตรวจ charset เอง) → sha256 → แคช (`migration 029 vision_analysis_cache_e`,
+     ไม่เก็บภาพ, RPC bump atomic) → vision → validate enum → engine คำนวณ → หักหลังสำเร็จ
+   - **ชั้น AI:** role `"vision"` ใหม่ใน `lib/ai/` — **Claude เท่านั้น** (Haiku 4.5 → Sonnet 5)
+     🔴 ห้ามเพิ่ม Gemini จน paid tier (free tier เทรนข้อมูล) — gemini/openai มี guard **throw
+     ถ้าเจอภาพ** บังคับเชิงโครงสร้าง · `GenerateRequest` รับ `imageBase64`/`imageMediaType`
+   - **เส้นแบ่ง §16 กับภาพ:** `lib/vision/classify.ts` (9 เทสต์) — prompt สร้างจาก
+     MOTIF/SHAPE_TO_ELEMENT ตรงๆ (เทสต์ล็อกทุก key ต้องอยู่ใน prompt) · AI คืน key จาก enum
+     เท่านั้น ค่านอก enum ถูกทิ้งไม่ถูกเดา (`droppedCount` เป็นตัววัดคุณภาพ prompt) ·
+     ธาตุ/คะแนนมาจาก `visionComposition` → engine · **ใบหน้าคนจริง = ปฏิเสธ ไม่คิดเงิน ไม่แคช**
+   - **ราคา:** `vision_motif` = 1 เครดิต · ฟรี 3 ครั้ง (bucket "vision") · **วัดจริง ฿0.051/ภาพ**
+     (Haiku in 1,084/out 69, 1.3 วิ) ตั้ง costThb 0.08 เผื่อภาพเต็ม 768px — กำไร >30× ·
+     แคช hit ยังคิดเรทปกติ (หลักเดียวกับฝัน §12)
+   - **verify:** RLS anon อ่าน/เขียน/RPC ปฏิเสธหมด · ยิง Haiku จริง: ตอบ JSON ใน enum เป๊ะ
+     ไม่มโนลาย (ภาพหลังไพ่ → shape "สี่เหลี่ยมผืนผ้าแนวตั้ง" ถูก) · browser: import ภาพ →
+     การ์ดสี + ปุ่ม AI + privacy note → กดตอน anon ขึ้น "ต้องเข้าสู่ระบบ" จริง
+     ⚠️ เส้นล็อกอิน+หักเครดิตจริงบนเว็บยังไม่ได้ทดสอบ (ต้องมี session) — พิสูจน์ระดับ AI จริง + RPC แทน
 4. ~~ลายกนก = ไฟ หรือ ไม้~~ — ✅ **ค้นแหล่งอ้างอิงศิลปะไทยแล้วตัดสิน 30 ก.ค. 2569** (label.ts):
    กนกเป็น**ตระกูลลาย** — แม่ลายมาจาก "หางไหล" (ลักษณะเปลวไฟ) → คำกว้าง "กนก/กระหนก" = **ไฟ** ·
    ประเภทย่อยจากพืชแยกเป็น**ไม้** (กนกใบเทศ=ใบฝ้ายเทศ · กนกผักกูด=ยอดเฟิร์น · ก้านขด) ·

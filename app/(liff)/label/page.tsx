@@ -29,15 +29,19 @@ const DPI = 300;
 const mmToPx = (mm: number) => Math.round((mm / 25.4) * DPI);
 const MAX_PX = 2400; // กันภาพใหญ่เกิน
 
-/** โหลดภาพ → ย่อ ≤64px → อ่านพิกเซล → สัดส่วนธาตุ (คณิตศาสตร์ล้วน ฟรี ไม่เรียก AI) */
-async function analyzeImageSrc(src: string): Promise<ColorAnalysis> {
-  const img = await new Promise<HTMLImageElement>((res, rej) => {
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise<HTMLImageElement>((res, rej) => {
     const im = new Image();
     im.crossOrigin = "anonymous"; // ผ่านพร็อกซี/objectURL → canvas ไม่ taint
     im.onload = () => res(im);
     im.onerror = () => rej(new Error("โหลดรูปไม่สำเร็จ"));
     im.src = src;
   });
+}
+
+/** โหลดภาพ → ย่อ ≤64px → อ่านพิกเซล → สัดส่วนธาตุ (คณิตศาสตร์ล้วน ฟรี ไม่เรียก AI) */
+async function analyzeImageSrc(src: string): Promise<ColorAnalysis> {
+  const img = await loadImage(src);
   const c = document.createElement("canvas");
   const s = Math.min(1, 64 / Math.max(img.width, img.height, 1));
   c.width = Math.max(1, Math.round(img.width * s));
@@ -45,6 +49,20 @@ async function analyzeImageSrc(src: string): Promise<ColorAnalysis> {
   const ctx = c.getContext("2d")!;
   ctx.drawImage(img, 0, 0, c.width, c.height);
   return analyzeImagePixels(ctx.getImageData(0, 0, c.width, c.height).data);
+}
+
+/** ย่อภาพ ≤768px → JPEG dataURL — สำหรับส่งให้ AI vision (re-encode ผ่าน canvas = ล้าง EXIF/GPS ให้ฟรี) */
+async function downscaleToJpeg(src: string, maxPx = 768): Promise<string> {
+  const img = await loadImage(src);
+  const c = document.createElement("canvas");
+  const s = Math.min(1, maxPx / Math.max(img.width, img.height, 1));
+  c.width = Math.max(1, Math.round(img.width * s));
+  c.height = Math.max(1, Math.round(img.height * s));
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#ffffff"; // JPEG ไม่มี alpha — พื้นโปร่งใสต้องเป็นขาว ไม่ใช่ดำ
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.85);
 }
 
 /** การ์ดสรุปสัดส่วนธาตุจากสีจริงในภาพ + ความเข้ากันกับธาตุแบรนด์ */
@@ -86,6 +104,15 @@ function LabelComposer() {
   const [bgColors, setBgColors] = useState<ColorAnalysis | null>(null);
   const [imported, setImported] = useState<{ name: string; res: ColorAnalysis } | null>(null);
   const [importErr, setImportErr] = useState<string | null>(null);
+  const [importJpeg, setImportJpeg] = useState<string | null>(null); // ภาพย่อ ≤768px รอส่ง AI (ถ้าผู้ใช้กดเอง)
+  const [visionBusy, setVisionBusy] = useState(false);
+  const [visionMsg, setVisionMsg] = useState<string | null>(null);
+  interface VisionResp {
+    classification?: { motifs: string[]; shape: string | null; confidence: number };
+    composition?: { components: Array<{ kind: string; label: string; score: number; relation: string }>; overallScore: number } | null;
+    cached?: boolean; caveat?: string; remaining?: number; credits?: number | null; paidWithCredits?: boolean;
+  }
+  const [vision, setVision] = useState<VisionResp | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const size = useMemo(() => SIZES.find((s) => s.key === sizeKey)!, [sizeKey]);
@@ -119,11 +146,39 @@ function LabelComposer() {
     const f = e.target.files?.[0];
     if (!f) return;
     setImportErr(null);
+    setVision(null);
+    setVisionMsg(null);
+    setImportJpeg(null);
     const url = URL.createObjectURL(f);
-    analyzeImageSrc(url)
-      .then((r) => setImported({ name: f.name, res: r }))
+    Promise.all([analyzeImageSrc(url), downscaleToJpeg(url)])
+      .then(([r, jpeg]) => {
+        setImported({ name: f.name, res: r });
+        setImportJpeg(jpeg); // เก็บไว้ในเครื่องเฉยๆ — ส่งออกเฉพาะเมื่อผู้ใช้กดปุ่ม AI เอง
+      })
       .catch((err) => setImportErr(err instanceof Error ? err.message : String(err)))
       .finally(() => URL.revokeObjectURL(url));
+  }
+
+  async function runVision() {
+    if (!importJpeg || visionBusy) return;
+    setVisionBusy(true);
+    setVisionMsg(null);
+    try {
+      const res = await fetch("/api/label/vision", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ imageBase64: importJpeg, brandElement: el }),
+      });
+      const d = await res.json();
+      if (d.needsLogin) setVisionMsg("ต้องเข้าสู่ระบบก่อนใช้การอ่านลวดลายด้วย AI");
+      else if (d.declined) setVisionMsg(d.message);
+      else if (d.error) setVisionMsg(d.error);
+      else setVision(d as VisionResp);
+    } catch (err) {
+      setVisionMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setVisionBusy(false);
+    }
   }
 
   async function genArtwork() {
@@ -290,12 +345,50 @@ function LabelComposer() {
         <label style={S.label}>นำเข้าฉลาก/โลโก้ที่มีอยู่ — วิเคราะห์ธาตุจากสี (ฟรี)</label>
         <input type="file" accept="image/*" onChange={onImportFile} style={{ fontSize: "0.85rem" }} />
         <p style={{ fontSize: "0.72rem", color: "var(--text-dim,#6b6255)", lineHeight: 1.5, margin: 0 }}>
-          วิเคราะห์ในเครื่องของคุณ ไม่มีการอัปโหลดรูปขึ้นระบบ · การอ่าน &ldquo;ลวดลาย&rdquo; ด้วย AI จะเปิดให้ใช้ภายหลัง
+          วิเคราะห์สีในเครื่องของคุณทันที ไม่มีการอัปโหลด · ถ้าต้องการอ่าน &ldquo;ลวดลาย/รูปทรง&rdquo; ด้วย AI กดปุ่มแยกด้านล่าง (ต้องล็อกอิน)
         </p>
         {importErr && <p style={S.warn}>⚠️ {importErr}</p>}
         {imported && (imported.res.dominant
           ? <ColorMixCard title={`📥 ${imported.name}`} res={imported.res} brandEl={el} />
           : <p style={S.warn}>อ่านสีจากรูปนี้ไม่ได้ (ภาพโปร่งใสทั้งหมด?)</p>)}
+
+        {/* ปุ่มแยกชัดจากการวิเคราะห์สี — เส้นนี้ "ส่งภาพออกจากเครื่อง" และมีค่าใช้จ่าย */}
+        {importJpeg && !vision && (
+          <button type="button" style={{ ...S.chip, alignSelf: "flex-start" }} onClick={runVision} disabled={visionBusy}>
+            {visionBusy ? "กำลังอ่านลวดลาย…" : "🔍 อ่านลวดลาย/รูปทรงด้วย AI (ฟรี 3 ครั้ง จากนั้น 1 เครดิต)"}
+          </button>
+        )}
+        {importJpeg && !vision && (
+          <p style={{ fontSize: "0.72rem", color: "var(--text-dim,#6b6255)", lineHeight: 1.5, margin: 0 }}>
+            เส้นนี้จะส่งภาพ (ย่อแล้ว ไม่มีข้อมูลตำแหน่ง/EXIF) ไปประมวลผลครั้งเดียว — ระบบเก็บเฉพาะผลจำแนก ไม่เก็บตัวภาพ
+          </p>
+        )}
+        {visionMsg && <p style={S.warn}>⚠️ {visionMsg}</p>}
+        {vision?.classification && (
+          <div style={{ fontSize: "0.78rem", lineHeight: 1.6, border: "1px dashed var(--gold-dim,#a89870)", borderRadius: 8, padding: "0.6rem 0.8rem" }}>
+            <strong>🔍 ลวดลาย/รูปทรงที่ AI เห็น{vision.cached ? " (จากแคช)" : ""}</strong>
+            <br />
+            {vision.classification.motifs.length === 0 && !vision.classification.shape
+              ? "ไม่พบลวดลาย/รูปทรงที่ระบบรู้จักในภาพนี้"
+              : [...vision.classification.motifs, ...(vision.classification.shape ? [vision.classification.shape] : [])].join(" · ")}
+            {vision.composition && (
+              <>
+                <br />
+                {vision.composition.components.map((c) => (
+                  <span key={c.kind + c.label} style={{ color: c.score >= 1 ? "var(--good,#2f6b3f)" : c.score < 0 ? "var(--bad,#a83a1e)" : "var(--text-dim,#6b6255)" }}>
+                    {c.score >= 1 ? "✓" : c.score < 0 ? "⚠️" : "•"} {c.label} — {c.relation}
+                    <br />
+                  </span>
+                ))}
+              </>
+            )}
+            <span style={{ color: "var(--text-dim,#6b6255)", fontSize: "0.72rem" }}>
+              {vision.caveat}
+              {typeof vision.remaining === "number" && !vision.paidWithCredits ? ` · สิทธิ์ฟรีเหลือ ${vision.remaining} ครั้ง` : ""}
+              {vision.paidWithCredits && typeof vision.credits === "number" ? ` · เครดิตคงเหลือ ${vision.credits}` : ""}
+            </span>
+          </div>
+        )}
       </div>
 
       {error && <p style={S.warn}>⚠️ {error}</p>}

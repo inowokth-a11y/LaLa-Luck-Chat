@@ -5,7 +5,8 @@
 export type AiRole =
   | "router" // Logic 0: จำแนก intent → ชี้ Logic
   | "ai1" // Logic 4: ค้นคว้า+ตัดสินธาตุของสัญลักษณ์ที่ไม่มีในฐาน
-  | "ai2"; // ตัวหลัก "อาจารย์ลาลา": เรียบเรียงคำทำนาย/บทสนทนา
+  | "ai2" // ตัวหลัก "อาจารย์ลาลา": เรียบเรียงคำทำนาย/บทสนทนา
+  | "vision"; // จำแนกลวดลาย/รูปทรงจากภาพเป็น enum — Claude เท่านั้น (ดู CANDIDATES)
 
 export interface GenerateRequest {
   role: AiRole;
@@ -15,6 +16,13 @@ export interface GenerateRequest {
   maxTokens?: number;
   /** ให้ provider เปิดเครื่องมือค้นเว็บ (ใช้กับ AI-1) */
   webSearch?: boolean;
+
+  // ---- ภาพ (role "vision" เท่านั้น) ----
+  // 🔴 provider ที่ไม่รองรับภาพต้อง throw ทันทีถ้าเจอ field นี้ — ห้ามเงียบๆ ส่งแค่ข้อความ
+  //    และห้ามส่งภาพผู้ใช้ผ่าน Gemini จนกว่าคีย์จะเป็น paid tier (free tier ใช้ข้อมูลเทรน)
+  /** base64 ล้วน (ไม่มี data: prefix) */
+  imageBase64?: string;
+  imageMediaType?: "image/jpeg" | "image/png" | "image/webp";
 
   // ---- ข้อมูลประกอบสำหรับบันทึกต้นทุน (ไม่ส่งผลต่อคำตอบ) ----
   /** Logic ที่เรียก (ตรงกับ LOGIC_NAMES) */

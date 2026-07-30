@@ -35,11 +35,26 @@ export const claudeProvider: AiProvider = {
       ? [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 2 }]
       : undefined;
 
+    // ภาพ (role vision): ส่งเป็น content block คู่กับข้อความ — base64 ล้วน ไม่มี data: prefix
+    const content: Anthropic.ContentBlockParam[] | string = req.imageBase64
+      ? [
+          {
+            type: "image" as const,
+            source: {
+              type: "base64" as const,
+              media_type: req.imageMediaType ?? "image/jpeg",
+              data: req.imageBase64,
+            },
+          },
+          { type: "text" as const, text: req.input },
+        ]
+      : req.input;
+
     const res = await getClient().messages.create({
       model,
       max_tokens: maxTokens,
       system: req.system,
-      messages: [{ role: "user", content: req.input }],
+      messages: [{ role: "user", content }],
       // adaptive thinking ช่วยงานที่ต้องใช้เหตุผล (AI-1 ตัดสินธาตุ) — Haiku ไม่รองรับ จึงเปิดเฉพาะรุ่นใหม่
       ...(model.startsWith("claude-haiku") ? {} : { thinking: { type: "adaptive" as const } }),
       ...(tools ? { tools } : {}),

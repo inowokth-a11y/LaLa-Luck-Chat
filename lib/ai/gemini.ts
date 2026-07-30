@@ -23,6 +23,10 @@ export const geminiProvider: AiProvider = {
   },
 
   async generate(req: GenerateRequest, model: string): Promise<ProviderOutput> {
+    // 🔴 privacy guard: provider นี้ห้ามรับภาพผู้ใช้ (ดู CANDIDATES.vision ใน index.ts)
+    if (req.imageBase64) {
+      throw new Error("provider นี้ไม่รองรับภาพ — ภาพผู้ใช้ส่งผ่าน Claude เท่านั้น");
+    }
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
     const res = await fetch(url, {

@@ -43,6 +43,14 @@ const CANDIDATES: Record<AiRole, Candidate[]> = {
     { provider: geminiProvider, model: "gemini-3.5-flash" }, // สำรองกลาง
     { provider: claudeProvider, model: "claude-opus-4-8" }, // สำรองสุดท้ายก่อน template
   ],
+  // 🔴 vision = Claude เท่านั้น (ผู้ใช้ตัดสิน 30 ก.ค. 2569 เรื่อง privacy ภาพนำเข้า):
+  //    คีย์ Gemini เป็น free tier ซึ่ง Google ระบุว่า "ข้อมูลถูกใช้ improve products"
+  //    → ห้ามเพิ่ม Gemini เข้า chain นี้จนกว่าจะอัปเกรดเป็น paid tier
+  //    (provider อื่นมี guard throw ถ้าเจอภาพ — เผลอเพิ่มแล้วจะพังทันที ไม่รั่วเงียบๆ)
+  vision: [
+    { provider: claudeProvider, model: "claude-haiku-4-5" }, // งานจำแนกเข้า enum — Haiku พอและถูกสุด
+    { provider: claudeProvider, model: "claude-sonnet-5" },
+  ],
 };
 
 // ⚠️ ทำไม Gemini ใช้ Flash ทุกบทบาท (ไม่ใช่ Pro ตามที่ออกแบบไว้ตอนแรก):

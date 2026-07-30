@@ -15,6 +15,10 @@ export const openaiProvider: AiProvider = {
   },
 
   async generate(req: GenerateRequest, model: string): Promise<ProviderOutput> {
+    // 🔴 privacy guard: provider นี้ห้ามรับภาพผู้ใช้ (ดู CANDIDATES.vision ใน index.ts)
+    if (req.imageBase64) {
+      throw new Error("provider นี้ไม่รองรับภาพ — ภาพผู้ใช้ส่งผ่าน Claude เท่านั้น");
+    }
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
