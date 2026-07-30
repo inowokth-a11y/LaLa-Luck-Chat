@@ -18,9 +18,19 @@ test("จับธาตุจากคำขอลวดลาย (สวนผ
   assert.equal(motifElement("ไม่มีลวดลายที่รู้จัก"), null);
 });
 
-test("🔴 ลายกนก = ไฟ (ตั้งค่าไว้ — พลิกได้ในตารางเดียว)", () => {
+test("🔴 กนกคำกว้าง = ไฟ (ตรวจกับที่มาของแม่ลายแล้ว 30 ก.ค. 2569 — หางไหล/เปลวไฟ)", () => {
   assert.equal(MOTIF_TO_ELEMENT["ลายกนก"], "Fire");
   assert.equal(MOTIF_TO_ELEMENT["กนก"], "Fire");
+  assert.equal(motifElement("ลายกระหนก"), "Fire", 'สะกด "กระหนก" (มี ระ) ต้องแมตช์ด้วย — เดิมเป็นบั๊กหลุด');
+  assert.equal(motifElement("กนกเปลว"), "Fire");
+});
+
+test("กนกตระกูลพืช = ไม้ (ใบเทศ/ผักกูด) — คำยาวต้องชนะ 'กนก' ที่เป็น substring", () => {
+  assert.equal(motifElement("ลายกนกใบเทศ"), "Wood", "ใบเทศมาจากใบฝ้ายเทศ = พืช");
+  assert.equal(motifElement("กระหนกผักกูด"), "Wood", "ผักกูดคือยอดเฟิร์น = พืช");
+  assert.equal(motifElement("ลายก้านขด"), "Wood");
+  // คำกว้างที่ไม่ระบุประเภทย่อย ยังเป็นไฟตามแม่ลาย
+  assert.equal(motifElement("ใส่ลายกนกทอง"), "Fire");
 });
 
 test("แบรนด์ธาตุเดียวกับองค์ประกอบ → กลมกลืน (score บวก)", () => {
