@@ -11,10 +11,10 @@
     "target_element": "Fire",
     "user_element": "Fire",
     "object_element": "Wood",
-    "raw_score": -1,
-    "final_score": -1,
+    "raw_score": 2,
+    "final_score": 2,
     "productive_clash": false,
-    "relation_th": "ไม้ ดูดพลังจาก ไฟ (สูบพลัง ควรระวัง)"
+    "relation_th": "ไม้ ให้กำเนิด ไฟ (★บำรุงเรา ดีที่สุด★)"
   },
   "score_thanawat": {
     "name": "ธนวัฒน์",
@@ -22,10 +22,10 @@
     "target_element": "Fire",
     "user_element": "Fire",
     "object_element": "Earth",
-    "raw_score": 2,
-    "final_score": 2,
+    "raw_score": 1,
+    "final_score": 1,
     "productive_clash": false,
-    "relation_th": "ไฟ ให้กำเนิด ดิน (★ส่งเสริมดีที่สุด★)"
+    "relation_th": "ไฟ ให้กำเนิด ดิน (ดีแบบผู้ให้ — เราเป็นฝ่ายส่งพลัง อาจเหนื่อย)"
   },
   "reverse_water": [
     "Rin",

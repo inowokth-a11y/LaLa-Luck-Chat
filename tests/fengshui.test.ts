@@ -62,10 +62,16 @@ test("ธาตุแก้ = ธาตุที่ผู้ใช้ให้�
 });
 
 test("ทิศที่ส่งเสริม → ไม่มีคำแนะนำให้แก้ แต่มีคำแนะนำเสริม", () => {
-  // ไฟให้กำเนิดดิน → ทิศตะวันออกเฉียงเหนือ (ดิน) ส่งเสริมคนธาตุไฟ
-  const r = analyzeFengShui("Fire", [], { direction: "ตะวันออกเฉียงเหนือ", purpose: "bedroom" });
+  // ทาง "ค" (2026-07-30): ไม้บำรุงไฟ → ทิศตะวันออก (ไม้) มงคลที่สุดสำหรับคนธาตุไฟ
+  const r = analyzeFengShui("Fire", [], { direction: "ตะวันออก", purpose: "bedroom" });
   assert.equal(r.aspects[0].result.final_score, 2);
   assert.ok(r.recommendations[0].issue.includes("ไม่พบจุดที่ขัด"));
+});
+
+test("ทาง ค: ทิศที่เราให้กำเนิด (ดิน) = +1 ผู้ให้ ไม่ใช่มงคลสูงสุด และไม่ต้องแก้", () => {
+  const r = analyzeFengShui("Fire", [], { direction: "ตะวันออกเฉียงเหนือ", purpose: "bedroom" });
+  assert.equal(r.aspects[0].result.final_score, 1);
+  assert.ok(r.recommendations[0].issue.includes("ไม่พบจุดที่ขัด"), "ผู้ให้ไม่ใช่ปัญหาที่ต้องแก้");
 });
 
 test("ทิศที่พิฆาต → ต้องมีคำแนะนำวิธีแก้ที่เจาะจง", () => {

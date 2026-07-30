@@ -115,7 +115,7 @@ export function timeEnergyComponent(
   if (!dayEl) {
     return { component: "พลังกาลเวลา", weight: 0.1, score: 0, detail: "ไม่ทราบวันที่ถาม" };
   }
-  const res = wuXingScore(dayEl, dominant, [...missing]);
+  const res = wuXingScore(dominant, dayEl, [...missing]);
   return {
     component: "พลังกาลเวลา",
     weight: 0.1,
@@ -138,7 +138,7 @@ export function otherInfluencesComponent(
     .filter((r): r is { type: LayerType; el: Element5 } => r.el !== null);
   if (resolved.length === 0) return { ...base, score: 0, detail: "เลเยอร์ที่เลือกยังกรอกข้อมูลไม่ครบ" };
 
-  const scored = resolved.map((r) => ({ ...r, res: wuXingScore(r.el, dominant, [...missing]) }));
+  const scored = resolved.map((r) => ({ ...r, res: wuXingScore(dominant, r.el, [...missing]) }));
   const avg = scored.reduce((a, s) => a + s.res.final_score, 0) / scored.length;
   return {
     ...base,
@@ -157,7 +157,7 @@ export function cardComponent(
   // ใช้ "เลขหลักหน่วย" ของการ์ดเป็นตัวกำหนดธาตุ (ตาม CLAUDE.md §3 Logic 21)
   const unitsDigit = parseInt(cardId[cardId.length - 1], 10);
   const cardEl = el5(unitsDigit);
-  const res = wuXingScore(cardEl, dominant, [...missing]);
+  const res = wuXingScore(dominant, cardEl, [...missing]);
   return { component: label, weight, score: res.final_score, cardElement: cardEl, detail: res.relation_th };
 }
 
@@ -223,15 +223,10 @@ export function computeCombinedReading(params: {
 }
 
 // ---------------------------------------------------------------------------
-// ⚠️ ข้อสังเกตที่พบตอนพอร์ต — ยังไม่แก้ รอเจ้าของระบบตัดสิน
+// ✅ 2026-07-30 — แก้ด้านอาร์กิวเมนต์แล้ว (ผู้ใช้ตัดสินพร้อมทาง "ค" ของ wuXingScore)
 // ---------------------------------------------------------------------------
-// ทุกองค์ประกอบเรียก `wuXingScore(อีกฝ่าย, dominant, missing)` คือเอา **ธาตุเด่นของผู้ใช้
-// เป็น "วัตถุ"** และเอาธาตุอื่นเป็น "ผู้ใช้" ซึ่งกลับด้านกับหน้า /compatibility
-//
-// ผลที่ตามมา: เงื่อนไข Productive Clash คือ `missing.includes(objectElement)` แต่ object
-// ในที่นี้คือ `dominant` ซึ่ง**ไม่มีวันอยู่ใน missing** (ธาตุเด่นคือธาตุที่คะแนนสูงสุด
-// ส่วน missing คือธาตุที่คะแนนเป็นศูนย์) → **Productive Clash ไม่มีทางทำงานในหน้าเสี่ยงทายเลย**
-//
-// พอร์ตตามต้นฉบับไว้ก่อนตามที่ผู้ใช้สั่งให้ทำตามไฟล์แนบ — มีเทสต์ล็อกพฤติกรรมนี้ไว้
-// ถ้าจะแก้ให้ Productive Clash ทำงาน ต้องสลับเป็น `wuXingScore(dominant, อีกฝ่าย, missing)`
-// ซึ่งจะเปลี่ยนคะแนนทั้งหมด — เป็นการตัดสินใจระดับ §4 ต้องถามก่อน
+// HTML ต้นฉบับเรียก `wuXingScore(อีกฝ่าย, dominant, missing)` (ธาตุเด่นของผู้ใช้เป็น "วัตถุ")
+// ทำให้เงื่อนไข Productive Clash `missing.includes(objectElement)` เช็คกับ dominant ซึ่ง
+// ไม่มีวันอยู่ใน missing → Clash ไม่มีทางทำงานเลย
+// ตอนนี้ทุกองค์ประกอบเรียก `wuXingScore(dominant, อีกฝ่าย, missing)` เหมือน /compatibility
+// → มุมมองเดียวทั้งระบบ และการ์ด/วัน/เลเยอร์ที่เป็น "ธาตุที่ผู้ใช้ขาด" พลิกเป็นยาได้จริง

@@ -227,13 +227,18 @@ export function wuXingScore(
     rawScore = 1;
     relation = "ธาตุเดียวกัน (กลมกลืน)";
   } else {
+    // 🔴 2026-07-30 — แกน "ให้กำเนิด" ถูกแก้โดยเจตนา (จงใจต่างจาก Calculation Manual สมการ 2):
+    // ต้นฉบับให้ เราให้กำเนิดเขา=+2 / เขาให้กำเนิดเรา=−1 ("ดูดพลัง") ซึ่งกลับด้านกับหลักเบญจธาตุ
+    // (木生火 ไม้บำรุงไฟ ต้องเป็นคุณกับเรา) และป้ายขัดแย้งกับตัวเอง — ผู้ใช้เลือกทาง "ค":
+    // เขาให้กำเนิดเรา=+2 (印 บำรุง) · เราให้กำเนิดเขา=+1 (ผู้ให้ — ไม่ให้ −1 ตาม 泄 เพราะระบบ
+    // ไม่ได้คำนวณกำลังวันเกิด 身強/身弱 จึงไม่เคลมเกินข้อมูล) · ต้องแก้คู่กับ kruth_element_engine.py เสมอ
     const dist = cycleDistance(userElement, objectElement);
     if (dist === 1) {
-      rawScore = 2;
-      relation = `${THAI_LABEL_5[userElement]} ให้กำเนิด ${THAI_LABEL_5[objectElement]} (★ส่งเสริมดีที่สุด★)`;
+      rawScore = 1;
+      relation = `${THAI_LABEL_5[userElement]} ให้กำเนิด ${THAI_LABEL_5[objectElement]} (ดีแบบผู้ให้ — เราเป็นฝ่ายส่งพลัง อาจเหนื่อย)`;
     } else if (dist === 4) {
-      rawScore = -1;
-      relation = `${THAI_LABEL_5[objectElement]} ดูดพลังจาก ${THAI_LABEL_5[userElement]} (สูบพลัง ควรระวัง)`;
+      rawScore = 2;
+      relation = `${THAI_LABEL_5[objectElement]} ให้กำเนิด ${THAI_LABEL_5[userElement]} (★บำรุงเรา ดีที่สุด★)`;
     } else if (dist === 2) {
       rawScore = -2;
       relation = `${THAI_LABEL_5[userElement]} พิฆาต ${THAI_LABEL_5[objectElement]} (⚠️พิฆาต)`;

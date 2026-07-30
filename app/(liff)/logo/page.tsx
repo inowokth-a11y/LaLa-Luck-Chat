@@ -86,7 +86,7 @@ function userElementFrom(birthDate?: string | null): { dominant: Element5; missi
 /** ป้ายคะแนนความเข้ากัน */
 function harmonyBadge(score: number): { emoji: string; text: string; color: string } {
   if (score >= 2) return { emoji: "★", text: "เสริมคุณมาก", color: "var(--good,#2f6b3f)" };
-  if (score === 1) return { emoji: "◎", text: "กลมกลืน", color: "var(--gold)" };
+  if (score === 1) return { emoji: "◎", text: "เข้ากันดี", color: "var(--gold)" }; // ธาตุเดียวกัน หรือเราเป็นผู้ให้ (ทาง ค)
   if (score === 0) return { emoji: "–", text: "กลาง", color: "var(--text-dim,#6b6255)" };
   if (score === -1) return { emoji: "▽", text: "สูบพลัง", color: "var(--text-dim,#6b6255)" };
   return { emoji: "⚠", text: "พิฆาต", color: "var(--bad,#a83a1e)" };

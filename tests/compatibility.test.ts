@@ -49,10 +49,16 @@ test("ยังไม่มี entity → ไม่มีคะแนน ไม�
 });
 
 test("entity ที่ส่งเสริมล้วน → คะแนนสูง", () => {
-  // ไฟให้กำเนิดดิน (dist 1) = +2 เต็ม → 100
-  const r = aggregateScore([ent({ element: "Earth" })], "Fire", []);
+  // ทาง "ค" (2026-07-30): ไม้ให้กำเนิดไฟ = บำรุงเรา +2 เต็ม → 100
+  const r = aggregateScore([ent({ element: "Wood" })], "Fire", []);
   assert.equal(r.score, 100);
   assert.equal(r.tone, "good");
+});
+
+test("ทาง ค: entity ที่เราให้กำเนิด (ผู้ให้) = +1 → 75 ไม่ใช่คะแนนเต็ม", () => {
+  // ไฟให้กำเนิดดิน = ดีแบบผู้ให้ +1 → (1+2)/4×100 = 75
+  const r = aggregateScore([ent({ element: "Earth" })], "Fire", []);
+  assert.equal(r.score, 75);
 });
 
 test("entity ที่พิฆาตล้วน → คะแนนต่ำ", () => {
@@ -70,7 +76,7 @@ test("Productive Clash — ธาตุที่ขาดพลิกคะแ�
 });
 
 test("shared ถ่วงน้ำหนัก 1.5 เท่า — ตัวที่อยู่ด้วยทุกวันมีผลมากกว่า", () => {
-  const good: Entity = ent({ id: 1, element: "Earth" }); // +2 กับ Fire
+  const good: Entity = ent({ id: 1, element: "Wood" }); // +2 กับ Fire (ไม้บำรุงไฟ — ทาง ค)
   const bad: Entity = ent({ id: 2, element: "Metal" }); // -2 กับ Fire
 
   const even = aggregateScore([good, bad], "Fire", []);

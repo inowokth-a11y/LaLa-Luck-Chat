@@ -283,10 +283,10 @@
   "wuxing_generate": {
     "user_element": "Wood",
     "object_element": "Fire",
-    "raw_score": 2,
-    "final_score": 2,
+    "raw_score": 1,
+    "final_score": 1,
     "productive_clash": false,
-    "relation_th": "ไม้ ให้กำเนิด ไฟ (★ส่งเสริมดีที่สุด★)"
+    "relation_th": "ไม้ ให้กำเนิด ไฟ (ดีแบบผู้ให้ — เราเป็นฝ่ายส่งพลัง อาจเหนื่อย)"
   },
   "wuxing_same": {
     "user_element": "Fire",
@@ -299,10 +299,10 @@
   "wuxing_drain": {
     "user_element": "Fire",
     "object_element": "Wood",
-    "raw_score": -1,
-    "final_score": -1,
+    "raw_score": 2,
+    "final_score": 2,
     "productive_clash": false,
-    "relation_th": "ไม้ ดูดพลังจาก ไฟ (สูบพลัง ควรระวัง)"
+    "relation_th": "ไม้ ให้กำเนิด ไฟ (★บำรุงเรา ดีที่สุด★)"
   },
   "wuxing_overcome_metal": {
     "user_element": "Fire",

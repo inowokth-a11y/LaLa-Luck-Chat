@@ -188,17 +188,25 @@ test("การ์ดใบที่ 2 (เรื่องที่ถาม) �
   assert.ok(w["การ์ดใบที่ 2 (เรื่องที่ถาม)"] > w["การ์ดใบที่ 1 (ตัวคุณ)"]);
 });
 
-test("🔴 ข้อสังเกตที่ล็อกไว้ — Productive Clash ไม่ทำงานในหน้าเสี่ยงทาย", () => {
-  // ต้นฉบับเรียก wuXingScore(อีกฝ่าย, dominant, missing) → object คือ dominant
-  // ซึ่งไม่มีวันอยู่ใน missing → เงื่อนไข clash จึงไม่มีทางเป็นจริง
-  // เทสต์นี้ล็อกพฤติกรรมไว้ ถ้าวันหนึ่งแก้ให้ clash ทำงานจะได้รู้ตัวว่ากำลังเปลี่ยนคะแนนทั้งระบบ
+test("✅ Productive Clash ทำงานในหน้าเสี่ยงทายแล้ว (แก้ด้านอาร์กิวเมนต์ 2026-07-30)", () => {
+  // เดิม HTML ต้นฉบับเรียก wuXingScore(อีกฝ่าย, dominant, missing) → clash ไม่มีทางเป็นจริง
+  // ผู้ใช้ตัดสินให้แก้เป็น wuXingScore(dominant, อีกฝ่าย, missing) พร้อมทาง "ค" —
+  // การ์ดธาตุน้ำ (เลขท้าย 4) กับผู้ใช้ไฟที่ขาดน้ำ ต้องพลิกจากพิฆาตเป็นยา (+2)
   const withMissing = computeCombinedReading({
     card1Id: "44", card2Id: "44", dominant: "Fire", missing: ["Water"], dayOfWeek: "อังคาร", boundLayers: {},
   });
   const cards = withMissing.components.filter((c) => c.component.startsWith("การ์ด"));
+  assert.ok(cards.length >= 2);
   for (const c of cards) {
-    assert.ok(!/Productive Clash/.test(c.detail), "ยังไม่ควรมี clash ในเวอร์ชันที่พอร์ตตามต้นฉบับ");
+    assert.ok(/Productive Clash/.test(c.detail), "ธาตุที่ขาดต้องพลิกเป็นยา");
+    assert.equal(c.score, 2);
   }
+  // ไม่มีธาตุขาด → การ์ดน้ำ×ผู้ใช้ไฟ ยังเป็นพิฆาตตามปกติ
+  const without = computeCombinedReading({
+    card1Id: "44", card2Id: "44", dominant: "Fire", missing: [], dayOfWeek: "อังคาร", boundLayers: {},
+  });
+  const c2 = without.components.filter((c) => c.component.startsWith("การ์ด"));
+  for (const c of c2) assert.equal(c.score, -2);
 });
 
 test("ทุกประเภทเลเยอร์มีป้ายชื่อภาษาไทย", () => {

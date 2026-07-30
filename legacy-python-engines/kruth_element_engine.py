@@ -220,13 +220,18 @@ def wu_xing_score(user_element: Element5, object_element: Element5,
     """
     Equation 2 (relationship score) + Equation 3 (Productive Clash override).
 
-    Score meanings (from A=user_element's perspective acting on B=object_element):
-        +1  same element             (กลมกลืน)
-        +2  A generates B            (ส่งเสริมดีที่สุด)
-        -1  B drains A (B generates A, i.e. A feeds B... doc: "B ดูดพลังจาก A")
-        -2  A overcomes B            (พิฆาต)
+    Score meanings (from A=user_element's perspective):
+        +2  B generates A            (印 บำรุงเรา — ดีที่สุด)
+        +1  same element (กลมกลืน) / A generates B (ดีแบบผู้ให้ อาจเหนื่อย)
+        -2  overcoming either way    (พิฆาต)
          0  no direct relation (not applicable in a full 5-cycle — every pair
              has a defined generating/overcoming relation)
+
+    2026-07-30 — ทิศแกน "ให้กำเนิด" ถูกแก้โดยเจตนา (ต่างจาก Calculation Manual สมการ 2):
+    ต้นฉบับให้ A-generates-B = +2 และ B-generates-A = -1 ("B ดูดพลังจาก A") ซึ่งกลับด้าน
+    กับหลักเบญจธาตุ (木生火 = ไม้บำรุงไฟ ต้องเป็นคุณกับ A) และป้ายขัดแย้งกับตัวเอง
+    ผู้ใช้เลือกทาง "ค": B-generates-A = +2 (印 บำรุง) · A-generates-B = +1 (ผู้ให้ —
+    ไม่ให้ -1 ตามตำรา 泄 เพราะระบบไม่ได้คำนวณกำลังวันเกิด (身強/身弱) จึงไม่เคลมเกินข้อมูล)
 
     Equation 3 Productive Clash: if the raw relationship is -2 (overcome) AND
     object_element is one of the user's missing elements, flip the score to +2
@@ -240,9 +245,9 @@ def wu_xing_score(user_element: Element5, object_element: Element5,
     else:
         dist = _cycle_distance(user_element, object_element)
         if dist == 1:
-            raw_score, relation = 2, f"{THAI_LABEL_5[user_element]} ให้กำเนิด {THAI_LABEL_5[object_element]} (★ส่งเสริมดีที่สุด★)"
+            raw_score, relation = 1, f"{THAI_LABEL_5[user_element]} ให้กำเนิด {THAI_LABEL_5[object_element]} (ดีแบบผู้ให้ — เราเป็นฝ่ายส่งพลัง อาจเหนื่อย)"
         elif dist == 4:
-            raw_score, relation = -1, f"{THAI_LABEL_5[object_element]} ดูดพลังจาก {THAI_LABEL_5[user_element]} (สูบพลัง ควรระวัง)"
+            raw_score, relation = 2, f"{THAI_LABEL_5[object_element]} ให้กำเนิด {THAI_LABEL_5[user_element]} (★บำรุงเรา ดีที่สุด★)"
         elif dist == 2:
             raw_score, relation = -2, f"{THAI_LABEL_5[user_element]} พิฆาต {THAI_LABEL_5[object_element]} (⚠️พิฆาต)"
         elif dist == 3:
@@ -503,9 +508,12 @@ if __name__ == "__main__":
     assert r2["final_score"] == 2 and r2["productive_clash"]
 
     # Generating case: Wood generates Fire (+2)
+    # ทาง "ค" (2026-07-30): เราให้กำเนิดเขา = +1 (ผู้ให้) · เขาให้กำเนิดเรา = +2 (บำรุง)
     r3 = wu_xing_score("Wood", "Fire")
     print(json.dumps(r3, ensure_ascii=False, indent=2))
-    assert r3["final_score"] == 2
+    assert r3["final_score"] == 1
+    r3b = wu_xing_score("Fire", "Wood")
+    assert r3b["final_score"] == 2
 
     print()
     print("=" * 70)
