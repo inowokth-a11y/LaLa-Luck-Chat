@@ -9,6 +9,7 @@ import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/cha
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { isFalAvailable, falLabelArtwork, type LabelOrientation } from "@/lib/image/fal";
 import { storeLogoImage } from "@/lib/image/store";
+import { logImageGeneration } from "@/lib/image/generation-log";
 import { motifElement, scoreLabelComposition, LABEL_COMPOSITION_CAVEAT } from "@/lib/engine/label";
 import { THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { ELEMENT_TO_COLORS } from "@/lib/engine/fengshui";
@@ -98,6 +99,20 @@ export async function POST(req: Request) {
     const image = await falLabelArtwork(prompt, orientation);
     const storedUrl = await storeLogoImage(user.id, image.url, image.contentType);
     const imageUrl = storedUrl ?? image.url;
+
+    // เก็บ metadata การสร้าง (fire-and-forget) — ให้วิเคราะห์ย้อนหลังได้โดยไม่ต้องใช้ AI อ่านภาพ
+    void logImageGeneration({
+      authUid: user.id,
+      kind: "label_artwork",
+      imageUrl,
+      stored: storedUrl !== null,
+      prompt,
+      brandElement,
+      motif: motif || undefined,
+      motifElement: motifEl,
+      orientation,
+      composition,
+    });
 
     // หักหลังสำเร็จเท่านั้น — เส้นฟรี bump โควตา · เส้นเครดิต spend_credits
     let nowUsed = used;

@@ -7,8 +7,9 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
+import { THAI_LABEL_5, wuXingScore, type Element5 } from "@/lib/engine/element";
 import { motifElement, scoreLabelComposition, recommendForBrand } from "@/lib/engine/label";
+import { analyzeImagePixels, COLOR_ANALYSIS_CAVEAT, type ColorAnalysis } from "@/lib/engine/color-analysis";
 
 const EL_COLOR: Record<string, string> = { Wood: "#2f5c42", Fire: "#a83a1e", Earth: "#a97c1f", Metal: "#6b6255", Water: "#1f4d63" };
 
@@ -28,6 +29,45 @@ const DPI = 300;
 const mmToPx = (mm: number) => Math.round((mm / 25.4) * DPI);
 const MAX_PX = 2400; // กันภาพใหญ่เกิน
 
+/** โหลดภาพ → ย่อ ≤64px → อ่านพิกเซล → สัดส่วนธาตุ (คณิตศาสตร์ล้วน ฟรี ไม่เรียก AI) */
+async function analyzeImageSrc(src: string): Promise<ColorAnalysis> {
+  const img = await new Promise<HTMLImageElement>((res, rej) => {
+    const im = new Image();
+    im.crossOrigin = "anonymous"; // ผ่านพร็อกซี/objectURL → canvas ไม่ taint
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error("โหลดรูปไม่สำเร็จ"));
+    im.src = src;
+  });
+  const c = document.createElement("canvas");
+  const s = Math.min(1, 64 / Math.max(img.width, img.height, 1));
+  c.width = Math.max(1, Math.round(img.width * s));
+  c.height = Math.max(1, Math.round(img.height * s));
+  const ctx = c.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return analyzeImagePixels(ctx.getImageData(0, 0, c.width, c.height).data);
+}
+
+/** การ์ดสรุปสัดส่วนธาตุจากสีจริงในภาพ + ความเข้ากันกับธาตุแบรนด์ */
+function ColorMixCard({ title, res, brandEl }: { title: string; res: ColorAnalysis; brandEl: Element5 }) {
+  if (!res.dominant) return null;
+  // ไม่รู้ธาตุที่แบรนด์ขาดในหน้านี้ → ส่ง [] (ไม่ตัดสิน Productive Clash)
+  const rel = wuXingScore(brandEl, res.dominant, []);
+  const tone = rel.final_score >= 1 ? "var(--good,#2f6b3f)" : rel.final_score < 0 ? "var(--bad,#a83a1e)" : "var(--text-dim,#6b6255)";
+  return (
+    <div style={{ fontSize: "0.78rem", lineHeight: 1.6, border: "1px dashed var(--gold-dim,#a89870)", borderRadius: 8, padding: "0.6rem 0.8rem" }}>
+      <strong>{title}</strong>
+      <br />
+      {res.elements.slice(0, 3).map((e) => `${e.element_th} ${Math.round(e.share * 100)}%`).join(" · ")}
+      <br />
+      <span style={{ color: tone }}>
+        {rel.final_score >= 1 ? "✓" : rel.final_score < 0 ? "⚠️" : "•"} ธาตุเด่นในภาพ ({THAI_LABEL_5[res.dominant]}) — {rel.relation_th}
+      </span>
+      <br />
+      <span style={{ color: "var(--text-dim,#6b6255)", fontSize: "0.72rem" }}>{COLOR_ANALYSIS_CAVEAT}</span>
+    </div>
+  );
+}
+
 function LabelComposer() {
   const params = useSearchParams();
   const logoUrl = params.get("logo") ?? "";
@@ -43,6 +83,9 @@ function LabelComposer() {
   const [bgError, setBgError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [bgColors, setBgColors] = useState<ColorAnalysis | null>(null);
+  const [imported, setImported] = useState<{ name: string; res: ColorAnalysis } | null>(null);
+  const [importErr, setImportErr] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const size = useMemo(() => SIZES.find((s) => s.key === sizeKey)!, [sizeKey]);
@@ -58,6 +101,30 @@ function LabelComposer() {
     return { motifEl: mEl, comp: r.components[0] };
   }, [motif, el]);
   const recs = useMemo(() => recommendForBrand(el, []).slice(0, 3), [el]);
+
+  // QA พื้นหลัง AI: อ่าน "สีที่ Recraft วาดจริง" (อาจแถมเกินคำสั่ง) — ฟรี ไม่เรียก AI
+  useEffect(() => {
+    if (!bgProxied) {
+      setBgColors(null);
+      return;
+    }
+    let live = true;
+    analyzeImageSrc(bgProxied)
+      .then((r) => { if (live) setBgColors(r); })
+      .catch(() => { /* วิเคราะห์ไม่ได้ไม่ใช่เรื่องคอขาดบาดตาย — ไม่ต้องรบกวนผู้ใช้ */ });
+    return () => { live = false; };
+  }, [bgProxied]);
+
+  function onImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setImportErr(null);
+    const url = URL.createObjectURL(f);
+    analyzeImageSrc(url)
+      .then((r) => setImported({ name: f.name, res: r }))
+      .catch((err) => setImportErr(err instanceof Error ? err.message : String(err)))
+      .finally(() => URL.revokeObjectURL(url));
+  }
 
   async function genArtwork() {
     if (bgBusy) return;
@@ -215,6 +282,20 @@ function LabelComposer() {
         </button>
         {bgUrl && <button type="button" style={{ ...S.chip, alignSelf: "flex-start" }} onClick={() => setBgUrl(null)}>เอาพื้นหลังออก (กลับเป็นพื้นเรียบ)</button>}
         {bgError && <p style={S.warn}>⚠️ {bgError}</p>}
+        {bgUrl && bgColors && <ColorMixCard title="🎨 สีที่ AI วาดออกมาจริง (ตรวจสอบงาน)" res={bgColors} brandEl={el} />}
+      </div>
+
+      {/* นำเข้ารูปฉลาก/โลโก้ที่มีอยู่แล้ว → วิเคราะห์สี (คณิตศาสตร์ล้วน ไม่เรียก AI ไม่อัปโหลดขึ้น server) */}
+      <div style={S.form}>
+        <label style={S.label}>นำเข้าฉลาก/โลโก้ที่มีอยู่ — วิเคราะห์ธาตุจากสี (ฟรี)</label>
+        <input type="file" accept="image/*" onChange={onImportFile} style={{ fontSize: "0.85rem" }} />
+        <p style={{ fontSize: "0.72rem", color: "var(--text-dim,#6b6255)", lineHeight: 1.5, margin: 0 }}>
+          วิเคราะห์ในเครื่องของคุณ ไม่มีการอัปโหลดรูปขึ้นระบบ · การอ่าน &ldquo;ลวดลาย&rdquo; ด้วย AI จะเปิดให้ใช้ภายหลัง
+        </p>
+        {importErr && <p style={S.warn}>⚠️ {importErr}</p>}
+        {imported && (imported.res.dominant
+          ? <ColorMixCard title={`📥 ${imported.name}`} res={imported.res} brandEl={el} />
+          : <p style={S.warn}>อ่านสีจากรูปนี้ไม่ได้ (ภาพโปร่งใสทั้งหมด?)</p>)}
       </div>
 
       {error && <p style={S.warn}>⚠️ {error}</p>}

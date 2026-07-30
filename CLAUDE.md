@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 321/321 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 330/330 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -1219,7 +1219,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 321/321
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 330/330
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1227,8 +1227,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 321/321
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **321 tests** · tsc + build ผ่าน (30 ก.ค. — รวมทาง "ค" wuXingScore) |
-| Supabase | ✅ **migration 000-027** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
+| Engine + ทุกฟีเจอร์ | ✅ **330 tests** · tsc + build ผ่าน (30 ก.ค. — รวมทาง "ค" wuXingScore) |
+| Supabase | ✅ **migration 000-028** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
@@ -1254,6 +1254,24 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 321/321
    ทดลองคำนวณจริง 3 ทาง (สกอร์การ์ด ก 1/6 · ข 5/6 · ค 6/6) → เขาให้กำเนิดเรา=+2 · เราให้กำเนิดเขา=+1
    แก้ครบ .py/.ts/fixtures/oracle-args (§14) · เทสต์ 321 ผ่าน · ตรวจ browser หน้า fengshui แล้ว
 3. **จูนฉลาก**: prompt Recraft ให้ดันลายไปขอบมากขึ้น (บางทีลายเด่นกลาง-ขวาทับข้อความ) · ระดับพิมพ์ (PDF/bleed/CMYK)
+
+3.5 **✅ วิเคราะห์ธาตุจากรูปภาพ เฟส 1 — เสร็จ 30 ก.ค. 2569 (ตกลงหลักการกับผู้ใช้แล้ว):**
+   หลักการ 2 ชั้น: **ชั้นสี = คณิตศาสตร์ล้วน ฿0** (ทำแล้ว) · **ชั้นลวดลาย/รูปทรง = vision AI** (เฟสถัดไป)
+   🔴 เส้นแบ่งเดิม §16 ใช้กับภาพด้วย: vision **จำแนก**เป็น enum เท่านั้น → engine คำนวณ —
+   ห้ามใช้ "AI อีกตัวคำนวณธาตุ" และ**ไม่ใช้ Google Cloud Vision** (label อังกฤษกว้าง ไม่รู้จักลายไทย —
+   ใช้ vision ของ Gemini/Claude ผ่าน `lib/ai/` เดิมได้ fallback+cost log ฟรี)
+   - `lib/engine/color-analysis.ts` (8 เทสต์): พิกเซล RGBA → สีไทยใกล้สุด (redmean distance,
+     28 anchors ตรวจ sync กับ `COLOR_TO_ELEMENT` ตอน import) → สัดส่วนธาตุ · ข้ามพิกเซลโปร่งใส
+     · caveat ทอง/ดินใกล้กันเป็นการประมาณ
+   - หน้า `/label`: (1) การ์ด "สีที่ AI วาดออกมาจริง" QA พื้นหลัง Recraft อัตโนมัติ
+     (2) **นำเข้ารูปฉลาก/โลโก้ภายนอก → วิเคราะห์สีในเครื่อง ไม่อัปโหลดขึ้น server** —
+     ตรวจ browser จริง: ภาพแดง70/น้ำเงิน30 → "ไฟ 70% · น้ำ 30%" + wuXingScore กับธาตุแบรนด์
+   - `migration 028` (รันบน prod, verify RLS แล้ว): `image_generation_log_e` เก็บ metadata
+     ทุกการ gen (โลโก้/ฉลาก: prompt/ธาตุ/ลวดลาย/composition ค่าตายตัว ณ เวลาสร้าง) ผ่าน
+     `lib/image/generation-log.ts` (fire-and-forget) → **ฉลากจากระบบเราวิเคราะห์ย้อนหลังได้ฟรี
+     ไม่ต้องใช้ AI อ่านภาพ** · ⚠️ ตาราง log ยังไม่มีหน้า UI แสดง (ดูผ่าน admin/SQL ไปก่อน)
+   ⬜ เฟสถัดไป: vision จำแนกลวดลาย (enum จาก MOTIF/SHAPE_TO_ELEMENT + confidence + validate
+   แบบ `validateAiClassification`) เป็นฟีเจอร์เครดิต ~1-2 เครดิต · เริ่มจากภาพนำเข้าใน /label
 4. ~~ลายกนก = ไฟ หรือ ไม้~~ — ✅ **ค้นแหล่งอ้างอิงศิลปะไทยแล้วตัดสิน 30 ก.ค. 2569** (label.ts):
    กนกเป็น**ตระกูลลาย** — แม่ลายมาจาก "หางไหล" (ลักษณะเปลวไฟ) → คำกว้าง "กนก/กระหนก" = **ไฟ** ·
    ประเภทย่อยจากพืชแยกเป็น**ไม้** (กนกใบเทศ=ใบฝ้ายเทศ · กนกผักกูด=ยอดเฟิร์น · ก้านขด) ·

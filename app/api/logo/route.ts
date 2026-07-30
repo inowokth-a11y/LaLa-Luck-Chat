@@ -14,6 +14,7 @@ import { isFalAvailable, falLogoPreview, falLogoVector } from "@/lib/image/fal";
 import { logoImagePrompt } from "@/lib/engine/naming";
 import { wuXingScore, type Element5 } from "@/lib/engine/element";
 import { storeLogoImage } from "@/lib/image/store";
+import { logImageGeneration } from "@/lib/image/generation-log";
 
 export const runtime = "nodejs";
 export const maxDuration = 120; // Recraft อาจใช้เวลาหลายวินาที
@@ -107,6 +108,18 @@ export async function POST(req: Request) {
     // เก็บลง Supabase Storage ให้ถาวร (URL fal ชั่วคราว) — ล้มเหลวใช้ URL fal แทน
     const storedUrl = await storeLogoImage(user.id, image.url, image.contentType);
     const imageUrl = storedUrl ?? image.url;
+
+    // เก็บ metadata การสร้าง (fire-and-forget) — ให้วิเคราะห์ย้อนหลังได้โดยไม่ต้องใช้ AI อ่านภาพ
+    void logImageGeneration({
+      authUid: user.id,
+      kind: variant === "vector" ? "logo_vector" : "logo_preview",
+      imageUrl,
+      stored: storedUrl !== null,
+      prompt,
+      brandName,
+      brandElement: logoElement,
+      composition: harmony,
+    });
 
     // หักหลังสำเร็จเท่านั้น — เส้นฟรี bump โควตา · เส้นเครดิต spend_credits
     let nowUsed = used;
