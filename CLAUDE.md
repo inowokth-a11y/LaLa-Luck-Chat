@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 339/339 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 343/343 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -1219,7 +1219,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 339/339
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 343/343
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1227,7 +1227,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 339/339
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **339 tests** · tsc + build ผ่าน (30 ก.ค. — รวมทาง "ค" wuXingScore) |
+| Engine + ทุกฟีเจอร์ | ✅ **343 tests** · tsc + build ผ่าน (30 ก.ค. — รวม gate oracle/dream + Segmenter แคช + /wellness) |
 | Supabase | ✅ **migration 000-029** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
@@ -1294,8 +1294,22 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 339/339
    ประเภทย่อยจากพืชแยกเป็น**ไม้** (กนกใบเทศ=ใบฝ้ายเทศ · กนกผักกูด=ยอดเฟิร์น · ก้านขด) ·
    แก้บั๊กแถม 2 จุด: สะกด "กระหนก" ไม่เคยแมตช์ · `motifElement` จับคำยาวสุดก่อน (เดิมคำสั้นตัดหน้า)
    ("กนก"=ทอง เป็นแค่รากศัพท์ของชื่อ ไม่ใช่รูปทรง — จัดธาตุตามรูปทรง/ที่มาของลาย)
-5. **Logic ที่ยังไม่ทำ**: 5,6 (Vision) · 12,16 (มีตารางไม่มีหน้า) · 13,15,17 — ดูจาก `chat_question_log` (คำถาม unclear) ว่าผู้ใช้อยากได้อะไรจริง
-6. **dream matching → Intl.Segmenter ทุกจุด** · **ลัคนายังไม่ตรวจกับดวงจริง** (§5.2 หนี้ความถูกต้อง)
+5. **Logic ที่ยังไม่ทำ**: 5,6 (Vision — โครง vision ของ label ช่วยได้แต่ติด PDPA/consent) · 13,15,17
+   — ดูจาก `chat_question_log` (คำถาม unclear) ว่าผู้ใช้อยากได้อะไรจริง
+   ✅ **12,16 เสร็จแล้ว 30 ก.ค. 2569** — หน้า `/wellness` (LIFF ครบ 7 หน้า): วันเกิด → Element Seed
+   → ธาตุขาด → TTM (รส/อาหาร/สี/กิจกรรม) + wellness pair (ภายใน/ภายนอก/กิจวัตร/เวลา+งานวิจัย)
+   ต่อ LIFF_PATHS 12/16→/wellness (LINE "กินอะไรดี"→ปุ่มเปิดหน้า) · FRAMING_CAVEAT แสดงเสมอ ·
+   ธาตุครบ 4 → โชว์กิจวัตรธาตุเด่นแทน · ฿0 ไม่ใช้ AI · ตรวจ browser จริงแล้ว
+6. ~~dream matching → Intl.Segmenter ทุกจุด~~ ✅ **เสร็จ 30 ก.ค. 2569** — แคช AI-1 เลิก substring:
+   ใช้ **phraseAtWordBoundaries** (substring ที่หัว-ท้ายตรงขอบ segment) ทั้ง engine+แคช เพราะพบว่า
+   คำในแคชเป็นคำทับศัพท์นอกพจนานุกรม ICU โดยธรรมชาติ ("โดรน" ในประโยค→โด|รน) เทียบลำดับ token
+   แล้ว false-negative = จ่าย AI-1 ฿7.46 ซ้ำ — วิธีขอบ segment ทน OOV และยังกัน "ข้าม" ใน "เข้ามา"
+   · **ลัคนายังไม่ตรวจกับดวงจริง** (§5.2 หนี้ความถูกต้อง — ต้องขอดวงจริง 2-3 ดวงจากผู้ใช้)
+7. ✅ **gate ล็อกอิน oracle/dream — เสร็จ 30 ก.ค. 2569 (ผู้ใช้ตัดสิน):** ปิดรูรั่วโควตา cookie
+   (ล้างแล้วได้ใหม่) ของสองหน้าที่แพงสุด — ลำดับ: Safety Gate ก่อนเสมอ (คนวิกฤตได้สายด่วนโดย
+   ไม่ติดล็อกอิน) → 401 needsLogin (UI มีปุ่มไป /login?next=...) → ฟรี 2 ครั้ง/คน นับที่ DB
+   (bucket logic:4/21) → เครดิต 2/ครั้ง หักหลังสำเร็จ · LINE webhook ไม่กระทบ (สายแยก)
+   ⚠️ เส้นล็อกอิน+หักเครดิตจริงบนเว็บยังไม่ได้ทดสอบ (ต้องมี session)
 
 ### ก่อน commit ทุกครั้ง
 

@@ -12,6 +12,8 @@ export const LIFF_PATHS: Record<number, string> = {
   9: "/fortune",
   10: "/fortune",
   11: "/fortune",
+  12: "/wellness", // อาหาร/สุขภาพ + กิจกรรม (หน้าเดียวกัน — 30 ก.ค. 2569)
+  16: "/wellness",
   20: "/compatibility",
   21: "/oracle",
 };

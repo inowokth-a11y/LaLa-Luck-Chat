@@ -35,7 +35,7 @@ test("Logic ที่มีหน้า LIFF → ส่งปุ่มพร้�
 });
 
 test("ทุก path ของ LIFF ชี้ไปหน้าที่มีจริงในโปรเจกต์", () => {
-  const existing = ["/profile", "/fortune", "/dream", "/oracle", "/compatibility", "/fengshui"];
+  const existing = ["/profile", "/fortune", "/dream", "/oracle", "/compatibility", "/fengshui", "/wellness"];
   for (const [id, path] of Object.entries(LIFF_PATHS)) {
     assert.ok(existing.includes(path), `logic ${id} ชี้ไป ${path} ซึ่งไม่มีหน้าอยู่จริง`);
   }
@@ -56,13 +56,21 @@ test("Logic 18 (fallback) → แนะนำเมนู ไม่ใช่แ�
   assert.ok((msgs[0] as { text: string }).text.includes("ทำนายฝัน"));
 });
 
-test("Logic ที่ยังไม่ทำ → บอกตรงๆ ว่ายังไม่เปิด ไม่แต่งคำตอบ", () => {
+test("✅ Logic 12 เปิดแล้ว (30 ก.ค. 2569) → ส่งปุ่มเปิดหน้า /wellness", () => {
   const route = { ...routeByKeyword("กินอะไรดี") };
   assert.equal(route.logic_id, 12);
   const msgs = buildReply(route, BASE)!;
+  const m = msgs[0] as { type: string; template?: { actions?: Array<{ uri?: string }> } };
+  assert.equal(m.type, "template", "ต้องเป็นปุ่ม LIFF ไม่ใช่ข้อความยังไม่เปิด");
+  assert.ok(JSON.stringify(msgs[0]).includes("/wellness"));
+});
+
+test("Logic ที่ยังไม่ทำ (13 ลงทุน) → บอกตรงๆ ว่ายังไม่เปิด ไม่แต่งคำตอบ", () => {
+  // 13 ไม่อยู่ใน LIFF_PATHS/CHAT_IMPLEMENTED — ใช้เป็นตัวแทนกลุ่มที่ยังไม่ทำ
+  const route = { ...routeByKeyword("กินอะไรดี"), logic_id: 13, logic_name: LOGIC_NAMES[13] };
+  const msgs = buildReply(route, BASE)!;
   const text = (msgs[0] as { text: string }).text;
   assert.ok(text.includes("ยังไม่เปิดให้บริการ"));
-  assert.ok(text.includes(LOGIC_NAMES[12]));
 });
 
 test("ข้อความยาวเกินลิมิต LINE → ตัดแล้วบอกผู้ใช้ ไม่ตัดเงียบๆ", () => {

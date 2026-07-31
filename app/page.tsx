@@ -8,6 +8,7 @@ const TOOLS: { href: string; label: string; primary?: boolean }[] = [
   { href: "/fengshui", label: "🧭 ฮวงจุ้ย" },
   { href: "/dream", label: "🌙 ทำนายฝัน" },
   { href: "/oracle", label: "🎴 เสี่ยงทาย" },
+  { href: "/wellness", label: "🥗 อาหาร & กิจกรรมตามธาตุ" },
 ];
 
 export default function Home() {
