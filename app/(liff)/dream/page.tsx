@@ -20,6 +20,8 @@ interface Msg {
   who: "user" | "lala";
   text: string;
   intercepted?: boolean;
+  /** true = แสดงปุ่มพาไปหน้า login ใต้ข้อความ */
+  needsLogin?: boolean;
   symbols?: SymbolMatch[];
   discovery?: Discovery | null;
   via?: string;
@@ -57,6 +59,9 @@ export default function DreamPage() {
 
       if (d.intercepted) {
         setMsgs((m) => [...m, { who: "lala", text: d.message, intercepted: true }]);
+      } else if (d.needsLogin) {
+        // ต้องล็อกอินก่อน (gate ต้นทุน 30 ก.ค. 2569) — แสดงปุ่มพาไป login แล้วกลับมาหน้านี้
+        setMsgs((m) => [...m, { who: "lala", text: d.error, needsLogin: true }]);
       } else if (d.quotaExceeded) {
         // โควตาหมด — บอกตรงๆ ไม่ใช่ทำเป็น error
         setMsgs((m) => [...m, { who: "lala", text: d.message }]);
@@ -116,6 +121,19 @@ export default function DreamPage() {
                   🔎 ค้นพบใหม่: <b>{m.discovery.dream_object}</b> · ธาตุ{m.discovery.element}
                   <small> (รอมนุษย์ตรวจสอบก่อนเข้าฐานข้อมูลจริง)</small>
                 </div>
+              )}
+
+              {m.needsLogin && (
+                <a
+                  href="/login?next=/dream"
+                  style={{
+                    display: "inline-block", marginTop: "0.5rem", padding: "0.45rem 1rem",
+                    border: "1px solid var(--gold-dim, #a89870)", borderRadius: 8,
+                    color: "var(--gold)", textDecoration: "none", fontSize: "0.85rem",
+                  }}
+                >
+                  เข้าสู่ระบบ / สมัครฟรี →
+                </a>
               )}
 
               {m.via && <div className={styles.via}>ตอบโดย {m.via}</div>}

@@ -7,16 +7,18 @@
 //   4. AI-2 (OpenAI→Claude) เรียบเรียงเป็นคำตอบ — ห้ามเพิ่มข้อเท็จจริงเอง
 
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { interpretDream, getAi1SystemPrompt } from "@/lib/engine/dream";
 import { safetyGate } from "@/lib/engine/element";
 import { generate, extractJson, isRoleAvailable } from "@/lib/ai";
 import { lookupCachedDiscovery, saveDiscovery, type Discovery } from "@/lib/dream/discovery-cache";
-import { parseQuota, serializeQuota, checkQuota, consumeQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
+import { checkQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
+import { createSupabaseServer } from "@/lib/supabase/auth-server";
+import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
+import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 
 export const runtime = "nodejs";
 
-const QUOTA_COOKIE = "kruth_chat_quota";
 const DREAM_LOGIC_ID = 4;
 
 type Ai1Discovery = Discovery;
@@ -54,15 +56,40 @@ export async function POST(req: Request) {
       });
     }
 
-    // ---- 1b. โควตา — หลัง Safety Gate เสมอ (คนส่งสัญญาณวิกฤตต้องไม่ถูกคิดโควตา) ----
-    // Logic 4 เป็นฟังก์ชันที่แพงที่สุด (฿0.57 ถ้าเจอในฐาน / ฿7.46 ถ้าปลุก AI-1)
-    // จึงคุมด้วยโควตาเดียวกับแชทฟังก์ชันอื่น
-    const jar = await cookies();
-    const quotaState = parseQuota(jar.get(QUOTA_COOKIE)?.value);
-    const quota = checkQuota(quotaState, DREAM_LOGIC_ID);
-    if (!quota.allowed) {
+    // ---- 1b. gate ล็อกอิน — หลัง Safety Gate เสมอ (คนส่งสัญญาณวิกฤตต้องได้ข้อความช่วยเหลือ
+    //      โดยไม่ติดล็อกอิน) · ผู้ใช้ตัดสิน 30 ก.ค. 2569: ฝันเป็นฟังก์ชันแพงสุดของระบบ
+    //      (฿0.57 เจอในฐาน / ฿7.46 ปลุก AI-1) โควตา cookie ล้างแล้วได้ใหม่ = รูรั่วต้นทุน
+    //      → บังคับล็อกอิน นับโควตาที่ DB (bucket logic:4) แล้วต่อด้วยเครดิต (2 เครดิต)
+    let userId: string | null = null;
+    try {
+      const supabase = await createSupabaseServer();
+      userId = (await supabase.auth.getUser()).data.user?.id ?? null;
+    } catch (e) {
+      console.warn("[dream] อ่าน session ไม่สำเร็จ — ถือว่าไม่ล็อกอิน", e);
+    }
+    if (!userId) {
       return NextResponse.json(
-        { quotaExceeded: true, message: quotaExhaustedMessage(DREAM_LOGIC_ID), remaining: 0, limit: quota.limit },
+        { needsLogin: true, error: "กรุณาเข้าสู่ระบบก่อนทำนายฝัน (ฟรี " + checkQuota({}, DREAM_LOGIC_ID).limit + " ครั้ง จากนั้นใช้เครดิต)" },
+        { status: 401 }
+      );
+    }
+
+    const bucket = logicBucket(DREAM_LOGIC_ID);
+    const used = await getDbUsage(userId, bucket);
+    const quota = checkQuota({ [String(DREAM_LOGIC_ID)]: used }, DREAM_LOGIC_ID);
+    const cost = creditCost("dream");
+    const balance = await getCreditBalance(userId);
+    const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost });
+    if (charge.mode === "denied") {
+      return NextResponse.json(
+        {
+          quotaExceeded: true,
+          message: `${quotaExhaustedMessage(DREAM_LOGIC_ID, cost)}\n\n${chargeDeniedMessage(charge)}`,
+          remaining: 0,
+          limit: quota.limit,
+          credits: charge.balance,
+          creditCost: charge.cost,
+        },
         { status: 429 }
       );
     }
@@ -148,16 +175,26 @@ export async function POST(req: Request) {
       reply = renderTemplate(result, discovery); // fallback ขั้นสุดท้าย: ผู้ใช้ยังได้คำตอบ
     }
 
-    // หักโควตาเมื่อตอบสำเร็จเท่านั้น
-    const nextQuota = consumeQuota(quotaState, DREAM_LOGIC_ID);
-    const afterQuota = checkQuota(nextQuota, DREAM_LOGIC_ID);
+    // หักเมื่อตอบสำเร็จเท่านั้น — เส้นฟรี bump DB (atomic) · เส้นเครดิต spend_credits
+    let afterUsed = used;
+    let creditsLeft: number | null = null;
+    if (charge.mode === "credits") {
+      const spent = await spendCredits(userId, charge.cost, "dream", bucket);
+      if (spent.ok) creditsLeft = spent.balance;
+      else console.warn("[dream] หักเครดิตไม่สำเร็จหลังตอบแล้ว (race/พัง)", spent.reason);
+    } else {
+      const bumped = await bumpDbUsage(userId, bucket);
+      afterUsed = bumped ?? used + 1;
+    }
+    const afterQuota = checkQuota({ [String(DREAM_LOGIC_ID)]: afterUsed }, DREAM_LOGIC_ID);
 
-    const response = NextResponse.json({
+    return NextResponse.json({
       intercepted: false,
       reply,
       via,
       remaining: afterQuota.remaining,
       limit: afterQuota.limit,
+      ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       engine: {
         found_anything: result.found_anything,
         symbol_matches: result.symbol_matches,
@@ -167,12 +204,6 @@ export async function POST(req: Request) {
       discovery,
       discovery_source: discoverySource, // "cache" = ไม่ได้เรียก AI-1 รอบนี้ (ประหยัด ~฿9.3)
     });
-    response.cookies.set(QUOTA_COOKIE, serializeQuota(nextQuota), {
-      httpOnly: true, sameSite: "lax", path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      secure: process.env.NODE_ENV === "production",
-    });
-    return response;
   } catch (err) {
     console.error("[dream] error", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "เกิดข้อผิดพลาด" }, { status: 500 });

@@ -77,8 +77,9 @@ export function consumeQuota(state: QuotaState, logicId: number): QuotaState {
   return { ...state, [key]: (state[key] ?? 0) + 1 };
 }
 
-/** ข้อความบอกผู้ใช้เมื่อโควตาหมด — ตรงไปตรงมา ไม่หลอกว่าจะได้เพิ่มฟรี */
-export function quotaExhaustedMessage(logicId: number): string {
+/** ข้อความบอกผู้ใช้เมื่อโควตาหมด — ตรงไปตรงมา ไม่หลอกว่าจะได้เพิ่มฟรี
+ *  creditCost = เครดิตต่อครั้งของฟังก์ชันนั้น (แชท 1 · ฝัน/เสี่ยงทาย 2 — ดู lib/credits/pricing.ts) */
+export function quotaExhaustedMessage(logicId: number, creditCost = 1): string {
   const name = CHAT_LOGIC_NAMES[logicId] ?? "ฟังก์ชันนี้";
-  return `คุณใช้คำถามฟรีของ "${name}" ครบ ${FREE_QUESTIONS_PER_LOGIC} คำถามแล้วค่ะ 🙏 ถามต่อได้ด้วยเครดิต (คำถามละ 1 เครดิต)`;
+  return `คุณใช้สิทธิ์ฟรีของ "${name}" ครบ ${FREE_QUESTIONS_PER_LOGIC} ครั้งแล้วค่ะ 🙏 ใช้ต่อได้ด้วยเครดิต (ครั้งละ ${creditCost} เครดิต)`;
 }

@@ -7,18 +7,18 @@
 // ลำดับ (CLAUDE.md §6): Safety Gate → โควตา → คำนวณ deterministic → AI-2 เรียบเรียง
 
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { safetyGate, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { computeCombinedReading, type BoundLayers } from "@/lib/engine/oracle";
 import { createServiceClient } from "@/lib/supabase/server";
 import { generate } from "@/lib/ai";
-import {
-  parseQuota, serializeQuota, checkQuota, consumeQuota, quotaExhaustedMessage,
-} from "@/lib/chat/quota";
+import { checkQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
+import { createSupabaseServer } from "@/lib/supabase/auth-server";
+import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
+import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 
 export const runtime = "nodejs";
 
-const QUOTA_COOKIE = "kruth_chat_quota";
 const ORACLE_LOGIC_ID = 21;
 
 const LALA_ORACLE_SYSTEM = `คุณคือ "อาจารย์ลาลา" ผู้ตีความคำเสี่ยงทายของ KRUTH ELEMENT พูดไทย น้ำเสียงขรึมแต่อบอุ่น
@@ -71,13 +71,38 @@ export async function POST(req: Request) {
       });
     }
 
-    // ---- 1b. โควตา ----
-    const jar = await cookies();
-    const quotaState = parseQuota(jar.get(QUOTA_COOKIE)?.value);
-    const quota = checkQuota(quotaState, ORACLE_LOGIC_ID);
-    if (!quota.allowed) {
+    // ---- 1b. gate ล็อกอิน + โควตา DB + เครดิต (ผู้ใช้ตัดสิน 30 ก.ค. 2569 — ปิดรูรั่ว
+    //      โควตา cookie ที่ล้างแล้วได้ใหม่) · Safety Gate ต้องมาก่อนเสมอ ----
+    let userId: string | null = null;
+    try {
+      const supabase = await createSupabaseServer();
+      userId = (await supabase.auth.getUser()).data.user?.id ?? null;
+    } catch (e) {
+      console.warn("[oracle] อ่าน session ไม่สำเร็จ — ถือว่าไม่ล็อกอิน", e);
+    }
+    if (!userId) {
       return NextResponse.json(
-        { quotaExceeded: true, message: quotaExhaustedMessage(ORACLE_LOGIC_ID), remaining: 0, limit: quota.limit },
+        { needsLogin: true, error: "กรุณาเข้าสู่ระบบก่อนเสี่ยงทาย (ฟรี " + checkQuota({}, ORACLE_LOGIC_ID).limit + " ครั้ง จากนั้นใช้เครดิต)" },
+        { status: 401 }
+      );
+    }
+
+    const bucket = logicBucket(ORACLE_LOGIC_ID);
+    const used = await getDbUsage(userId, bucket);
+    const quota = checkQuota({ [String(ORACLE_LOGIC_ID)]: used }, ORACLE_LOGIC_ID);
+    const cost = creditCost("oracle");
+    const balance = await getCreditBalance(userId);
+    const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost });
+    if (charge.mode === "denied") {
+      return NextResponse.json(
+        {
+          quotaExceeded: true,
+          message: `${quotaExhaustedMessage(ORACLE_LOGIC_ID, cost)}\n\n${chargeDeniedMessage(charge)}`,
+          remaining: 0,
+          limit: quota.limit,
+          credits: charge.balance,
+          creditCost: charge.cost,
+        },
         { status: 429 }
       );
     }
@@ -145,10 +170,20 @@ export async function POST(req: Request) {
         `\n\n(ระบบเรียบเรียงอัตโนมัติชั่วคราว — ผู้ช่วย AI ไม่พร้อมใช้งานขณะนี้)`;
     }
 
-    const next = consumeQuota(quotaState, ORACLE_LOGIC_ID);
-    const after = checkQuota(next, ORACLE_LOGIC_ID);
+    // หักเมื่อตอบสำเร็จเท่านั้น — เส้นฟรี bump DB (atomic) · เส้นเครดิต spend_credits
+    let afterUsed = used;
+    let creditsLeft: number | null = null;
+    if (charge.mode === "credits") {
+      const spent = await spendCredits(userId, charge.cost, "oracle", bucket);
+      if (spent.ok) creditsLeft = spent.balance;
+      else console.warn("[oracle] หักเครดิตไม่สำเร็จหลังตอบแล้ว (race/พัง)", spent.reason);
+    } else {
+      const bumped = await bumpDbUsage(userId, bucket);
+      afterUsed = bumped ?? used + 1;
+    }
+    const after = checkQuota({ [String(ORACLE_LOGIC_ID)]: afterUsed }, ORACLE_LOGIC_ID);
 
-    const res = NextResponse.json({
+    return NextResponse.json({
       intercepted: false,
       reply,
       via,
@@ -156,13 +191,8 @@ export async function POST(req: Request) {
       cards: { [card1Id]: cards[card1Id], [card2Id]: cards[card2Id] },
       remaining: after.remaining,
       limit: after.limit,
+      ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
     });
-    res.cookies.set(QUOTA_COOKIE, serializeQuota(next), {
-      httpOnly: true, sameSite: "lax", path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      secure: process.env.NODE_ENV === "production",
-    });
-    return res;
   } catch (err) {
     console.error("[oracle] error", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "เกิดข้อผิดพลาด" }, { status: 500 });

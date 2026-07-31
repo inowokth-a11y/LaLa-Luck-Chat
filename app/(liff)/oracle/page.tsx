@@ -53,6 +53,7 @@ export default function OraclePage() {
   /** การ์ดที่กำลังเปิดโชว์แบบเต็มจอ — null = ไม่มี overlay */
   const [revealing, setRevealing] = useState<{ id: string; next: () => void } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsLogin, setNeedsLogin] = useState<string | null>(null);
 
   // ธาตุของผู้ถาม — คำนวณจากวันเกิดด้วย engine ตัวจริง (ไม่ใช่สูตรย่อใน HTML เดิม)
   const seed = useMemo(() => {
@@ -72,6 +73,7 @@ export default function OraclePage() {
 
   function start() {
     setError(null);
+    setNeedsLogin(null);
     setCrisis(null);
     setReply(null);
     setReading(null);
@@ -107,6 +109,7 @@ export default function OraclePage() {
   async function interpret(c1: string, c2: string) {
     setLoading(true);
     setError(null);
+    setNeedsLogin(null);
     try {
       const res = await fetch("/api/oracle", {
         method: "POST",
@@ -123,6 +126,7 @@ export default function OraclePage() {
       });
       const d = await res.json();
       if (d.intercepted) setCrisis(d.message);
+      else if (d.needsLogin) setNeedsLogin(d.error); // gate ต้นทุน 30 ก.ค. 2569
       else if (d.quotaExceeded) setError(d.message);
       else if (d.error) setError(d.error);
       else {
@@ -294,6 +298,21 @@ export default function OraclePage() {
 
           {loading && <p className={styles.phase}>กำลังตีความ…</p>}
           {error && <p style={{ color: "var(--bad, #a83a1e)" }}>⚠️ {error}</p>}
+          {needsLogin && (
+            <p>
+              {needsLogin}{" "}
+              <a
+                href="/login?next=/oracle"
+                style={{
+                  display: "inline-block", marginTop: "0.4rem", padding: "0.45rem 1rem",
+                  border: "1px solid var(--gold-dim, #a89870)", borderRadius: 8,
+                  color: "var(--gold)", textDecoration: "none", fontSize: "0.85rem",
+                }}
+              >
+                เข้าสู่ระบบ / สมัครฟรี →
+              </a>
+            </p>
+          )}
 
           {reading && (
             <>
