@@ -30,6 +30,19 @@ test("คำสั้นกว่า 3 ตัวอักษรไม่ใช�
   assert.equal(pickBestMatch("ฝันว่างูเลื้อยเข้ามาในบ้าน", [row("ข้า")]), null);
 });
 
+test("✅ ขอบเขตคำจริง (30 ก.ค. 2569): คำยาวที่ซ่อนกลางคำอื่นต้องไม่ match แล้ว", () => {
+  // "ข้าม" ยาวพอผ่าน MIN_MATCH_LEN — เดิม substring จับใน "เ|ข้าม|า" ผิด (เคสตัวอย่างใน docs)
+  // ตอนนี้ตัดคำก่อน: เข้า|มา ไม่มี "ข้าม" → ต้องไม่ match
+  assert.equal(pickBestMatch("ฝันว่างูเลื้อยเข้ามาในบ้าน", [row("ข้าม")]), null);
+  // ของจริงยังจับได้: กระโดด|ข้าม|รั้ว มี "ข้าม" ตามขอบเขตคำ
+  assert.equal(pickBestMatch("ฝันว่ากระโดดข้ามรั้ว", [row("ข้าม")])?.dream_object, "ข้าม");
+});
+
+test("dream_object ที่มีหลาย variant (คั่น /) — variant ไหน match ก็ใช้แถวนั้นได้", () => {
+  const hit = pickBestMatch("ฝันเห็นโดรนบินวน", [row("โดรน / อากาศยานไร้คนขับ")]);
+  assert.equal(hit?.dream_object, "โดรน / อากาศยานไร้คนขับ");
+});
+
 test("นับความยาวคำไทยโดยไม่รวมวรรณยุกต์/สระบน-ล่าง (.length ใช้ไม่ได้)", () => {
   assert.equal(thaiBaseLength("ข้า"), 2); // .length = 3
   assert.equal(thaiBaseLength("โดรน"), 4);

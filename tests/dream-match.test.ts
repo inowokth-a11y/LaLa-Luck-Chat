@@ -10,6 +10,8 @@ import {
   hasThaiSegmentation,
   segmentThai,
   phraseInText,
+  segmentBoundaries,
+  phraseAtWordBoundaries,
   findSymbolMatchesSegmented,
 } from "../lib/engine/dream-match";
 import { findSymbolMatches, interpretDream } from "../lib/engine/dream";
@@ -33,6 +35,18 @@ test("phraseInText — จับวลีหลายคำที่ติดก
   assert.equal(phraseInText("กระโดด", words), true);
   assert.equal(phraseInText("รั้ว", words), true);
   assert.equal(phraseInText("งู", words), false);
+});
+
+test("ขอบ segment (30 ก.ค. 2569) — ทนคำนอกพจนานุกรม ICU แต่ยังกัน over-match", () => {
+  // "โดรน" ในประโยคถูก ICU ตัดเป็น โด|รน (คำทับศัพท์ไม่อยู่ในพจนานุกรม)
+  // เทียบลำดับ token แบบ phraseInText จะพลาด — วิธีขอบ segment ต้องจับได้
+  const text = "ฝันว่ามีโดรนบินอยู่เหนือบ้าน";
+  assert.equal(phraseInText("โดรน", segmentThai(text)), false, "ยืนยันว่า token-match พลาดจริงกับ OOV");
+  const b = segmentBoundaries(text)!;
+  assert.equal(phraseAtWordBoundaries("โดรน", text, b), true, "ขอบ segment ต้องจับ OOV ได้");
+  // ความเข้มเดิมยังอยู่: "ข้าม" กลาง "เ|ข้าม|า" ต้องไม่จับ
+  const b2 = segmentBoundaries("ฝันว่างูเลื้อยเข้ามาในบ้าน")!;
+  assert.equal(phraseAtWordBoundaries("ข้าม", "ฝันว่างูเลื้อยเข้ามาในบ้าน", b2), false);
 });
 
 test("🐛 บั๊กที่ต้องแก้: substring จับ 'ข้าม' ใน 'เข้ามา' — ตัดคำต้องไม่จับ", () => {

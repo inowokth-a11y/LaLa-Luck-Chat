@@ -7,15 +7,17 @@
 // ⚠️ ขอบเขตที่ตั้งใจ: แคชนี้ "ใช้คำตอบเดิมของ AI-1 ซ้ำ" เท่านั้น ไม่ได้แปลว่าอนุมัติ
 //    ข้อมูลนั้นเข้าฐานความรู้ — การรวมเข้า dream_symbols ยังต้องผ่านรีวิวโดยมนุษย์เหมือนเดิม
 //
-// ⚠️ วิธี match เป็น substring แบบเดียวกับ findSymbolMatches() ใน lib/engine/dream.ts
-//    (ตั้งใจให้ตรงกัน เพื่อไม่ให้แคชจับคำได้ต่างจาก engine) — แปลว่ามันสืบทอดปัญหา
-//    over-match คำสั้นของภาษาไทยมาด้วย (CLAUDE.md §10 งานที่ 7) จึงกันไว้ 2 ชั้น:
-//      1. ข้ามคำที่สั้นกว่า MIN_MATCH_LEN (เสี่ยงชนคำอื่นสูงสุด)
-//      2. เลือกคำที่ยาวที่สุดเมื่อ match ได้หลายคำ (เจาะจงกว่า = พลาดยากกว่า)
-//    ⚠️ สองชั้นนี้ "ลด" ไม่ใช่ "แก้" — เคสตัวอย่างในเอกสาร ("ข้าม" อยู่ใน "เข้ามา") ยังหลุด
-//    ได้อยู่เพราะเป็นคำยาวพอ ทางแก้จริงคือย้ายไป Postgres FTS ทั้ง engine + แคชพร้อมกัน
+// ✅ วิธี match ใช้ "ขอบเขตคำไทยจริง" (Intl.Segmenter) แบบเดียวกับ engine โปรดักชันแล้ว
+//    (30 ก.ค. 2569 — จบหนี้ §15 ข้อ 6: เดิมแคชยังเป็น substring สืบทอด over-match คำสั้น)
+//    ใช้ segmentThai/phraseInText ตัวเดียวกับ lib/engine/dream-match.ts → แคชกับ engine
+//    จับคำด้วยกติกาเดียวกันเสมอ · runtime ที่ไม่มี ICU เต็ม fallback เป็น substring
+//    พร้อมการ์ด 2 ชั้นเดิม (MIN_MATCH_LEN + เลือกคำยาวสุด)
+//    หมายเหตุ: แผน "ย้ายไป Postgres FTS" พิสูจน์แล้วว่าเป็นทางตันกับภาษาไทย — ดูหลักฐาน
+//    ในหัวไฟล์ dream-match.ts อย่าไปลองซ้ำ
 
 import { createServiceClient } from "@/lib/supabase/server";
+import { hasThaiSegmentation, segmentBoundaries, phraseAtWordBoundaries } from "@/lib/engine/dream-match";
+import { variants } from "@/lib/engine/dream";
 
 export interface Discovery {
   category?: string;
@@ -78,19 +80,27 @@ export async function lookupCachedDiscovery(dreamText: string): Promise<CachedDi
 
 /**
  * เลือกแถวที่ตรงที่สุด (pure — แยกออกมาให้เทสต์ได้โดยไม่ต้องต่อ Supabase)
- * เกณฑ์: dream_object ต้องปรากฏใน dreamText, ยาว ≥ MIN_MATCH_LEN, เลือกอันที่ยาวที่สุด
+ * เกณฑ์: dream_object (หรือ variant คั่น "/" ",") ต้องปรากฏใน dreamText **ตามขอบเขตคำจริง**,
+ * ยาว ≥ MIN_MATCH_LEN, เลือกอันที่ยาวที่สุด · runtime ไม่มี ICU → fallback substring แบบเดิม
  */
 export function pickBestMatch(dreamText: string, rows: CachedDiscovery[]): CachedDiscovery | null {
+  // หาขอบ segment ครั้งเดียวต่อการเรียก — ใช้ "ขอบคำ" ไม่ใช่ "ลำดับ token" เพราะคำในแคช
+  // เป็นคำใหม่นอกพจนานุกรม ICU โดยธรรมชาติ (โดรน → โด|รน) ดูคอมเมนต์ใน dream-match.ts
+  const bounds = hasThaiSegmentation() ? segmentBoundaries(dreamText) : null;
+
   let best: CachedDiscovery | null = null;
   let bestLen = 0;
   for (const row of rows) {
     const obj = (row.dream_object ?? "").trim();
-    const len = thaiBaseLength(obj);
-    if (len < MIN_MATCH_LEN) continue;
-    if (!dreamText.includes(obj)) continue;
-    if (!best || len > bestLen) {
-      best = row;
-      bestLen = len;
+    for (const v of variants(obj)) {
+      const len = thaiBaseLength(v);
+      if (len < MIN_MATCH_LEN) continue;
+      const matched = bounds ? phraseAtWordBoundaries(v, dreamText, bounds) : dreamText.includes(v);
+      if (!matched) continue;
+      if (!best || len > bestLen) {
+        best = row;
+        bestLen = len;
+      }
     }
   }
   return best;

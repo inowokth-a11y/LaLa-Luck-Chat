@@ -76,6 +76,41 @@ export function phraseInText(phrase: string, textWords: readonly string[]): bool
 }
 
 /**
+ * ขอบเขต segment ทั้งหมดของข้อความ (ตำแหน่งเริ่ม/จบเป็น code-unit index)
+ * ใช้เช็คว่า substring หนึ่ง "เกาะขอบคำจริง" ไหม โดยไม่ต้องให้ token ตรงกันเป๊ะ
+ *
+ * ⚠️ ทำไมไม่ใช้ phraseInText กับทุกอย่าง: คำนอกพจนานุกรม ICU (คำทับศัพท์ใหม่ เช่น "โดรน")
+ *    ถูกตัดไม่เสถียร — "โดรน" เดี่ยวๆ = 1 token แต่ในประโยคกลายเป็น โด|รน → เทียบลำดับ
+ *    token แล้วไม่เจอทั้งที่คำอยู่ตรงนั้นจริง วิธี "ขอบ segment" ยอมให้วลีครอบหลาย segment
+ *    (โด+รน) ขอแค่หัว-ท้ายตรงขอบ → จับ OOV ได้ และยังกัน "ข้าม" กลาง "เ|ข้าม|า" ได้เหมือนเดิม
+ */
+export function segmentBoundaries(text: string): { starts: Set<number>; ends: Set<number> } | null {
+  const s = getSegmenter();
+  if (!s) return null;
+  const starts = new Set<number>();
+  const ends = new Set<number>();
+  for (const seg of s.segment(text)) {
+    starts.add(seg.index);
+    ends.add(seg.index + seg.segment.length);
+  }
+  return { starts, ends };
+}
+
+/** วลีปรากฏใน text โดยหัวและท้ายตรงขอบ segment (ทนคำนอกพจนานุกรม — ดูคอมเมนต์ segmentBoundaries) */
+export function phraseAtWordBoundaries(
+  phrase: string,
+  text: string,
+  b: { starts: Set<number>; ends: Set<number> }
+): boolean {
+  let idx = text.indexOf(phrase);
+  while (idx !== -1) {
+    if (b.starts.has(idx) && b.ends.has(idx + phrase.length)) return true;
+    idx = text.indexOf(phrase, idx + 1);
+  }
+  return false;
+}
+
+/**
  * จับสัญลักษณ์จากฐานข้อมูลด้วยขอบเขตคำ
  * ถ้า runtime ตัดคำไทยไม่ได้ → คืน null เพื่อให้ผู้เรียก fallback ไปใช้ substring แบบเดิม
  * (ยอมให้ over-match ดีกว่าไม่เจออะไรเลย)
@@ -85,11 +120,15 @@ export function findSymbolMatchesSegmented(
   db: readonly DreamSymbol[]
 ): DreamSymbol[] | null {
   if (!hasThaiSegmentation()) return null;
-  const words = segmentThai(dreamText);
+  // ใช้ "ขอบ segment" แทน "ลำดับ token" (30 ก.ค. 2569) — เข้มเท่าเดิมกับเคส over-match
+  // ("ข้าม" กลาง "เข้ามา" ยังไม่จับ) แต่ทนคำนอกพจนานุกรม ICU ("โดรน" → โด|รน) ซึ่งเทียบ
+  // ลำดับ token แล้วพลาดทั้งที่คำอยู่ตรงนั้น — false-negative ของ engine = ปลุก AI-1 ฟรีๆ
+  const bounds = segmentBoundaries(dreamText);
+  if (!bounds) return null;
   const out: DreamSymbol[] = [];
   for (const row of db) {
     for (const v of variants(row.dream_object)) {
-      if (v && phraseInText(v, words)) {
+      if (v && phraseAtWordBoundaries(v, dreamText, bounds)) {
         out.push(row);
         break;
       }
@@ -104,11 +143,12 @@ export function findThemeMatchesSegmented(
   db: readonly DreamTheme[]
 ): DreamTheme[] | null {
   if (!hasThaiSegmentation()) return null;
-  const words = segmentThai(dreamText);
+  const bounds = segmentBoundaries(dreamText);
+  if (!bounds) return null;
   const out: DreamTheme[] = [];
   for (const row of db) {
     for (const v of variants(row.dream_theme)) {
-      if (v && (phraseInText(v, words) || v.includes(dreamText))) {
+      if (v && (phraseAtWordBoundaries(v, dreamText, bounds) || v.includes(dreamText))) {
         out.push(row);
         break;
       }
