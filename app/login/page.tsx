@@ -31,25 +31,37 @@ export default function LoginPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [next, setNext] = useState("/");
+
   useEffect(() => {
-    const err = new URLSearchParams(window.location.search).get("error");
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
     if (err) setError(ERROR_TEXT[err] ?? "เข้าสู่ระบบไม่สำเร็จ");
+    const n = params.get("next") ?? "/";
+    setNext(n.startsWith("/") && !n.startsWith("//") ? n : "/");
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setReady(true);
     });
   }, [supabase]);
 
+  // 🔴 ต้องพก next เข้า callback ด้วย — เดิมหน้านี้ไม่เคยส่ง ทำให้ปลายทางหลัง OAuth เพี้ยนเป็น "/"
   const redirectTo = () =>
-    typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+      : undefined;
+
+  /** ผู้เยี่ยมชม (anonymous) → ใช้ linkIdentity เพื่อ "ผูกบัญชี" โดยคง auth_uid เดิม (ข้อมูลไม่หาย)
+   *  ⚠️ ต้องเปิด Anonymous sign-ins + Manual linking ใน Supabase Dashboard */
+  const isGuest = Boolean(user?.is_anonymous);
 
   async function oauth(id: string) {
     setBusy(id);
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: id as Provider,
-      options: { redirectTo: redirectTo() },
-    });
+    const opts = { redirectTo: redirectTo() };
+    const { error } = isGuest
+      ? await supabase.auth.linkIdentity({ provider: id as Provider, options: opts })
+      : await supabase.auth.signInWithOAuth({ provider: id as Provider, options: opts });
     if (error) {
       setError(`ยังเปิดใช้ ${id} ไม่ได้: ${error.message}`);
       setBusy(null);
@@ -63,6 +75,14 @@ export default function LoginPage() {
     setBusy("email");
     setError(null);
     setNotice(null);
+    if (isGuest) {
+      // อัปเกรดผู้เยี่ยมชมด้วยอีเมล — ผูกอีเมลเข้าบัญชีเดิม (ยืนยันผ่านลิงก์ในเมล)
+      const { error } = await supabase.auth.updateUser({ email: email.trim() });
+      setBusy(null);
+      if (error) setError(error.message);
+      else setNotice(`ส่งลิงก์ยืนยันไปที่ ${email.trim()} แล้ว — ยืนยันแล้วบัญชีผู้เยี่ยมชมของคุณจะกลายเป็นบัญชีถาวรค่ะ`);
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: { emailRedirectTo: redirectTo() },
@@ -111,13 +131,20 @@ export default function LoginPage() {
   return (
     <main className="tone-marble" style={box}>
       <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--gold)" }}>
-        {user ? "บัญชีของคุณ" : "เข้าสู่ระบบ LaLa Lucky Chat"}
+        {user && !isGuest ? "บัญชีของคุณ" : isGuest ? "ผูกบัญชีถาวร" : "เข้าสู่ระบบ LaLa Lucky Chat"}
       </h1>
 
       {error && <p style={{ color: "var(--bad, #b23)", maxWidth: 340, textAlign: "center" }}>⚠️ {error}</p>}
       {notice && <p style={{ color: "var(--gold)", maxWidth: 340, textAlign: "center" }}>{notice}</p>}
 
-      {user ? (
+      {isGuest && (
+        <p style={{ maxWidth: 340, textAlign: "center", opacity: 0.85, fontSize: "0.88rem", lineHeight: 1.6 }}>
+          ตอนนี้คุณใช้แบบ<strong>ผู้เยี่ยมชม</strong>อยู่ — ผูกบัญชีด้านล่างแล้วการ์ด เครดิต
+          และความจำของแม่หมอจะติดตัวคุณถาวร (ข้อมูลเดิมไม่หาย)
+        </p>
+      )}
+
+      {user && !isGuest ? (
         <>
           <p style={{ maxWidth: 340, textAlign: "center", opacity: 0.85 }}>
             เข้าสู่ระบบด้วย <strong>{user.email ?? user.app_metadata?.provider ?? "บัญชีของคุณ"}</strong>
@@ -156,7 +183,7 @@ export default function LoginPage() {
               style={{ ...btn, cursor: "text" }}
             />
             <button type="submit" style={{ ...btn, background: "var(--gold)", color: "var(--bg)", fontWeight: 600 }} disabled={!!busy || !email.trim()}>
-              {busy === "email" ? "กำลังส่ง…" : "ส่งลิงก์เข้าสู่ระบบ"}
+              {busy === "email" ? "กำลังส่ง…" : isGuest ? "ผูกอีเมลนี้กับบัญชี" : "ส่งลิงก์เข้าสู่ระบบ"}
             </button>
           </form>
         </>

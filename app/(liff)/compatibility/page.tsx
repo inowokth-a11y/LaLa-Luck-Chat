@@ -9,6 +9,7 @@
 //    **ห้ามลอกสูตรจาก HTML กลับมา** (CLAUDE.md §5.1)
 
 import { useMemo, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import {
   calculateElementSeed,
   THAI_LABEL_4,
@@ -129,6 +130,7 @@ export default function CompatibilityPage() {
   return (
     <div className={`tone-marble ${styles.page}`}>
       <header className={styles.header}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1>ข่ายความสัมพันธ์</h1>
         <p className={styles.sub}>
           ดูว่าธาตุของคุณเข้ากับบ้าน รถ องค์กร และคนรอบตัวอย่างไร

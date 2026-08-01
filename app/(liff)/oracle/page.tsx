@@ -11,6 +11,7 @@
 // ⚠️ การสุ่มอยู่ที่มือผู้ถาม ไม่ใช่ที่ server — เดิม API เป็นคนสุ่มให้ ซึ่งผิดเจตนาพิธีกรรม
 
 import { useMemo, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateElementSeed, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import { LAYER_LABEL, type BoundLayers, type LayerType, type CombinedReading } from "@/lib/engine/oracle";
@@ -182,6 +183,7 @@ export default function OraclePage() {
       )}
 
       <header className={styles.header}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1>เสี่ยงทาย</h1>
         <p className={styles.sub}>
           ตั้งคำถาม → หมุนวงแหวน 2 รอบ → ตีความ

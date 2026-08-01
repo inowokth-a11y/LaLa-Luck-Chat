@@ -63,15 +63,25 @@ export async function POST(req: Request) {
     //      (฿0.57 เจอในฐาน / ฿7.46 ปลุก AI-1) โควตา cookie ล้างแล้วได้ใหม่ = รูรั่วต้นทุน
     //      → บังคับล็อกอิน นับโควตาที่ DB (bucket logic:4) แล้วต่อด้วยเครดิต (2 เครดิต)
     let userId: string | null = null;
+    let isGuest = false;
     try {
       const supabase = await createSupabaseServer();
-      userId = (await supabase.auth.getUser()).data.user?.id ?? null;
+      const u = (await supabase.auth.getUser()).data.user;
+      userId = u?.id ?? null;
+      isGuest = Boolean(u?.is_anonymous);
     } catch (e) {
       console.warn("[dream] อ่าน session ไม่สำเร็จ — ถือว่าไม่ล็อกอิน", e);
     }
     if (!userId) {
       return NextResponse.json(
         { needsLogin: true, error: "กรุณาเข้าสู่ระบบก่อนทำนายฝัน (ฟรี " + checkQuota({}, DREAM_LOGIC_ID).limit + " ครั้ง จากนั้นใช้เครดิต)" },
+        { status: 401 }
+      );
+    }
+    // ผู้เยี่ยมชม (anonymous) — ทำนายฝันเป็นสิทธิ์ของบัญชีถาวร (กันฟาร์ม incognito — กติกา 1 ส.ค. 2569)
+    if (isGuest) {
+      return NextResponse.json(
+        { needsLogin: true, needsUpgrade: true, error: "ทำนายฝันเปิดให้บัญชีถาวรค่ะ 🐾 ผูกบัญชี (ฟรี ไม่กี่วินาที) แล้วใช้สิทธิ์ทดลองฟรี 2 ครั้งได้เลย — ข้อมูลเดิมของคุณไม่หาย" },
         { status: 401 }
       );
     }

@@ -24,6 +24,8 @@ interface View {
   linkedToPlatformD: boolean;
   /** เครดิตคงเหลือ (0 = ยังไม่มีกระเป๋า/ยังไม่เคยเติม) */
   credits: number;
+  /** true = บัญชีผู้เยี่ยมชม (anonymous) — ควรผูกบัญชีถาวร */
+  isGuest: boolean;
 }
 
 const PROVIDER_LABEL: Record<string, string> = {
@@ -53,6 +55,9 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false);
   const [topup, setTopup] = useState<Topup | null>(null);
   const [topupBusy, setTopupBusy] = useState(false);
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [topupError, setTopupError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -127,6 +132,7 @@ export default function AccountPage() {
         profile: (prof as View["profile"]) ?? null,
         linkedToPlatformD: Boolean(ident?.platform_d_user_id),
         credits: wallet?.balance ?? 0,
+        isGuest: Boolean(user.is_anonymous),
       });
       setReady(true);
     })();
@@ -134,6 +140,21 @@ export default function AccountPage() {
       active = false;
     };
   }, [router]);
+
+  async function deleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      const d = await res.json();
+      if (!res.ok || !d.ok) throw new Error(d.error ?? "ลบไม่สำเร็จ");
+      await createSupabaseBrowser().auth.signOut();
+      router.replace("/");
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : String(e));
+      setDeleting(false);
+    }
+  }
 
   async function logout() {
     setBusy(true);
@@ -187,6 +208,13 @@ export default function AccountPage() {
         <Row label="อีเมล" value={view.email ?? "— (บัญชีนี้ไม่มีอีเมล)"} />
         {view.linkedToPlatformD && <Row label="เชื่อมกับบัญชีเดิม" value="✓ เชื่อมแล้ว (KRUTH)" />}
         <Row label="เครดิตคงเหลือ" value={`${view.credits} เครดิต`} />
+        {view.isGuest && (
+          <div style={{ marginTop: "0.7rem", padding: "0.7rem 0.9rem", border: "1px dashed var(--gold)", borderRadius: 8, fontSize: "0.85rem", lineHeight: 1.65 }}>
+            🐾 ตอนนี้เป็น<b>บัญชีผู้เยี่ยมชม</b> (ผูกกับเบราว์เซอร์เครื่องนี้) — ล้างข้อมูลเบราว์เซอร์แล้วจะ
+            กลับเข้าไม่ได้ <Link href="/login" style={{ color: "var(--gold)" }}>ผูกบัญชีถาวร (ฟรี)</Link>{" "}
+            เพื่อเก็บการ์ด เครดิต และความจำของแม่หมอไว้กับตัวคุณ
+          </div>
+        )}
       </section>
 
       <section style={card}>
@@ -261,6 +289,36 @@ export default function AccountPage() {
         <Link href="/onboarding?next=/account" style={{ ...btn, display: "inline-block", marginTop: "0.8rem" }}>
           {p ? "แก้ไขข้อมูลพื้นฐาน" : "กรอกข้อมูลพื้นฐาน"}
         </Link>
+      </section>
+
+      <section style={{ ...card, borderColor: "var(--bad, #a83a1e)" }}>
+        <h2 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.05rem", color: "var(--bad, #a83a1e)", marginTop: 0 }}>
+          ลบบัญชีถาวร
+        </h2>
+        <p style={{ fontSize: "0.85rem", lineHeight: 1.7, color: "var(--text-dim, var(--ink-dim))" }}>
+          ลบทุกอย่างถาวรทันที: โปรไฟล์ ประวัติคำทำนาย ความจำของแม่หมอ และ<b>เครดิตคงเหลือ ({view.credits} เครดิต)</b>{" "}
+          — กู้คืนไม่ได้ · อ่านรายละเอียดใน{" "}
+          <Link href="/privacy" style={{ color: "var(--gold)" }}>นโยบายความเป็นส่วนตัว</Link>
+        </p>
+        {!deleteArmed ? (
+          <button onClick={() => setDeleteArmed(true)} style={{ ...btn, borderColor: "var(--bad, #a83a1e)", color: "var(--bad, #a83a1e)" }}>
+            ฉันต้องการลบบัญชี…
+          </button>
+        ) : (
+          <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+            <button
+              onClick={deleteAccount}
+              disabled={deleting}
+              style={{ ...btn, background: "var(--bad, #a83a1e)", color: "#fff", borderColor: "var(--bad, #a83a1e)" }}
+            >
+              {deleting ? "กำลังลบ…" : "ยืนยันลบถาวร (กู้คืนไม่ได้)"}
+            </button>
+            <button onClick={() => setDeleteArmed(false)} disabled={deleting} style={btn}>
+              ยกเลิก
+            </button>
+          </div>
+        )}
+        {deleteError && <p style={{ color: "var(--bad, #a83a1e)", fontSize: "0.85rem", marginTop: "0.5rem" }}>⚠️ {deleteError}</p>}
       </section>
 
       <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>

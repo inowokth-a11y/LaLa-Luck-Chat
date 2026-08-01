@@ -22,6 +22,16 @@ async function sessionUid(): Promise<string | null> {
   }
 }
 
+/** ผู้เยี่ยมชม (anonymous) เติมเงินไม่ได้ — เงินจริงต้องอยู่กับบัญชีที่กู้คืนได้ (กติกา 1 ส.ค. 2569) */
+async function isGuestSession(): Promise<boolean> {
+  try {
+    const supabase = await createSupabaseServer();
+    return Boolean((await supabase.auth.getUser()).data.user?.is_anonymous);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     if (!isOmiseAvailable()) {
@@ -29,6 +39,12 @@ export async function POST(req: Request) {
     }
     const uid = await sessionUid();
     if (!uid) return NextResponse.json({ needsLogin: true, error: "กรุณาเข้าสู่ระบบก่อนเติมเครดิต" }, { status: 401 });
+    if (await isGuestSession()) {
+      return NextResponse.json(
+        { needsLogin: true, needsUpgrade: true, error: "ผูกบัญชีถาวรก่อนเติมเครดิตค่ะ 🐾 — เงินจริงต้องอยู่กับบัญชีที่กู้คืนได้เสมอ (ล้างเบราว์เซอร์แล้วเครดิตต้องไม่หาย)" },
+        { status: 401 }
+      );
+    }
 
     const body = (await req.json().catch(() => ({}))) as { priceThb?: number };
     const pkg = CREDIT_PACKAGES.find((p) => p.priceThb === Number(body.priceThb));

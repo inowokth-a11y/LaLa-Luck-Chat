@@ -19,6 +19,7 @@ interface Props {
 export default function ShareCard({ cardId, cardName }: Props) {
   const [claimed, setClaimed] = useState<boolean | null>(null);
   const [loggedIn, setLoggedIn] = useState(true);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const syncStatus = useSyncStatus();
 
@@ -30,6 +31,7 @@ export default function ShareCard({ cardId, cardName }: Props) {
         if (!active) return;
         setClaimed(Boolean(d.claimed));
         setLoggedIn(Boolean(d.loggedIn));
+        setNeedsUpgrade(Boolean(d.needsUpgrade));
       })
       .catch(() => {});
     return () => {
@@ -51,6 +53,9 @@ export default function ShareCard({ cardId, cardName }: Props) {
         syncStatus(); // อัปเดตแถบสถานะ (คำถามฟรี +2)
       } else if (d.alreadyClaimed) {
         setClaimed(true);
+      } else if (d.needsUpgrade || d.needsLogin) {
+        setNeedsUpgrade(true);
+        setMessage(d.error);
       }
     } catch {
       /* เคลมพลาด — ผู้ใช้กดแชร์ใหม่ได้ ไม่ต้องรบกวน */
@@ -109,6 +114,15 @@ export default function ShareCard({ cardId, cardName }: Props) {
           <> — รับคำถามฟรีเพิ่ม <b>{SHARE_REWARD_QUESTIONS} ข้อ</b> (รับได้ครั้งเดียว)</>
         )}
         {claimed === true && <> — รับรางวัลแชร์ไปแล้ว ขอบคุณที่บอกต่อค่ะ 🐾</>}
+        {needsUpgrade && (
+          <>
+            {" — "}
+            <a href="/login?next=/profile" style={{ color: "var(--gold)" }}>
+              ผูกบัญชี
+            </a>{" "}
+            เพื่อรับคำถามฟรี +{SHARE_REWARD_QUESTIONS}
+          </>
+        )}
       </p>
       <p style={{ margin: "0.3rem 0 0.7rem", fontSize: "0.78rem", color: "var(--ink-dim, #6b6255)" }}>
         หน้าแชร์มีแค่ข้อมูลการ์ด (เลข/ชื่อ/ความหมาย) — ไม่มีวันเกิดหรือข้อมูลส่วนตัวของคุณ

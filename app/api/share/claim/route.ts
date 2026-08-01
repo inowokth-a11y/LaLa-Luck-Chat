@@ -13,20 +13,29 @@ import { SHARE_REWARD_QUESTIONS } from "@/lib/share";
 
 export const runtime = "nodejs";
 
-async function sessionUid(): Promise<string | null> {
+async function sessionUser(): Promise<{ uid: string; isGuest: boolean } | null> {
   try {
     const supabase = await createSupabaseServer();
-    return (await supabase.auth.getUser()).data.user?.id ?? null;
+    const u = (await supabase.auth.getUser()).data.user;
+    return u ? { uid: u.id, isGuest: Boolean(u.is_anonymous) } : null;
   } catch {
     return null;
   }
 }
 
 export async function POST() {
-  const uid = await sessionUid();
-  if (!uid) {
+  const sess = await sessionUser();
+  if (!sess) {
     return NextResponse.json({ needsLogin: true, error: "เข้าสู่ระบบก่อนรับรางวัลแชร์ค่ะ" }, { status: 401 });
   }
+  // รางวัลแชร์ = สิทธิ์ของบัญชีถาวร (แชร์ได้ทุกคน แต่ของรางวัลต้องผูกบัญชี — กติกา 1 ส.ค. 2569)
+  if (sess.isGuest) {
+    return NextResponse.json(
+      { needsLogin: true, needsUpgrade: true, error: "ผูกบัญชี (ฟรี) เพื่อรับคำถามฟรี +2 จากการแชร์ค่ะ 🐾 — auth_uid เดิมของคุณคงอยู่ ข้อมูลไม่หาย" },
+      { status: 401 }
+    );
+  }
+  const uid = sess.uid;
   try {
     const svc = createServiceClient();
     const { data, error } = await svc.rpc("claim_share_reward", { p_auth_uid: uid });
@@ -49,8 +58,13 @@ export async function POST() {
 }
 
 export async function GET() {
-  const uid = await sessionUid();
-  if (!uid) return NextResponse.json({ loggedIn: false, claimed: false });
+  const sess = await sessionUser();
+  if (!sess) return NextResponse.json({ loggedIn: false, claimed: false });
+  const uid = sess.uid;
+  if (sess.isGuest) {
+    // ผู้เยี่ยมชม — แชร์ได้ แต่รางวัลต้องผูกบัญชี (UI ใช้ธงนี้โชว์ปุ่มผูกบัญชี)
+    return NextResponse.json({ loggedIn: true, claimed: false, needsUpgrade: true, reward: SHARE_REWARD_QUESTIONS });
+  }
   try {
     const svc = createServiceClient();
     const { data } = await svc.from("share_claims_e").select("auth_uid").eq("auth_uid", uid).maybeSingle();

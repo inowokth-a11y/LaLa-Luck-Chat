@@ -80,13 +80,17 @@ export async function GET(request: Request) {
       );
 
       // ยังไม่มีโปรไฟล์พื้นฐาน → พาไปกรอกก่อน แล้วค่อยไปปลายทางเดิม
-      const { data: prof } = await svc
-        .from("user_profiles_e")
-        .select("auth_uid")
-        .eq("auth_uid", user.id)
-        .maybeSingle();
-      if (!prof) {
-        destination = `/onboarding?next=${encodeURIComponent(safeNext)}`;
+      // ⚠️ ยกเว้น /welcome — flow หน้าแรกใหม่ (1 ส.ค. 2569) มีข้อมูลกรอกรออยู่ใน sessionStorage
+      //    ให้ /welcome เป็นคนบันทึกโปรไฟล์เอง ไม่งั้นผู้ใช้เจอฟอร์มซ้ำสองรอบ
+      if (!safeNext.startsWith("/welcome")) {
+        const { data: prof } = await svc
+          .from("user_profiles_e")
+          .select("auth_uid")
+          .eq("auth_uid", user.id)
+          .maybeSingle();
+        if (!prof) {
+          destination = `/onboarding?next=${encodeURIComponent(safeNext)}`;
+        }
       }
     }
   } catch (e) {

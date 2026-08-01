@@ -8,6 +8,7 @@
 //    FRAMING_CAVEAT ต้องแสดงเสมอ — ห้ามตัดออก
 
 import { useEffect, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import {
   calculateElementSeed,
   TTM_LIFESTYLE,
@@ -73,6 +74,7 @@ export default function WellnessPage() {
   return (
     <div className={`tone-marble ${styles.page}`}>
       <header className={styles.header}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1>อาหาร & กิจกรรมตามธาตุ</h1>
         <p className={styles.sub}>
           ดูรสอาหาร สี และกิจวัตรสุขภาวะที่เข้ากับสมดุลธาตุของคุณ

@@ -5,6 +5,7 @@
 // โหลดโลโก้ผ่านพร็อกซี same-origin → canvas ไม่ taint → export PNG ได้ · ฟรี ฿0 (ไม่เรียก AI)
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { THAI_LABEL_5, wuXingScore, type Element5 } from "@/lib/engine/element";
@@ -299,6 +300,7 @@ function LabelComposer() {
   return (
     <main className="tone-marble" style={S.page}>
       <header>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1 style={S.h1}>ออกแบบฉลาก</h1>
         <p style={S.sub}>
           จากโลโก้ + ธาตุ<strong style={{ color }}>{el && THAI_LABEL_5[el] ? ` ${THAI_LABEL_5[el]}` : ""}</strong> ของคุณ ·

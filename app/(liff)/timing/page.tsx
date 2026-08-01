@@ -5,6 +5,7 @@
 // 🔴 caveat กาลโยคแสดงทุกครั้ง (§3.6)
 
 import { useMemo, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
 import { rankAuspiciousDays, ACTIVITIES, type DayRanking, type Verdict } from "@/lib/engine/timing";
 
@@ -44,6 +45,7 @@ export default function TimingPage() {
   return (
     <main className="tone-marble" style={S.page}>
       <header style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1 style={S.h1}>หาฤกษ์ดี</h1>
         <p style={S.sub}>เลือกงานที่จะทำ + ช่วงวันที่ — ระบบจัดอันดับวันดีและฤกษ์รายชั่วโมงให้ (คำนวณจากกาลโยค + อุบากอง)</p>
       </header>

@@ -77,15 +77,25 @@ export async function POST(req: Request) {
     // ---- 1b. gate ล็อกอิน + โควตา DB + เครดิต (ผู้ใช้ตัดสิน 30 ก.ค. 2569 — ปิดรูรั่ว
     //      โควตา cookie ที่ล้างแล้วได้ใหม่) · Safety Gate ต้องมาก่อนเสมอ ----
     let userId: string | null = null;
+    let isGuest = false;
     try {
       const supabase = await createSupabaseServer();
-      userId = (await supabase.auth.getUser()).data.user?.id ?? null;
+      const u = (await supabase.auth.getUser()).data.user;
+      userId = u?.id ?? null;
+      isGuest = Boolean(u?.is_anonymous);
     } catch (e) {
       console.warn("[oracle] อ่าน session ไม่สำเร็จ — ถือว่าไม่ล็อกอิน", e);
     }
     if (!userId) {
       return NextResponse.json(
         { needsLogin: true, error: "กรุณาเข้าสู่ระบบก่อนเสี่ยงทาย (ฟรี " + checkQuota({}, ORACLE_LOGIC_ID).limit + " ครั้ง จากนั้นใช้เครดิต)" },
+        { status: 401 }
+      );
+    }
+    // ผู้เยี่ยมชม (anonymous) — เสี่ยงทายเป็นสิทธิ์ของบัญชีถาวร (กันฟาร์ม incognito — กติกา 1 ส.ค. 2569)
+    if (isGuest) {
+      return NextResponse.json(
+        { needsLogin: true, needsUpgrade: true, error: "เสี่ยงทายเปิดให้บัญชีถาวรค่ะ 🐾 ผูกบัญชี (ฟรี ไม่กี่วินาที) แล้วใช้สิทธิ์ทดลองฟรี 2 ครั้งได้เลย — ข้อมูลเดิมของคุณไม่หาย" },
         { status: 401 }
       );
     }

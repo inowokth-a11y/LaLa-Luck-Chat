@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase/auth-browser";
 import { FREE_QUESTIONS_TOTAL } from "@/lib/chat/questions";
 
-const HIDE_ON = ["/login", "/onboarding", "/auth"];
+const HIDE_ON = ["/login", "/onboarding", "/auth", "/consent", "/welcome"];
 const SYNC_EVENT = "lala:sync-status";
 
 /** ให้หน้าอื่นสั่งรีเฟรชแถบสถานะหลังใช้/เติมเครดิต */

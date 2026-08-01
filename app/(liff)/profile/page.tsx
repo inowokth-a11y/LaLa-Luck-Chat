@@ -5,6 +5,7 @@
 // โทน: ☀️ สว่างหินอ่อน (.tone-marble) ตาม CLAUDE.md §2 — หน้านี้เป็น "ข้อมูล/ผลลัพธ์ถาวร"
 
 import { useEffect, useRef, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import { computeCardIdString, thaiDayOfWeek } from "@/lib/engine/card-id";
 import { calculateElementSeed, THAI_LABEL_4, type ElementSeedResult } from "@/lib/engine/element";
 import { cardImageUrl } from "@/lib/cards";
@@ -131,6 +132,7 @@ export default function ProfilePage() {
   return (
     <main className={`tone-marble ${styles.page}`}>
       <header className={styles.header}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1>โปรไฟล์พลังงาน</h1>
         <p className={styles.sub}>กรอกข้อมูลเพื่อคำนวณการ์ดพลังงานและธาตุประจำตัว</p>
       </header>

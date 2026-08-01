@@ -6,6 +6,7 @@
 // ⚠️ ไม่ใช้ Vision API — สเปกจริงเป็นฟอร์มกรอกข้อมูล (ดู lib/engine/fengshui.ts)
 
 import { useMemo, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateElementSeed, THAI_LABEL_4, type Element4, type Element5, type ElementSeedResult } from "@/lib/engine/element";
 import {
   analyzeFengShui,
@@ -70,6 +71,7 @@ export default function FengShuiPage() {
   return (
     <div className={`tone-marble ${styles.page}`}>
       <header className={styles.header}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1>ฮวงจุ้ยพื้นที่</h1>
         <p className={styles.sub}>
           ดูว่าทิศ รูปทรง และสีของพื้นที่ เข้ากับธาตุประจำตัวคุณไหม

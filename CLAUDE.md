@@ -1249,7 +1249,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 359/359
 | ส่วน | สถานะ |
 |---|---|
 | Engine + ทุกฟีเจอร์ | ✅ **359 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
-| Supabase | ✅ **migration 000-032** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
+| Supabase | ✅ **migration 000-033** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
@@ -1269,6 +1269,28 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 ต่อ repo เดียวกัน — **ตัวจริงคือ `lala-lucky-chat`** แนะนำให้ผู้ใช้ลบตัวซ้ำ (แจ้งแล้ว)
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
+
+**✅ PDPA + หน้าแรกใหม่ + ผู้เยี่ยมชม + แม่หมอทุกหน้า (1 ส.ค. 2569 — ผู้ใช้ออกแบบ flow เอง):**
+- **Flow หน้าแรกใหม่:** `/` = ฟอร์ม Logic 1 (ชื่อ/วันเกิด/เวลา — เก็บใน sessionStorage ยังไม่ส่ง
+  server) → `/consent` (สรุป PDPA + checkbox — ปุ่มติดล็อกจนติ๊ก) → เลือก: บัญชีจริง (/login) หรือ
+  **"เริ่มเลยแบบผู้เยี่ยมชม"** (Supabase Anonymous) → `/welcome` (บันทึกโปรไฟล์+consent ครั้งแรก
+  หลังยินยอมเท่านั้น + ฉากแมวดุ๊กดิ๊ก "กำลังคำนวณรหัสพลังในการทำนาย…" ≥2.6 วิ) → /profile?auto=1
+  · ล็อกอินแล้วเข้า / = ปุ่ม "ดูการ์ดของฉัน" แทนฟอร์ม · เมนูเครื่องมือยังอยู่ใต้ฟอร์ม
+- **PDPA:** `/privacy` (ร่างจากข้อเท็จจริงระบบ — ⚠️ ควรให้ผู้เชี่ยวชาญตรวจก่อนใช้เชิงพาณิชย์ ·
+  ผู้ควบคุมข้อมูล = placeholder ใน `lib/consent.ts` DATA_CONTROLLER/DATA_CONTACT_EMAIL) ·
+  migration 033: pdpa_version/pdpa_accepted_at ใน user_profiles_e · **แก้นโยบาย = ขยับ
+  PDPA_VERSION เสมอ** · ผู้ใช้ตัดสิน: **ไม่มีปุ่มลบความจำแยก** — ลบพร้อมบัญชีเท่านั้น
+  (`/api/account/delete` → auth.admin.deleteUser → cascade ทุกตาราง · ปุ่มใน /account ยืนยัน 2 ชั้น)
+- **กติกาผู้เยี่ยมชม (guest):** ฟีเจอร์ ฿0 + คำถามฟรี 1 ข้อ = ได้ · ฝัน/เสี่ยงทาย/รางวัลแชร์/
+  เติมเงิน = ต้องบัญชีถาวร (routes เช็ค `user.is_anonymous` → 401 `needsUpgrade`) ·
+  อัปเกรด guest ใช้ `linkIdentity` (OAuth) / `updateUser({email})` — **auth_uid เดิม ข้อมูลไม่หาย**
+  (/login มีโหมด "ผูกบัญชีถาวร" ตรวจ is_anonymous แล้ว)
+- 🔴 **แก้บั๊กเดิมที่เจอระหว่างทำ:** /login ไม่เคยส่ง `next` เข้า /auth/callback เลย (OAuth
+  ทุกครั้งจบที่ "/") — แก้แล้ว + callback ยกเว้น /welcome จากการเด้งเข้า onboarding
+- **แม่หมอทุกหน้า (ผู้ใช้สั่ง):** MascotLogo ใน header ทุกหน้า function (profile/fortune/compat/
+  fengshui/wellness/timing/oracle/logo/label) + หน้า consent/welcome/privacy/card
+- 🔴 **ผู้ใช้ต้องเปิดใน Supabase Dashboard:** Authentication → Sign In/Up → **Anonymous
+  sign-ins** (ปุ่ม guest ถึงจะทำงาน — ตอนนี้ error สุภาพ) + **Manual linking** (ให้ linkIdentity ใช้ได้)
 
 **✅ เฟส 3 ความจำแม่หมอ (1 ส.ค. 2569):** แม่หมอจำผู้ใช้ข้ามเซสชัน — ครบทั้ง 3 เฟสของแผน funnel
 - **migration 032** (รัน prod แล้ว): `user_history_e` (เหตุการณ์ย่อ append-only) + `user_memory_e`

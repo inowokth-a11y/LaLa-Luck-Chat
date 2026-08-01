@@ -8,6 +8,7 @@
 // พิสูจน์แล้วว่าผิด (วนได้แค่ 9 ราศี/วัน) ดู CLAUDE.md §5.2
 
 import { useEffect, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateLagna, julianDay } from "@/lib/engine/lagna";
 import { calculateAscendant } from "@/lib/engine/ascendant";
 import { dailyPrediction, getMoonSign } from "@/lib/engine/daily";
@@ -111,6 +112,7 @@ export default function FortunePage() {
   return (
     <main className={`tone-marble ${styles.page}`}>
       <header className={styles.header}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1>ดวงของฉัน</h1>
         <p className={styles.sub}>คำนวณจากลัคนากำเนิด + ดาวจรวันนี้</p>
       </header>

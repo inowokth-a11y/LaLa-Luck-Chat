@@ -6,6 +6,7 @@
 // 🔴 ต้องล็อกอิน (route กันไว้ เพราะ fal เสียเงินจริง) · โทนสว่างหินอ่อน (§2)
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { calculateElementSeed, wuXingScore, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
@@ -158,6 +159,7 @@ export default function LogoPage() {
   return (
     <main className="tone-marble" style={S.page}>
       <header style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+        <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
         <h1 style={S.h1}>ออกแบบโลโก้ตามธาตุ</h1>
         <p style={S.sub}>
           ใส่ชื่อแบรนด์ → เลือกสไตล์ธาตุ — ระบบบอก<strong>คะแนนความเข้ากันกับธาตุประจำตัวคุณ</strong>ก่อนสร้าง
