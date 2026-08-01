@@ -1263,7 +1263,10 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
 - **ความเห็นผู้ใช้**: `FeedbackBox` (`/chat`) ฟรี + รางวัล 1 เครดิต (ตอบ prompt แอดมิน ครั้งแรก/คำถาม กันฟาร์ม)
 - **เรทเครดิต**: `lib/credits/pricing.ts` (กำไร ≥500%) — ยังไม่ผูกหักจริง/ชำระเงิน
 
-🔴 **ต้องตั้งใน Vercel env ก่อนฟีเจอร์ AI-image/แอดมินทำงานบน prod:** `FAL_KEY` · `ADMIN_EMAILS=whootthira@gmail.com,inowok.th@gmail.com` (มีใน .env.local แล้ว) → แล้ว redeploy
+✅ **Vercel env ครบแล้ว (30 ก.ค. 2569 — ผู้ใช้ตั้งเอง + redeploy):** `FAL_KEY` · `ADMIN_EMAILS` ·
+`OMISE_PUBLIC_KEY`/`OMISE_SECRET_KEY` (test mode) — verify จาก prod จริง: `fal_available:true` ·
+topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปรเจ็กต์ซ้ำ 2 ตัว (la-la-luck-chat, la-la-luck-chat2)
+ต่อ repo เดียวกัน — **ตัวจริงคือ `lala-lucky-chat`** แนะนำให้ผู้ใช้ลบตัวซ้ำ (แจ้งแล้ว)
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
 
