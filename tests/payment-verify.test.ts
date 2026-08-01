@@ -10,7 +10,7 @@ const UID = "12345678-90ab-cdef-1234-567890abcdef";
 const paidCharge = (over: Partial<OmiseCharge> = {}): OmiseCharge => ({
   id: "chrg_test_x",
   object: "charge",
-  amount: 1500,
+  amount: 2900, // แพ็กเริ่มต้น ฿29 (แบบ ก)
   currency: "thb",
   status: "successful",
   paid: true,
@@ -28,15 +28,15 @@ test("packageForSatang — ตรงเป๊ะทุกแพ็ก (สตา
   assert.equal(packageForSatang(0), null);
 });
 
-test("charge จ่ายแล้ว ยอดตรงแพ็ก ฿15 → เติม 5 เครดิตให้ auth_uid ใน metadata", () => {
+test("charge จ่ายแล้ว ยอดตรงแพ็กเริ่มต้น ฿29 → เติม 9 เครดิตให้ auth_uid ใน metadata", () => {
   const v = verifyChargeForGrant(paidCharge());
   assert.ok(v.ok);
-  assert.deepEqual(v.ok && v.grant, { authUid: UID, credits: 5, packageThb: 15 });
+  assert.deepEqual(v.ok && v.grant, { authUid: UID, credits: 9, packageThb: 29 });
 });
 
-test("แพ็กใหญ่สุด ฿100 → 40 เครดิต", () => {
-  const v = verifyChargeForGrant(paidCharge({ amount: 10000 }));
-  assert.ok(v.ok && v.grant.credits === 40);
+test("แพ็กพรีเมียม ฿129 → 51 เครดิต", () => {
+  const v = verifyChargeForGrant(paidCharge({ amount: 12900 }));
+  assert.ok(v.ok && v.grant.credits === 51);
 });
 
 test("🔴 ยังไม่จ่าย/สถานะไม่ successful → ปฏิเสธ (กัน webhook ปลอม/charge ค้าง)", () => {

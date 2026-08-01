@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 351/351 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 352/352 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -957,9 +957,9 @@ config อยู่ที่ `lib/credits/pricing.ts` (+ `tests/credits-pricing.
 
 | แพ็ก | เครดิต | ฿/เครดิต | | action | เครดิต | ต้นทุน | กำไร |
 |---|---|---|---|---|---|---|---|
-| ฿15 | 5 | 3.00 | | Profile/Fortune/Compat/Fengshui/ตั้งชื่อ(ข้อความ) | **ฟรี** | ฿0 | แม่เหล็ก |
-| ฿50 | 18 | 2.78 | | ถามแชท 1 คำถาม | 1 | 0.35 | 614-757% |
-| ฿100 | 40 | 2.50 (floor) | | Oracle · ทำนายฝัน | 2 | 0.76/0.69 | 558-770% |
+| ฿29 เริ่มต้น | 9 | 3.22 | | Profile/Fortune/Compat/Fengshui/ตั้งชื่อ(ข้อความ) | **ฟรี** | ฿0 | แม่เหล็ก |
+| ฿59 โปร | 21 | 2.81 | | ถามแชท 1 คำถาม | 1 | 0.35 | 622-820% |
+| ฿129 พรีเมียม | 51 | 2.53 (floor) | | Oracle · ทำนายฝัน | 2 | 0.76/0.69 | 565-633% |
 | | | | | โลโก้ตัวอย่าง (FLUX) | 1 | 0.22 | 1036%+ |
 | | | | | โลโก้เวกเตอร์ SVG (Recraft V3) | 7 | 2.88 | 508-629% |
 
@@ -994,16 +994,18 @@ config อยู่ที่ `lib/credits/pricing.ts` (+ `tests/credits-pricing.
 - **พิสูจน์ E2E กับ Omise test API + DB prod จริง:** สร้าง charge ฿50 → QR มา → settle ก่อนจ่าย
   =pending → `POST /charges/{id}/mark_as_paid` (test mode ใช้ได้! จำลองจ่ายอัตโนมัติ) →
   settle → +18 เครดิต → settle ซ้ำ="already" → ledger แถวเดียว → cleanup ยอดกลับ 0
-- 🔴 **พบข้อจำกัดจริง: PromptPay ขั้นต่ำ ฿20** ("amount must be ≥ ฿20") → **แพ็ก ฿15 ขายผ่าน
-  PromptPay ไม่ได้** — route/UI กรองออกแล้ว (`PROMPTPAY_MIN_THB`) ⚠️ รอผู้ใช้ตัดสิน: ปรับแพ็กเล็ก
-  เป็น ฿20 (เช่น ฿20→7 เครดิต ฿2.86/cr — ladder ยังเรียงถูก) หรือเก็บ ฿15 ไว้รอช่องทางบัตร
+- 🔴 **พบข้อจำกัดจริง: PromptPay ขั้นต่ำ ฿20** ("amount must be ≥ ฿20") → แพ็ก ฿15 เดิมขายไม่ได้
+  ✅ **ผู้ใช้ตัดสินแล้ว 30 ก.ค. 2569: แพ็กแบบ ก** — เริ่มต้น ฿29/9 · โปร ฿59/21 · พรีเมียม ฿129/51
+  (floor 129/51≈฿2.53 — ห้ามต่ำกว่า ~฿2.47 ไม่งั้นฉลาก/โลโก้เวกเตอร์หลุดกฎ 500%, มีเทสต์ล็อก)
+  `PROMPTPAY_MIN_THB` ยังกรองใน route/UI เป็นเข็มขัดนิรภัย + เทสต์บังคับทุกแพ็ก ≥฿20
+  E2E รอบสอง: charge ฿29 จริง → +9 เครดิต → กันซ้ำ → cleanup ผ่านครบ
 - 🔴 **ผู้ใช้ต้องทำเอง:** (1) Omise dashboard → Settings → Webhooks ใส่
   `https://lala-lucky-chat.vercel.app/api/payment/webhook` (2) ใส่ OMISE_PUBLIC_KEY/SECRET_KEY
   ใน Vercel env (3) ตอนจะรับเงินจริง: ยืนยันธุรกิจกับ Omise แล้วสลับคีย์ live
 - ⚠️ **บทเรียนเครือข่าย:** `scripts/db-migrate.mjs` เจอ ENETUNREACH (IPv6) บนเน็ตบางวง →
   ใช้ pooler IPv4: hostname `aws-0-ap-southeast-1.pooler.supabase.com` user `postgres.<ref>`
   (migration 030 รันผ่านทางนี้)
-⬜ **ยังไม่ทำ:** ช่องทางบัตรเครดิต (ต้องใช้ Omise.js token ฝั่ง client + public key) · ตัดสินใจแพ็ก ฿15
+⬜ **ยังไม่ทำ:** ช่องทางบัตรเครดิต (ต้องใช้ Omise.js token ฝั่ง client + public key)
 
 ### ✅ โลโก้ fal (Logic 19) — โค้ดพร้อมแล้ว 25 ก.ค. 2569 · ⚠️ รอ `FAL_KEY` เพื่อทดสอบจริง
 `lib/image/fal.ts` (client, verify API contract จาก fal docs: `POST fal.run/{model}` + header `Key`) +
@@ -1238,7 +1240,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 351/351
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1246,7 +1248,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 351/351
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **351 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
+| Engine + ทุกฟีเจอร์ | ✅ **352 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
 | Supabase | ✅ **migration 000-030** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
