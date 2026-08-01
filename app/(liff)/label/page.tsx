@@ -11,6 +11,7 @@ import Link from "next/link";
 import { THAI_LABEL_5, wuXingScore, type Element5 } from "@/lib/engine/element";
 import { motifElement, scoreLabelComposition, recommendForBrand } from "@/lib/engine/label";
 import { analyzeImagePixels, COLOR_ANALYSIS_CAVEAT, type ColorAnalysis } from "@/lib/engine/color-analysis";
+import { buildPrintPdf, rgbaToCmyk, PRINT_BLEED_MM, PRINT_CMYK_CAVEAT, type PrintImage } from "@/lib/print/pdf";
 
 const EL_COLOR: Record<string, string> = { Wood: "#2f5c42", Fire: "#a83a1e", Earth: "#a97c1f", Metal: "#6b6255", Water: "#1f4d63" };
 
@@ -66,6 +67,121 @@ async function downscaleToJpeg(src: string, maxPx = 768): Promise<string> {
   return c.toDataURL("image/jpeg", 0.85);
 }
 
+interface RenderLabelOpts {
+  size: Size;
+  brand: string;
+  tagline: string;
+  proxied: string; // โลโก้ผ่านพร็อกซี ("" = ไม่มี)
+  bgProxied: string; // พื้นหลัง AI ผ่านพร็อกซี ("" = พื้นเรียบ)
+  color: string;
+  /** ระยะเจียนรอบด้าน (มม.) — 0 = พรีวิว/PNG ขนาดตัด · 3 = ไฟล์พิมพ์ */
+  bleedMm?: number;
+  /** เช็คระหว่าง await ว่า render รอบนี้ถูกยกเลิกแล้ว (effect รอบใหม่ทับ) */
+  cancelled?: () => boolean;
+}
+
+/**
+ * วาดฉลากลง canvas ที่ขนาดพิมพ์จริง — เนื้อหา (โลโก้/ตัวอักษร/กรอบ) อิงพื้นที่ trim
+ * ส่วนพื้นหลัง/แถบสีลามเต็มถึงขอบ bleed (ถูกเจียนทิ้งตอนตัด)
+ */
+async function renderLabel(canvas: HTMLCanvasElement, o: RenderLabelOpts): Promise<void> {
+  const bleedMm = o.bleedMm ?? 0;
+  const done = () => o.cancelled?.() === true;
+  let W = mmToPx(o.size.w + bleedMm * 2);
+  let H = mmToPx(o.size.h + bleedMm * 2);
+  const scale = Math.min(1, MAX_PX / Math.max(W, H));
+  W = Math.round(W * scale);
+  H = Math.round(H * scale);
+  const b = Math.round(mmToPx(bleedMm) * scale);
+  const tw = W - b * 2; // พื้นที่หลังตัดจริง — ตัวอักษร/โลโก้ห้ามล้ำออกนอกนี้
+  const th = H - b * 2;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+
+  const loadImg = (src: string) =>
+    new Promise<HTMLImageElement>((res, rej) => {
+      const im = new Image();
+      im.crossOrigin = "anonymous"; // โหลดผ่านพร็อกซี same-origin → canvas ไม่ taint
+      im.onload = () => res(im);
+      im.onerror = () => rej(new Error("โหลดรูปไม่สำเร็จ"));
+      im.src = src;
+    });
+
+  // พื้นหลัง: AI artwork (ลายกรอบ+กลางครีม) cover เต็มถึงขอบ bleed · ไม่งั้นครีม+แถบสีธาตุ+กรอบ
+  const hasBg = Boolean(o.bgProxied);
+  if (hasBg) {
+    const bg = await loadImg(o.bgProxied);
+    if (done()) return;
+    const s = Math.max(W / bg.width, H / bg.height);
+    const dw = bg.width * s, dh = bg.height * s;
+    ctx.drawImage(bg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  } else {
+    ctx.fillStyle = "#faf7f0";
+    ctx.fillRect(0, 0, W, H);
+    // แถบสีธาตุบน-ล่าง ลามเข้า bleed (โดนเจียนแล้วยังชนขอบพอดี ไม่มีเส้นขาว)
+    ctx.fillStyle = o.color;
+    ctx.fillRect(0, 0, W, b + Math.round(th * 0.055));
+    ctx.fillRect(0, H - b - Math.round(th * 0.055), W, b + Math.round(th * 0.055));
+    // กรอบเส้น อยู่ในพื้นที่ trim (ถ้าคร่อมเส้นตัดจะโดนเจียนหายครึ่งเส้น)
+    ctx.strokeStyle = o.color;
+    ctx.lineWidth = Math.max(2, Math.round(tw * 0.006));
+    ctx.strokeRect(b + ctx.lineWidth, b + ctx.lineWidth, tw - ctx.lineWidth * 2, th - ctx.lineWidth * 2);
+  }
+
+  // โลโก้ (ถ้ามี) — วางกลางบนของพื้นที่ trim (มี bg ขยับลงนิดให้พ้นกรอบลาย)
+  if (o.proxied) {
+    const img = await loadImg(o.proxied);
+    if (done()) return;
+    const logoH = Math.round(th * 0.36);
+    const logoW = logoH * (img.width / img.height || 1);
+    ctx.drawImage(img, (W - logoW) / 2, b + Math.round(th * (hasBg ? 0.16 : 0.12)), logoW, logoH);
+  }
+
+  try { await (document as Document & { fonts?: FontFaceSet }).fonts?.ready; } catch { /* ฟอนต์ระบบก็เรนเดอร์ไทยถูก */ }
+  if (done()) return;
+
+  // halo บางๆ หลังตัวอักษร (กันอ่านไม่ออกถ้าลายพื้นรก) — ครีมบนมี bg
+  if (hasBg) {
+    ctx.shadowColor = "rgba(250,247,240,0.95)";
+    ctx.shadowBlur = Math.round(th * 0.04);
+  }
+
+  // ชื่อแบรนด์ (serif) — ย่ออัตโนมัติ
+  ctx.fillStyle = o.color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  let bs = Math.round(th * 0.11);
+  do {
+    ctx.font = `bold ${bs}px 'Noto Serif Thai', 'Noto Sans Thai', serif`;
+    if (ctx.measureText(o.brand || "แบรนด์ของคุณ").width <= tw * 0.82 || bs <= 20) break;
+    bs -= 3;
+  } while (bs > 20);
+  ctx.fillText(o.brand || "แบรนด์ของคุณ", W / 2, b + Math.round(th * 0.64));
+
+  // สโลแกน (sans) — ถ้ามี
+  if (o.tagline.trim()) {
+    ctx.fillStyle = "#6b6255";
+    ctx.font = `${Math.round(th * 0.05)}px 'Noto Sans Thai', sans-serif`;
+    ctx.fillText(o.tagline.trim(), W / 2, b + Math.round(th * 0.8));
+  }
+  ctx.shadowBlur = 0; // reset halo
+}
+
+/** บีบอัด zlib ฝั่ง browser (รูปแบบเดียวกับ /FlateDecode ของ PDF) — เบราว์เซอร์เก่าคืน null */
+async function deflateBytes(data: Uint8Array): Promise<Uint8Array | null> {
+  if (typeof CompressionStream === "undefined") return null;
+  const stream = new Blob([data as BlobPart]).stream().pipeThrough(new CompressionStream("deflate"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+function dataUrlToBytes(u: string): Uint8Array {
+  const bin = atob(u.slice(u.indexOf(",") + 1));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
 /** การ์ดสรุปสัดส่วนธาตุจากสีจริงในภาพ + ความเข้ากันกับธาตุแบรนด์ */
 function ColorMixCard({ title, res, brandEl }: { title: string; res: ColorAnalysis; brandEl: Element5 }) {
   if (!res.dominant) return null;
@@ -114,6 +230,8 @@ function LabelComposer() {
     cached?: boolean; caveat?: string; remaining?: number; credits?: number | null; paidWithCredits?: boolean;
   }
   const [vision, setVision] = useState<VisionResp | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfNote, setPdfNote] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const size = useMemo(() => SIZES.find((s) => s.key === sizeKey)!, [sizeKey]);
@@ -210,80 +328,7 @@ function LabelComposer() {
       if (!canvas) return;
       setError(null);
       try {
-        let W = mmToPx(size.w), H = mmToPx(size.h);
-        const scale = Math.min(1, MAX_PX / Math.max(W, H));
-        W = Math.round(W * scale);
-        H = Math.round(H * scale);
-        canvas.width = W;
-        canvas.height = H;
-        const ctx = canvas.getContext("2d")!;
-
-        const loadImg = (src: string) =>
-          new Promise<HTMLImageElement>((res, rej) => {
-            const im = new Image();
-            im.crossOrigin = "anonymous"; // โหลดผ่านพร็อกซี same-origin → canvas ไม่ taint
-            im.onload = () => res(im);
-            im.onerror = () => rej(new Error("โหลดรูปไม่สำเร็จ"));
-            im.src = src;
-          });
-
-        // พื้นหลัง: AI artwork (Recraft ให้กรอบลาย + กลางครีมสะอาดอยู่แล้ว) แบบ cover · ไม่งั้นครีม+แถบสีธาตุ+กรอบ
-        const hasBg = Boolean(bgProxied);
-        if (hasBg) {
-          const bg = await loadImg(bgProxied);
-          if (cancelled) return;
-          const s = Math.max(W / bg.width, H / bg.height);
-          const dw = bg.width * s, dh = bg.height * s;
-          ctx.drawImage(bg, (W - dw) / 2, (H - dh) / 2, dw, dh);
-        } else {
-          ctx.fillStyle = "#faf7f0";
-          ctx.fillRect(0, 0, W, H);
-          ctx.fillStyle = color;
-          ctx.fillRect(0, 0, W, Math.round(H * 0.055));
-          ctx.fillRect(0, H - Math.round(H * 0.055), W, Math.round(H * 0.055));
-          ctx.strokeStyle = color;
-          ctx.lineWidth = Math.max(2, Math.round(W * 0.006));
-          ctx.strokeRect(ctx.lineWidth, ctx.lineWidth, W - ctx.lineWidth * 2, H - ctx.lineWidth * 2);
-        }
-
-        // โลโก้ (ถ้ามี) — วางกลางบน (มี bg ขยับลงนิดให้พ้นกรอบลาย)
-        if (proxied) {
-          const img = await loadImg(proxied);
-          if (cancelled) return;
-          const logoH = Math.round(H * 0.36);
-          const logoW = logoH * (img.width / img.height || 1);
-          ctx.drawImage(img, (W - logoW) / 2, Math.round(H * (hasBg ? 0.16 : 0.12)), logoW, logoH);
-        }
-
-        try { await (document as Document & { fonts?: FontFaceSet }).fonts?.ready; } catch { /* ฟอนต์ระบบก็เรนเดอร์ไทยถูก */ }
-        if (cancelled) return;
-
-        // halo บางๆ หลังตัวอักษร (กันอ่านไม่ออกถ้าลายพื้นรก) — ครีมบนมี bg
-        if (hasBg) {
-          ctx.shadowColor = "rgba(250,247,240,0.95)";
-          ctx.shadowBlur = Math.round(H * 0.04);
-        }
-
-        // ชื่อแบรนด์ (serif) — ย่ออัตโนมัติ
-        ctx.fillStyle = color;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        let bs = Math.round(H * 0.11);
-        do {
-          ctx.font = `bold ${bs}px 'Noto Serif Thai', 'Noto Sans Thai', serif`;
-          if (ctx.measureText(brand || "แบรนด์ของคุณ").width <= W * 0.82 || bs <= 20) break;
-          bs -= 3;
-        } while (bs > 20);
-        ctx.fillText(brand || "แบรนด์ของคุณ", W / 2, Math.round(H * 0.64));
-
-        // สโลแกน (sans) — ถ้ามี
-        if (tagline.trim()) {
-          ctx.fillStyle = "#6b6255";
-          ctx.font = `${Math.round(H * 0.05)}px 'Noto Sans Thai', sans-serif`;
-          ctx.fillText(tagline.trim(), W / 2, Math.round(H * 0.8));
-        }
-        ctx.shadowBlur = 0; // reset halo
-
+        await renderLabel(canvas, { size, brand, tagline, proxied, bgProxied, color, cancelled: () => cancelled });
         if (!cancelled) setPreview(canvas.toDataURL("image/png"));
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -293,6 +338,40 @@ function LabelComposer() {
       cancelled = true;
     };
   }, [brand, tagline, size, proxied, bgProxied, color]);
+
+  // ไฟล์พิมพ์ PDF: เรนเดอร์ใหม่พร้อม bleed 3 มม. → แปลง CMYK → บีบอัด → ประกอบ PDF ในเครื่อง (ฟรี ฿0)
+  async function exportPdf() {
+    if (pdfBusy) return;
+    setPdfBusy(true);
+    setPdfNote(null);
+    try {
+      const c = document.createElement("canvas");
+      await renderLabel(c, { size, brand, tagline, proxied, bgProxied, color, bleedMm: PRINT_BLEED_MM });
+      const ctx = c.getContext("2d")!;
+      const pixels = ctx.getImageData(0, 0, c.width, c.height).data;
+      const flated = await deflateBytes(rgbaToCmyk(pixels));
+      const image: PrintImage = flated
+        ? { kind: "cmyk-flate", data: flated, width: c.width, height: c.height }
+        : // เบราว์เซอร์เก่าไม่มี CompressionStream → RGB JPEG (โรงพิมพ์แปลงสีเองได้ แต่แจ้งให้รู้)
+          { kind: "jpeg", data: dataUrlToBytes(c.toDataURL("image/jpeg", 0.92)), width: c.width, height: c.height };
+      const pdf = buildPrintPdf({ trimWidthMm: size.w, trimHeightMm: size.h, bleedMm: PRINT_BLEED_MM, image });
+      const url = URL.createObjectURL(new Blob([pdf as unknown as BlobPart], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `label-print-${(brand.trim() || "brand").replace(/[^a-zA-Z0-9ก-๙._-]/g, "-")}-${size.w}x${size.h}mm-bleed${PRINT_BLEED_MM}mm.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5_000);
+      setPdfNote(
+        flated
+          ? PRINT_CMYK_CAVEAT
+          : `เบราว์เซอร์นี้ไม่รองรับการแปลง CMYK — ได้ไฟล์ PDF สี RGB (เผื่อเจียน ${PRINT_BLEED_MM} มม. แล้ว โรงพิมพ์แปลงสีให้ได้)`
+      );
+    } catch (e) {
+      setPdfNote(`⚠️ ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setPdfBusy(false);
+    }
+  }
 
   const S = styles;
   const dlName = `label-${(brand.trim() || "brand").replace(/[^a-zA-Z0-9ก-๙._-]/g, "-")}-${size.w}x${size.h}mm.png`;
@@ -401,6 +480,19 @@ function LabelComposer() {
         <canvas ref={canvasRef} style={{ display: "none" }} />
         {preview && (
           <a href={preview} download={dlName} style={{ ...S.download, background: color }}>⬇ เซฟฉลาก ({size.w}×{size.h} มม. · 300 DPI)</a>
+        )}
+        {preview && (
+          <button
+            type="button"
+            onClick={exportPdf}
+            disabled={pdfBusy}
+            style={{ ...S.download, background: "transparent", color, border: `1px solid ${color}`, cursor: "pointer" }}
+          >
+            {pdfBusy ? "กำลังสร้างไฟล์พิมพ์…" : `🖨 ไฟล์พิมพ์ PDF (เผื่อเจียน ${PRINT_BLEED_MM} มม. · CMYK)`}
+          </button>
+        )}
+        {pdfNote && (
+          <p style={{ fontSize: "0.72rem", color: "var(--text-dim,#6b6255)", lineHeight: 1.5, maxWidth: 380, margin: 0 }}>{pdfNote}</p>
         )}
       </section>
 

@@ -87,12 +87,17 @@ export async function POST(req: Request) {
       : null;
 
     // ---- prompt: ลวดลายที่ผู้ใช้ขอ + สไตล์ธาตุ · เว้นกลางให้วางโลโก้/ข้อความ · ห้ามมีตัวอักษร ----
+    // จูนรอบพิมพ์ (ส.ค. 2569): เดิมลายชอบเด่นกลาง-ขวาทับข้อความ → บังคับ 3 อย่าง:
+    // (1) ลายอยู่เฉพาะแถบชนขอบและ "ไหลตกขอบภาพ" (ฉลากถูก crop แบบ cover + เจียน 3 มม. — ลายต้องชนริมจริง)
+    // (2) กลางภาพเป็นพื้นเรียบสีเดียว ห้ามมีวัตถุ/ลายใดๆ (พื้นที่วางโลโก้+ชื่อแบรนด์)
+    // (3) สมมาตรซ้าย-ขวา/บน-ล่าง กันน้ำหนักลายเทไปข้างเดียว
     const style = EL_STYLE_EN[brandElement];
     const prompt =
-      `ornamental decorative BORDER frame for a premium product label, ` +
-      (motif ? `motif: ${motif}, ` : "") +
-      `${style}, elegant Thai aesthetic, refined, ` +
-      `the pattern stays around the EDGES as a frame, large EMPTY light-colored space in the CENTER, ` +
+      `symmetrical ornamental BORDER frame for a premium product label, ` +
+      `all decoration confined to a band hugging the four outer edges, the pattern touches and bleeds off every edge of the image, ` +
+      (motif ? `border elements inspired by: ${motif}, ` : "") +
+      `${style}, elegant Thai aesthetic, refined, perfectly balanced left-right and top-bottom, ` +
+      `the entire middle of the image is one flat plain empty cream-colored area with no pattern, no objects, no decoration (reserved for a logo), ` +
       `absolutely no text, no letters, no words, no symbols, no calligraphy, no characters, ` +
       `clean high-quality vector pattern`;
 
