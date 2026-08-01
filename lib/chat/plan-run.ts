@@ -304,39 +304,5 @@ export async function runPlanChat(
   };
 }
 
-// ---------------------------------------------------------------------------
-// โควตาสำหรับ plan-chat — แยกจากโควตาราย Logic (§13) เพราะ plan-chat ไม่ผูก Logic เดียว
-// 🔴 ยังนับจาก cookie ต่อเบราว์เซอร์เหมือน §13 — ล้าง cookie แล้วได้ใหม่
-//    เมื่อมีระบบสมาชิกต้องย้ายไปนับที่ DB (งานเดียวกับที่ค้างใน §13/§15)
-// ---------------------------------------------------------------------------
-
-/** จำนวนคำถาม plan-chat ฟรีต่อเบราว์เซอร์ ในช่วงทดลอง */
-export const FREE_PLAN_QUESTIONS = 3;
-
-/** อ่านยอดที่ใช้ไปจาก cookie — ค่าพังต้องไม่ทำให้ได้โควตาเพิ่ม (เหมือน parseQuota §13) */
-export function parsePlanUsed(raw: string | undefined | null): number {
-  if (!raw) return 0;
-  const n = Number(raw);
-  // ติดลบ/NaN = พยายามปลอม → ปัดเป็น 0 ไม่ใช่เชื่อตาม
-  if (!Number.isFinite(n) || n < 0) return 0;
-  return Math.floor(n);
-}
-
-export interface PlanQuotaCheck {
-  allowed: boolean;
-  used: number;
-  remaining: number;
-  limit: number;
-}
-
-/** bonus = โควตาฟรีเพิ่มเติมจากรางวัล (คอมเมนต์ ฯลฯ) → เพดานฟรี = FREE + bonus */
-export function checkPlanQuota(used: number, bonus = 0): PlanQuotaCheck {
-  const u = Math.max(0, Math.floor(used));
-  const limit = FREE_PLAN_QUESTIONS + Math.max(0, Math.floor(bonus));
-  const remaining = Math.max(0, limit - u);
-  return { allowed: remaining > 0, used: u, remaining, limit };
-}
-
-export function planQuotaExhaustedMessage(): string {
-  return `คุณใช้คำถามแบบวิเคราะห์อิสระครบ ${FREE_PLAN_QUESTIONS} คำถามแล้วค่ะ 🙏 ถามต่อได้ด้วยเครดิต (คำถามละ 1 เครดิต)`;
-}
+// หมายเหตุ (1 ส.ค. 2569): โควตา plan-chat แบบ cookie ถูกถอดออกแล้ว — คำถามแชททุกโหมด
+// ใช้ "ถังคำถามรวม" ที่ lib/chat/questions.ts (นับที่ DB ต้องล็อกอิน) ตามที่ผู้ใช้ตัดสิน

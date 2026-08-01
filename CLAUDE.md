@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 352/352 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 347/347 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -1240,7 +1240,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 347/347
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1248,7 +1248,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **352 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
+| Engine + ทุกฟีเจอร์ | ✅ **347 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
 | Supabase | ✅ **migration 000-030** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
@@ -1269,6 +1269,23 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 ต่อ repo เดียวกัน — **ตัวจริงคือ `lala-lucky-chat`** แนะนำให้ผู้ใช้ลบตัวซ้ำ (แจ้งแล้ว)
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
+
+**✅ Funnel ใหม่เฟส 1 (1 ส.ค. 2569 — ผู้ใช้ยืนยันหลังถกแนวทาง):** โมเดล 4 บรรทัด:
+ฟีเจอร์คำนวณ=ฟรีไม่จำกัด · พิธี (ฝัน/เสี่ยงทาย)=ทดลอง 2 ครั้ง/คน (bucket logic:4/21 เดิม) ·
+**คำถามแชท=ถังเดียวทั้งระบบ** (`lib/chat/questions.ts` bucket "questions": ฟรี 1 +โบนัส) · เกิน=เครดิต
+- 🔴 **cookie quota ถูกถอดทั้งระบบ** — คำถามแชทต้องล็อกอิน (401 needsLogin) · plan/logic bucket
+  เดิมเลิกใช้กับแชท · รางวัลคอมเมนต์เข้าถัง questions แล้ว
+- `/api/chat` GET = สถานะ {loggedIn, questions, credits} ให้แถบสถานะ/ทุกหน้า ฿0
+- **แถบสถานะมุมขวาบน** (`AuthStatus.tsx` ใน root layout): ชื่อ + ⭐เครดิต + 💬คำถามฟรี →
+  /account · หน้าอื่นสั่งรีเฟรชผ่าน `syncAuthStatus()`/`useSyncStatus()` (event ภายใน)
+- **Funnel:** onboarding เสร็จ (next ว่าง) → `/profile?auto=1` → คำนวณการ์ด Logic 1 อัตโนมัติ
+  + FunctionChat โชว์คำชวนถามคำถามฟรีข้อแรก (prop `invite`)
+- ทุกจุดโควตา/เครดิตหมดมีปุ่ม "⭐ เติมเครดิต →" ไป /account (FunctionChat/chat/dream/oracle)
+- response แชทมี `shareTeaser` เผื่อเฟส 2 (แชร์ OG รับ +2 — ตัดสินแล้ว: รางวัลตอน "กดแชร์"
+  ครั้งเดียวต่อบัญชี เพราะไม่มีแพลตฟอร์มไหนยืนยันการแชร์จริงได้) · เฟส 3 = ความจำแม่หมอ
+  (ประวัติ+rolling summary) ยังไม่เริ่ม
+- verify: API anon 401/GET status/safety ก่อน gate · ถังจริงบน DB (ฟรี 1→หมด→โบนัส+2→เครดิต)
+  · browser: ชิป+กล่องแชทชวนล็อกอิน · ⚠️ เส้นล็อกอินจริงบนเว็บยังไม่ได้ทดสอบ (ต้องมี session)
 
 **✅ รีแบรนด์ + พื้นหินอ่อนตัดทอง (1 ส.ค. 2569 — ผู้ใช้ตัดสิน):**
 - **ชื่อที่ผู้ใช้เห็น = "LaLa Lucky Chat"** (h1 หน้าแรก · title แท็บ · login · LINE welcome ·

@@ -23,6 +23,8 @@ interface Msg {
   intercepted?: boolean;
   /** true = แสดงปุ่มพาไปหน้า login ใต้ข้อความ */
   needsLogin?: boolean;
+  /** true = แสดงปุ่มพาไปเติมเครดิต (/account) */
+  needsTopup?: boolean;
   symbols?: SymbolMatch[];
   discovery?: Discovery | null;
   via?: string;
@@ -64,8 +66,8 @@ export default function DreamPage() {
         // ต้องล็อกอินก่อน (gate ต้นทุน 30 ก.ค. 2569) — แสดงปุ่มพาไป login แล้วกลับมาหน้านี้
         setMsgs((m) => [...m, { who: "lala", text: d.error, needsLogin: true }]);
       } else if (d.quotaExceeded) {
-        // โควตาหมด — บอกตรงๆ ไม่ใช่ทำเป็น error
-        setMsgs((m) => [...m, { who: "lala", text: d.message }]);
+        // โควตาหมด — บอกตรงๆ + ปุ่มเติมเครดิต (needsTopup ใช้ปุ่มเดียวกับ needsLogin แต่ชี้ /account)
+        setMsgs((m) => [...m, { who: "lala", text: d.message, needsTopup: true }]);
         setRemaining(0);
       } else if (d.error) {
         setMsgs((m) => [...m, { who: "lala", text: `⚠️ ${d.error}` }]);
@@ -130,6 +132,18 @@ export default function DreamPage() {
                 </div>
               )}
 
+              {m.needsTopup && (
+                <a
+                  href="/account"
+                  style={{
+                    display: "inline-block", marginTop: "0.5rem", padding: "0.45rem 1rem",
+                    border: "1px solid var(--gold-dim, #a89870)", borderRadius: 8,
+                    color: "var(--gold)", textDecoration: "none", fontSize: "0.85rem",
+                  }}
+                >
+                  ⭐ เติมเครดิต →
+                </a>
+              )}
               {m.needsLogin && (
                 <a
                   href="/login?next=/dream"

@@ -54,6 +54,7 @@ export default function OraclePage() {
   const [revealing, setRevealing] = useState<{ id: string; next: () => void } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needsLogin, setNeedsLogin] = useState<string | null>(null);
+  const [needsTopup, setNeedsTopup] = useState(false);
 
   // ธาตุของผู้ถาม — คำนวณจากวันเกิดด้วย engine ตัวจริง (ไม่ใช่สูตรย่อใน HTML เดิม)
   const seed = useMemo(() => {
@@ -74,6 +75,7 @@ export default function OraclePage() {
   function start() {
     setError(null);
     setNeedsLogin(null);
+    setNeedsTopup(false);
     setCrisis(null);
     setReply(null);
     setReading(null);
@@ -110,6 +112,7 @@ export default function OraclePage() {
     setLoading(true);
     setError(null);
     setNeedsLogin(null);
+    setNeedsTopup(false);
     try {
       const res = await fetch("/api/oracle", {
         method: "POST",
@@ -127,8 +130,10 @@ export default function OraclePage() {
       const d = await res.json();
       if (d.intercepted) setCrisis(d.message);
       else if (d.needsLogin) setNeedsLogin(d.error); // gate ต้นทุน 30 ก.ค. 2569
-      else if (d.quotaExceeded) setError(d.message);
-      else if (d.error) setError(d.error);
+      else if (d.quotaExceeded) {
+        setError(d.message);
+        setNeedsTopup(true); // โควตา/เครดิตหมด → ปุ่มเติมเครดิต
+      } else if (d.error) setError(d.error);
       else {
         setReply(d.reply);
         setReading(d.reading);
@@ -298,6 +303,18 @@ export default function OraclePage() {
 
           {loading && <p className={styles.phase}>กำลังตีความ…</p>}
           {error && <p style={{ color: "var(--bad, #a83a1e)" }}>⚠️ {error}</p>}
+          {needsTopup && (
+            <a
+              href="/account"
+              style={{
+                display: "inline-block", marginTop: "0.4rem", padding: "0.45rem 1rem",
+                border: "1px solid var(--gold-dim, #a89870)", borderRadius: 8,
+                color: "var(--gold)", textDecoration: "none", fontSize: "0.85rem",
+              }}
+            >
+              ⭐ เติมเครดิต →
+            </a>
+          )}
           {needsLogin && (
             <p>
               {needsLogin}{" "}

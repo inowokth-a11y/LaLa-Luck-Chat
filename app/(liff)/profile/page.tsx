@@ -4,7 +4,7 @@
 // พอร์ตจาก legacy-artifacts/intake_form.html
 // โทน: ☀️ สว่างหินอ่อน (.tone-marble) ตาม CLAUDE.md §2 — หน้านี้เป็น "ข้อมูล/ผลลัพธ์ถาวร"
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { computeCardIdString, thaiDayOfWeek } from "@/lib/engine/card-id";
 import { calculateElementSeed, THAI_LABEL_4, type ElementSeedResult } from "@/lib/engine/element";
 import { cardImageUrl } from "@/lib/cards";
@@ -53,6 +53,8 @@ export default function ProfilePage() {
   const [cardId, setCardId] = useState<string | null>(null);
   const [seed, setSeed] = useState<ElementSeedResult | null>(null);
   const [prefilled, setPrefilled] = useState(false);
+  const [autoInvite, setAutoInvite] = useState(false);
+  const autoRan = useRef(false);
 
   // เติมข้อมูลจากโปรไฟล์ที่ผู้ใช้กรอกไว้ (ไม่ทับค่าที่ผู้ใช้พิมพ์เองแล้ว)
   const { profile } = useStoredProfile();
@@ -66,27 +68,27 @@ export default function ProfilePage() {
     if (did) setPrefilled(true);
   }, [profile]);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // แยกจาก onSubmit เพื่อให้ flow อัตโนมัติหลัง onboarding เรียกได้ (ผู้ใช้ตัดสิน 1 ส.ค. 2569)
+  async function runCompute(f = firstName, l = lastName, bd = birthDate, bt = birthTime) {
     setError(null);
     setLoading(true);
     try {
-      const year = Number(birthDate.slice(0, 4));
-      const month = Number(birthDate.slice(5, 7));
-      const day = Number(birthDate.slice(8, 10));
+      const year = Number(bd.slice(0, 4));
+      const month = Number(bd.slice(5, 7));
+      const day = Number(bd.slice(8, 10));
 
       // ป้องกันข้อมูลเสีย (บทเรียนจาก data-quality report: พ.ศ. ปนเข้ามา)
       if (year > 2400) throw new Error(`ปีเกิดดูเป็น พ.ศ. (${year}) — กรุณากรอกเป็น ค.ศ. เช่น ${year - 543}`);
       const nowYear = new Date().getUTCFullYear();
       if (year < 1900 || year > nowYear) throw new Error(`ปีเกิด ${year} อยู่นอกช่วงที่รองรับ (1900-${nowYear})`);
 
-      const id = computeCardIdString({ firstName, lastName, birthDate, birthTime });
+      const id = computeCardIdString({ firstName: f, lastName: l, birthDate: bd, birthTime: bt });
       setCardId(id);
 
       // Element Seed (Logic 1) — ใช้ 5 แหล่ง; ส่ง birth_day ไปด้วยเพื่อขอบเขตลี่ชุน
       setSeed(
         calculateElementSeed({
-          day_of_week: thaiDayOfWeek(birthDate),
+          day_of_week: thaiDayOfWeek(bd),
           birth_month: month,
           birth_year_ad: year,
           birth_day: day,
@@ -108,6 +110,22 @@ export default function ProfilePage() {
       setLoading(false);
     }
   }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void runCompute();
+  }
+
+  // flow หลัง onboarding: /profile?auto=1 → คำนวณการ์ดให้เลยจากโปรไฟล์ที่เพิ่งกรอก
+  // (อ่าน query จาก window ตรงๆ — เลี่ยง useSearchParams ที่ต้องห่อ Suspense ตามบทเรียน §15)
+  useEffect(() => {
+    if (autoRan.current || !profile?.birth_date) return;
+    if (typeof window === "undefined" || !new URLSearchParams(window.location.search).has("auto")) return;
+    autoRan.current = true;
+    setAutoInvite(true);
+    void runCompute(profile.first_name ?? "", profile.last_name ?? "", profile.birth_date, profile.birth_time ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
 
   return (
     <main className={`tone-marble ${styles.page}`}>
@@ -220,7 +238,12 @@ export default function ProfilePage() {
       )}
     
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
-      <FunctionChat logicId={1} context={card && seed ? { การ์ด: card, ธาตุ: seed, เลขการ์ด: cardId } : null} placeholder="เช่น ธาตุที่ขาดควรทำยังไงดี" />
+      <FunctionChat
+        logicId={1}
+        context={card && seed ? { การ์ด: card, ธาตุ: seed, เลขการ์ด: cardId } : null}
+        placeholder="เช่น ธาตุที่ขาดควรทำยังไงดี"
+        invite={autoInvite ? "ลาลา~ ได้การ์ดประจำตัวของคุณแล้ว! ถามแม่หมอเกี่ยวกับการ์ด/ธาตุของคุณได้ 1 คำถามฟรีเลยค่ะ" : undefined}
+      />
 
     </main>
   );

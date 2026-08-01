@@ -1,14 +1,14 @@
 "use client";
 
-// กล่องแชท AI ประจำฟังก์ชัน — ใช้ร่วมกันทั้ง 6 หน้า LIFF
+// กล่องแชท "อาจารย์ลาลา ลักกี้" ประจำฟังก์ชัน — ใช้ร่วมกันทุกหน้า LIFF
 //
-// หลักการ:
-//  - แสดงเฉพาะเมื่อมีผลลัพธ์แล้ว (ไม่มี context ให้ถามก็ไม่มีประโยชน์)
-//  - บอกโควตาคงเหลือชัดเจนตั้งแต่ยังไม่ถาม ไม่ให้ผู้ใช้ถามไปแล้วค่อยรู้ว่าหมด
-//  - Safety Gate ทำที่ฝั่ง server (app/api/chat/route.ts) — ฝั่งนี้แค่แสดงผล
-//    **ห้ามพ่วงปุ่ม/การตลาดใดๆ ตอนแสดงข้อความวิกฤต** (ตรงกับกฎของ LINE webhook)
+// โมเดลถังคำถามรวม (1 ส.ค. 2569 — lib/chat/questions.ts):
+//  - ต้องล็อกอิน · คำถามฟรี 1 ข้อ (+โบนัสจากรางวัล) ใช้ร่วมกันทุกหน้า · หมดแล้วหักเครดิต 1/คำถาม
+//  - เครดิตหมดด้วย → ปุ่ม "เติมเครดิต" พาไป /account
+//  - Safety Gate ทำฝั่ง server — **ห้ามพ่วงปุ่ม/การตลาดตอนแสดงข้อความวิกฤต**
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSyncStatus } from "@/app/_components/AuthStatus";
 import styles from "./FunctionChat.module.css";
 import { MascotAvatar } from "@/app/_components/MascotLogo";
 
@@ -23,21 +23,43 @@ interface Props {
   context: unknown;
   /** ข้อความชวนถาม ปรับตามแต่ละฟังก์ชัน */
   placeholder?: string;
+  /** ข้อความชวนจากแม่หมอตอนกล่องเปิด (ใช้ตอน onboarding พาเข้าการ์ดใบแรก) */
+  invite?: string;
 }
 
-export default function FunctionChat({ logicId, context, placeholder }: Props) {
+export default function FunctionChat({ logicId, context, placeholder, invite }: Props) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [remaining, setRemaining] = useState<number | null>(null);
-  const [limit, setLimit] = useState(2);
+  const [questions, setQuestions] = useState<{ remaining: number; limit: number } | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [topup, setTopup] = useState(false);
   const [crisis, setCrisis] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const syncStatus = useSyncStatus();
+
+  // โหลดสถานะถัง/เครดิตตอนเปิดกล่อง — ให้ผู้ใช้เห็นทรัพยากรก่อนถาม
+  useEffect(() => {
+    let active = true;
+    fetch("/api/chat")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!active) return;
+        if (!d.loggedIn) setNeedsLogin(true);
+        else {
+          setQuestions(d.questions);
+          setCredits(d.credits);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (context === null || context === undefined) return null;
-
-  const exhausted = remaining !== null && remaining <= 0;
 
   async function ask(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +69,7 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
     setBusy(true);
     setError(null);
     setNotice(null);
+    setTopup(false);
     setMsgs((m) => [...m, { role: "user", text: question }]);
     setInput("");
 
@@ -61,18 +84,22 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
       if (d.intercepted) {
         // ข้อความช่วยเหลือ — แสดงเดี่ยวๆ ไม่พ่วงอย่างอื่น และไม่คิดโควตา
         setCrisis(d.message);
+      } else if (d.needsLogin) {
+        setNeedsLogin(true);
       } else if (d.declined) {
-        // นโยบายเลขเด็ด/หวย — แสดงเป็นโน้ต ไม่คิดโควตา
         setNotice(d.message);
       } else if (d.quotaExceeded) {
         setNotice(d.message);
-        setRemaining(0);
+        setQuestions({ remaining: 0, limit: questions?.limit ?? 1 });
+        if (typeof d.credits === "number") setCredits(d.credits);
+        setTopup(true);
       } else if (d.error) {
         setError(d.error);
       } else {
         setMsgs((m) => [...m, { role: "ai", text: d.reply }]);
-        setRemaining(d.remaining);
-        setLimit(d.limit);
+        if (d.questions) setQuestions(d.questions);
+        if (typeof d.credits === "number") setCredits(d.credits);
+        syncStatus(); // อัปเดตแถบสถานะมุมบนทันที
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -89,16 +116,28 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
     );
   }
 
+  const quotaLabel = needsLogin
+    ? ""
+    : questions === null
+    ? ""
+    : questions.remaining > 0
+    ? `คำถามฟรี ${questions.remaining} ข้อ`
+    : credits !== null && credits > 0
+    ? `ใช้เครดิต (มี ${credits})`
+    : "คำถามฟรีหมด";
+
   return (
     <section className={styles.box}>
       <div className={styles.head}>
         <h3 className={styles.title}>
-          <MascotAvatar size={22} /> ถามอาจารย์ลาลา ลักกี้ต่อ
+          <MascotAvatar size={22} /> ถามอาจารย์ลาลา ลักกี้
         </h3>
-        <span className={styles.quota}>
-          {remaining === null ? `ถามได้ ${limit} คำถาม` : `เหลือ ${remaining}/${limit} คำถาม`}
-        </span>
+        {quotaLabel && <span className={styles.quota}>{quotaLabel}</span>}
       </div>
+
+      {invite && msgs.length === 0 && !needsLogin && (
+        <p className={styles.notice}>🐾 {invite}</p>
+      )}
 
       {msgs.length > 0 && (
         <div className={styles.thread}>
@@ -114,7 +153,15 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
       {notice && <p className={styles.notice}>{notice}</p>}
       {error && <p className={styles.error}>⚠️ {error}</p>}
 
-      {!exhausted && (
+      {needsLogin ? (
+        <a href={`/login?next=${typeof window !== "undefined" ? window.location.pathname : "/"}`} className={styles.send} style={{ display: "inline-block", textDecoration: "none", textAlign: "center" }}>
+          เข้าสู่ระบบเพื่อรับคำถามฟรี →
+        </a>
+      ) : topup ? (
+        <a href="/account" className={styles.send} style={{ display: "inline-block", textDecoration: "none", textAlign: "center" }}>
+          ⭐ เติมเครดิตเพื่อถามต่อ →
+        </a>
+      ) : (
         <form onSubmit={ask} className={styles.form}>
           <input
             type="text"
@@ -132,7 +179,8 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
       )}
 
       <p className={styles.hint}>
-        ช่วงทดลอง ถามได้ฟังก์ชันละ {limit} คำถาม · AI ตอบจากผลที่คำนวณได้เท่านั้น ไม่ใช่คำทำนายเพิ่มเติม
+        คำถามฟรีใช้ร่วมกันทุกหน้า · หมดแล้วถามต่อได้ด้วยเครดิต (1 เครดิต/คำถาม) ·
+        AI ตอบจากผลที่คำนวณได้เท่านั้น ไม่ใช่คำทำนายเพิ่มเติม
       </p>
     </section>
   );

@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { validateFeedback } from "@/lib/feedback/validate";
-import { addDbBonus, planBucket } from "@/lib/chat/usage-db";
+import { addDbBonus } from "@/lib/chat/usage-db";
+import { QUESTIONS_BUCKET } from "@/lib/chat/questions";
 
 export const runtime = "nodejs";
 
@@ -50,13 +51,14 @@ export async function POST(req: Request) {
         .eq("user_id", userId)
         .eq("prompt_id", v.promptId);
       if (count === 1) {
-        const ok = await addDbBonus(userId, planBucket(), REWARD_CREDITS);
+        // รางวัลเข้าถังคำถามรวม (1 ส.ค. 2569 — เดิมเข้า bucket "plan" ที่เลิกใช้แล้ว)
+        const ok = await addDbBonus(userId, QUESTIONS_BUCKET, REWARD_CREDITS);
         if (ok !== null) rewarded = REWARD_CREDITS;
       }
     }
 
     const message = rewarded
-      ? `ขอบคุณค่ะ 🙏 รับ ${rewarded} เครดิตฟรีแล้ว — ใช้ถามในแชทวิเคราะห์อิสระได้เลยค่ะ 🎁`
+      ? `ขอบคุณค่ะ 🙏 รับคำถามฟรีเพิ่ม ${rewarded} ข้อแล้ว — ใช้ถามแม่หมอได้ทุกหน้าเลยค่ะ 🎁`
       : "ขอบคุณสำหรับความเห็นค่ะ 🙏";
     return NextResponse.json({ ok: true, message, rewarded });
   } catch (err) {

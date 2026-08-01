@@ -1,12 +1,11 @@
-// โควตาคำถาม AI Chat ต่อฟังก์ชัน — ตรรกะล้วน ไม่แตะ cookie/network (เทสต์ได้ตรงๆ)
+// สิทธิ์ทดลอง "พิธี" ต่อฟังก์ชัน — ตรรกะล้วน ไม่แตะ cookie/network (เทสต์ได้ตรงๆ)
 //
-// 🔴 ข้อจำกัดที่ต้องรู้ก่อนใช้จริง:
-//    ตอนนี้ยังไม่มีระบบสมาชิก (CLAUDE.md §12) จึงนับโควตาจาก **cookie ต่อเบราว์เซอร์**
-//    ผู้ใช้ล้าง cookie แล้วได้โควตาใหม่ทันที — พอสำหรับตัวทดลอง แต่**กันคนตั้งใจเลี่ยงไม่ได้**
-//    เมื่อทำระบบสมาชิกแล้วต้องย้ายไปนับที่ `users` + `ai_usage_log` ฝั่ง DB แทน
-//    (ตอนนั้นถึงจะขายเครดิตเติมเงินได้จริงตามที่ตั้งใจ)
+// บทบาทปัจจุบัน (1 ส.ค. 2569 — หลังรวมถังคำถามแชทเป็น lib/chat/questions.ts):
+//   ไฟล์นี้เหลือหน้าที่เดียว = สิทธิ์ทดลองของ **ฝัน (logic:4) / เสี่ยงทาย (logic:21)**
+//   ซึ่งจงใจแยกจากถังคำถามแชท เพราะต้นทุนคนละโลก (ฝันปลุก AI-1 ได้ ฿7.46)
+//   นับที่ DB (chat_usage_e bucket logic:<id>) — routes เป็นคนสร้าง state สังเคราะห์ส่งเข้ามา
 
-/** จำนวนคำถามฟรีต่อ 1 ฟังก์ชัน ในเฟสทดลอง */
+/** จำนวนครั้งทดลองฟรีต่อ 1 พิธี (ฝัน/เสี่ยงทาย) ต่อบัญชี */
 export const FREE_QUESTIONS_PER_LOGIC = 2;
 
 /** Logic ที่เปิดให้ถามได้ — ต้องตรงกับหน้าที่มีจริง (LIFF 6 หน้า) */
@@ -32,29 +31,7 @@ export interface QuotaCheck {
   reason?: "logic_not_enabled" | "quota_exhausted";
 }
 
-/** อ่านสภาพโควตาจากสตริง (เนื้อ cookie) — ค่าพังต้องไม่ทำให้ระบบล่ม */
-export function parseQuota(raw: string | undefined | null): QuotaState {
-  if (!raw) return {};
-  try {
-    const o = JSON.parse(raw) as unknown;
-    if (o === null || typeof o !== "object" || Array.isArray(o)) return {};
-    const out: QuotaState = {};
-    for (const [k, v] of Object.entries(o as Record<string, unknown>)) {
-      const n = typeof v === "number" ? v : Number(v);
-      // ค่าติดลบ/NaN = พยายามปลอมให้ได้โควตาเพิ่ม → ปัดเป็น 0 ไม่ใช่เชื่อตาม
-      if (Number.isFinite(n) && n >= 0) out[k] = Math.floor(n);
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
-
-export function serializeQuota(state: QuotaState): string {
-  return JSON.stringify(state);
-}
-
-/** ตรวจว่าถามได้อีกไหม — ไม่แก้ state */
+/** ตรวจว่าใช้สิทธิ์ทดลองได้อีกไหม — ไม่แก้ state */
 export function checkQuota(state: QuotaState, logicId: number): QuotaCheck {
   const limit = FREE_QUESTIONS_PER_LOGIC;
   if (!CHAT_ENABLED_LOGICS.includes(logicId)) {
@@ -69,12 +46,6 @@ export function checkQuota(state: QuotaState, logicId: number): QuotaCheck {
     limit,
     ...(remaining > 0 ? {} : { reason: "quota_exhausted" as const }),
   };
-}
-
-/** เพิ่มยอดใช้ไป 1 — คืน state ใหม่ (ไม่แก้ของเดิม) */
-export function consumeQuota(state: QuotaState, logicId: number): QuotaState {
-  const key = String(logicId);
-  return { ...state, [key]: (state[key] ?? 0) + 1 };
 }
 
 /** ข้อความบอกผู้ใช้เมื่อโควตาหมด — ตรงไปตรงมา ไม่หลอกว่าจะได้เพิ่มฟรี

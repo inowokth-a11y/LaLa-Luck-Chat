@@ -7,7 +7,8 @@
 //    Safety Gate ทำที่ server (app/api/chat/route.ts) ฝั่งนี้แค่แสดงข้อความช่วยเหลือ
 //    (ห้ามพ่วงปุ่ม/การตลาดตอนแสดงข้อความวิกฤต — ตรงกับกฎ LINE webhook/FunctionChat)
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSyncStatus } from "@/app/_components/AuthStatus";
 import Link from "next/link";
 import ChartPanel, { type ChartData } from "../_components/ChartPanel";
 import { useStoredProfile } from "../_components/useStoredProfile";
@@ -88,9 +89,30 @@ export default function FlexibleChatPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
-  const [limit, setLimit] = useState(3);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [exhausted, setExhausted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const syncStatus = useSyncStatus();
+
+  // สถานะถังคำถาม/เครดิตตอนเปิดหน้า
+  useEffect(() => {
+    let active = true;
+    fetch("/api/chat")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!active) return;
+        if (!d.loggedIn) setNeedsLogin(true);
+        else {
+          setRemaining(d.questions?.remaining ?? null);
+          setCredits(d.credits ?? null);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // ผลทำนายแรกจากข้อมูลที่กรอกไว้ (เฉพาะผู้ล็อกอิน+มีโปรไฟล์) — โชว์เหนือช่องแชท
   const { profile } = useStoredProfile();
@@ -118,12 +140,16 @@ export default function FlexibleChatPage() {
 
       if (d.intercepted) {
         setEntries((e) => [...e, { kind: "crisis", text: d.message }]);
+      } else if (d.needsLogin) {
+        setNeedsLogin(true);
+        setEntries((e) => [...e, { kind: "note", text: d.error }]);
       } else if (d.declined) {
         // นโยบายเลขเด็ด/หวย — แสดงเป็นโน้ต ไม่ใช่คำตอบ ไม่คิดโควตา
         setEntries((e) => [...e, { kind: "note", text: d.message }]);
       } else if (d.quotaExceeded) {
         setEntries((e) => [...e, { kind: "note", text: d.message }]);
         setRemaining(0);
+        if (typeof d.credits === "number") setCredits(d.credits);
         setExhausted(true);
       } else if (d.needsInput || d.unclear) {
         setEntries((e) => [...e, { kind: "note", text: d.message }]);
@@ -131,8 +157,9 @@ export default function FlexibleChatPage() {
         setError(d.error);
       } else {
         setEntries((e) => [...e, { kind: "ai", reply: d.reply, chart: d.chart ?? undefined, caveats: d.caveats ?? [] }]);
-        if (typeof d.remaining === "number") setRemaining(d.remaining);
-        if (typeof d.limit === "number") setLimit(d.limit);
+        if (d.questions) setRemaining(d.questions.remaining);
+        if (typeof d.credits === "number") setCredits(d.credits);
+        syncStatus(); // อัปเดตแถบสถานะมุมบน
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -162,8 +189,26 @@ export default function FlexibleChatPage() {
           ถามเรื่องเลขการ์ด · ทะเบียน/เบอร์โทร · เทียบธาตุของสิ่งของ — ระบบ<strong>คำนวณจริง</strong>ให้ ไม่ใช่การเดา
         </p>
         <span className={styles.quota}>
-          {remaining === null ? `ช่วงทดลอง ถามได้ ${limit} คำถาม` : `เหลือ ${remaining}/${limit} คำถาม`}
+          {needsLogin
+            ? "เข้าสู่ระบบเพื่อรับคำถามฟรี"
+            : remaining === null
+            ? ""
+            : remaining > 0
+            ? `คำถามฟรี ${remaining} ข้อ`
+            : credits !== null && credits > 0
+            ? `ใช้เครดิต (มี ${credits})`
+            : "คำถามฟรีหมด — เติมเครดิตเพื่อถามต่อ"}
         </span>
+        {needsLogin && (
+          <Link href="/login?next=/chat" className={styles.quota} style={{ textDecoration: "underline" }}>
+            เข้าสู่ระบบ →
+          </Link>
+        )}
+        {exhausted && credits !== null && credits <= 0 && (
+          <Link href="/account" className={styles.quota} style={{ textDecoration: "underline" }}>
+            ⭐ เติมเครดิต →
+          </Link>
+        )}
       </header>
 
       {reading && (

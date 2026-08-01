@@ -6,8 +6,7 @@
 
 import { createServiceClient } from "@/lib/supabase/server";
 
-/** bucket ของโควตา — คงรูปแบบให้ตรงกับ migration 022 */
-export const planBucket = () => "plan";
+/** bucket โควตา/สิทธิ์ทดลอง (migration 022) — "questions"=ถังคำถามรวม · logic:<id>=ทดลองพิธี · logo/label/vision */
 export const logicBucket = (logicId: number) => `logic:${logicId}`;
 
 /** ยอดที่ใช้ไปแล้วของ bucket นี้ (0 ถ้ายังไม่เคยใช้) — อ่านล้มเหลวคืน 0 ไม่ทำให้ request พัง */

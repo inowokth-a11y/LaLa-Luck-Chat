@@ -11,10 +11,6 @@ import {
   interpretPlannerOutput,
   buildNarratorInput,
   buildProfileContext,
-  parsePlanUsed,
-  checkPlanQuota,
-  planQuotaExhaustedMessage,
-  FREE_PLAN_QUESTIONS,
 } from "../lib/chat/plan-run";
 import { PLAN_FN_NAMES, type PlanProfileContext } from "../lib/chat/plan";
 
@@ -146,40 +142,7 @@ test("narrator input มีคำถาม + ผลจริง แต่คำ�
 // โควตา plan-chat — กันปลอมแปลงแบบเดียวกับ §13
 // ---------------------------------------------------------------------------
 
-test("เริ่มต้นถาม plan-chat ได้ตาม FREE_PLAN_QUESTIONS", () => {
-  const q = checkPlanQuota(0);
-  assert.equal(q.allowed, true);
-  assert.equal(q.remaining, FREE_PLAN_QUESTIONS);
-});
 
-test("ใช้ครบแล้วถูกปิด", () => {
-  const q = checkPlanQuota(FREE_PLAN_QUESTIONS);
-  assert.equal(q.allowed, false);
-  assert.equal(q.remaining, 0);
-});
 
-test("🎁 โบนัส (รางวัลคอมเมนต์) ขยายเพดานฟรี = FREE + bonus", () => {
-  // ใช้ครบ FREE แล้ว แต่มีโบนัส 2 → ยังถามได้อีก 2
-  const q = checkPlanQuota(FREE_PLAN_QUESTIONS, 2);
-  assert.equal(q.allowed, true);
-  assert.equal(q.limit, FREE_PLAN_QUESTIONS + 2);
-  assert.equal(q.remaining, 2);
-  // โบนัสติดลบ/พัง ไม่ทำให้เพดานลด
-  assert.equal(checkPlanQuota(0, -5).limit, FREE_PLAN_QUESTIONS);
-});
 
-test("🔴 cookie ค่าเพี้ยน (ติดลบ/NaN/ทศนิยม/พัง) ต้องไม่ให้โควตาเกิน", () => {
-  for (const bad of [undefined, null, "", "-100", "abc", "1e999", "2.9"]) {
-    const used = parsePlanUsed(bad as string);
-    assert.ok(used >= 0 && Number.isInteger(used), `"${bad}" ให้ค่าใช้ที่ไม่ถูกต้อง (${used})`);
-    assert.ok(checkPlanQuota(used).remaining <= FREE_PLAN_QUESTIONS, `"${bad}" ให้โควตาเกิน`);
-  }
-  assert.equal(parsePlanUsed("-100"), 0, "ค่าติดลบต้องปัดเป็น 0");
-  assert.equal(parsePlanUsed("2.9"), 2, "ทศนิยมปัดลง");
-});
 
-test("ข้อความโควตาหมดบอกตรงๆ ว่าต้องเติมเครดิต", () => {
-  const m = planQuotaExhaustedMessage();
-  assert.ok(/เครดิต|เติม/.test(m));
-  assert.ok(!/ฟรีไม่จำกัด|unlimited/i.test(m));
-});

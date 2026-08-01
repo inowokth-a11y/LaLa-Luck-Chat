@@ -24,7 +24,10 @@ function OnboardingForm() {
   const params = useSearchParams();
   const next = (() => {
     const n = params.get("next") ?? "/";
-    return n.startsWith("/") && !n.startsWith("//") ? n : "/";
+    const safe = n.startsWith("/") && !n.startsWith("//") ? n : "/";
+    // funnel หลัก (ผู้ใช้ตัดสิน 1 ส.ค. 2569): กรอกเสร็จแล้วไม่ปล่อยกลับหน้าแรกเฉยๆ —
+    // พาไปเปิดการ์ด Logic 1 อัตโนมัติทันที (ของว้าวชิ้นแรก + จุดชวนถามคำถามฟรี)
+    return safe === "/" ? "/profile?auto=1" : safe;
   })();
 
   const [ready, setReady] = useState(false);
