@@ -70,6 +70,31 @@
   --text: var(--ink);
   --text-dim: var(--ink-dim);
   color-scheme: light;
+
+  /* ลายหินอ่อนเส้นทอง (ผู้ใช้เลือกภาพอ้างอิง 1 ส.ค. 2569) — SVG inline ไม่มีไฟล์ภาพ/ไม่ถ่วงโหลด */
+  --marble-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Crect width='700' height='700' fill='%23f5f0e4'/%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M-30 130 C170 90 300 200 480 150 S700 210 740 180' stroke='%23c9a94f' stroke-width='1.7' opacity='.42'/%3E%3Cpath d='M90 -30 C140 160 60 300 160 460 S150 640 210 720' stroke='%23cbb98f' stroke-width='1.2' opacity='.5'/%3E%3Cpath d='M-40 480 C140 430 340 540 520 480 S700 520 740 490' stroke='%23b8934a' stroke-width='2' opacity='.32'/%3E%3Cpath d='M420 -40 C470 140 370 260 480 390 S530 610 490 740' stroke='%23d3c39b' stroke-width='1' opacity='.55'/%3E%3Cpath d='M620 -20 C570 110 680 250 600 390 S660 590 630 720' stroke='%23c9b483' stroke-width='1.4' opacity='.4'/%3E%3Cpath d='M-20 300 C100 290 200 350 350 320 S610 360 730 330' stroke='%23e0d4b6' stroke-width='1' opacity='.6'/%3E%3Cpath d='M240 -20 C210 90 300 170 260 300 S320 480 280 720' stroke='%23decfa9' stroke-width='.8' opacity='.5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* พื้นหินอ่อนของทุกหน้าโทนสว่าง — เขียนซ้ำ 2 ชั้น (specificity 0-2-0) ให้ชนะ shorthand
+   `background: var(--marble-bg)` ใน module css ของแต่ละหน้า โดยไม่ต้องไล่แก้ทีละไฟล์ */
+.tone-marble.tone-marble {
+  background-color: var(--marble-bg);
+  background-image: var(--marble-texture);
+  background-size: 700px auto;
+}
+
+/* กรอบทองแบบภาพอ้างอิง — ห่อสองชั้น: <div class="gold-frame"><div class="gold-frame-inner"> */
+.gold-frame {
+  background: linear-gradient(135deg, #e7c96a 0%, #b8860b 28%, #f3dc8e 52%, #a87908 74%, #e2c25e 100%);
+  border-radius: 22px;
+  padding: 8px;
+  box-shadow: 0 8px 22px rgba(110, 82, 16, 0.22);
+}
+.gold-frame-inner {
+  background-color: var(--card-bg, #fffdf8);
+  background-image: var(--marble-texture);
+  background-size: 700px auto;
+  border-radius: 15px;
 }
 
 html {

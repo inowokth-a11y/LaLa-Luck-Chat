@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KRUTH ELEMENT",
+  title: "LaLa Lucky Chat",
   description: "แพลตฟอร์มดูดวง/ไลฟ์สไตล์ที่คำนวณจริง — ธาตุ โหราศาสตร์ไทย ตัวเลข",
 };
 

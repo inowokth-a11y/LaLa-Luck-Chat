@@ -22,7 +22,7 @@ export const LIFF_PATHS: Record<number, string> = {
 export const CHAT_IMPLEMENTED: readonly number[] = [4];
 
 const WELCOME =
-  "สวัสดีค่ะ 🙏 นี่คือ KRUTH ELEMENT\n\n" +
+  "สวัสดีค่ะ 🙏 นี่คือ LaLa Lucky Chat 🐾\n\n" +
   "ลองพิมพ์ได้เลย เช่น\n" +
   "• “เมื่อคืนฝันเห็นงู” — ทำนายฝัน\n" +
   "• “ดวงวันนี้” — ดวงรายวัน\n" +

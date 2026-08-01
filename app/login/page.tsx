@@ -111,7 +111,7 @@ export default function LoginPage() {
   return (
     <main className="tone-marble" style={box}>
       <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--gold)" }}>
-        {user ? "บัญชีของคุณ" : "เข้าสู่ระบบ KRUTH ELEMENT"}
+        {user ? "บัญชีของคุณ" : "เข้าสู่ระบบ LaLa Lucky Chat"}
       </h1>
 
       {error && <p style={{ color: "var(--bad, #b23)", maxWidth: 340, textAlign: "center" }}>⚠️ {error}</p>}

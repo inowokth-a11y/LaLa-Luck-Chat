@@ -75,7 +75,7 @@ export async function createPromptPayCharge(opts: {
         package_thb: opts.packageThb,
         credits: opts.credits,
       },
-      description: `KRUTH ELEMENT เติมเครดิต ฿${opts.packageThb} (${opts.credits} เครดิต)`,
+      description: `LaLa Lucky Chat เติมเครดิต ฿${opts.packageThb} (${opts.credits} เครดิต)`,
     }),
   });
 }
