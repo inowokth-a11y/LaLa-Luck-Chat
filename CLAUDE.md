@@ -1270,6 +1270,12 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
 
+**✅ มาสคอต "LALA LUCKY CHAT" (30 ก.ค. 2569):** `app/_components/MascotLogo.tsx` + `mascot.module.css`
+— แมวกวักบนหน้าแรก อนิเมชัน CSS ล้วน (โยกดุ๊กดิ๊ก + กระพริบตาด้วยเปลือกตาซ้อนทับพิกัดตาจริง
+% เทียบภาพ 529×472 · hover ขยับแรงขึ้น · ปิดตาม prefers-reduced-motion) · ไฟล์ใช้จริง
+`public/mascot.png` · ต้นฉบับ `docs/design-assets/lala-lucky-chat-mascot.png` · ตรวจ browser แล้ว
+(บังคับปิดตาเช็คพิกัด + getComputedStyle ยืนยันอนิเมชันวิ่ง)
+
 ### 🎯 คิวที่เหลือจริง (เริ่มเซสชันใหม่ตรงนี้ได้เลย — เรียงตามที่คุยกับผู้ใช้)
 
 1. **ระบบเครดิต — ✅ กระเป๋า+หักจริงเสร็จ 30 ก.ค. 2569 (ดู §12)** · ที่เหลือ: ปุ่มเติมเงิน (Omise —

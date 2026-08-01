@@ -1,0 +1,90 @@
+/* มาสคอต LALA LUCKY CHAT — อนิเมชัน CSS ล้วน (โยกตัว + กระพริบตา)
+   หลัก: ภาพนิ่งเป็นฐาน แล้ววาง "เปลือกตา" ทับตำแหน่งตาจริงด้วยสีขนรอบดวงตา
+   ปิดทั้งหมดเมื่อผู้ใช้ตั้ง prefers-reduced-motion (กติกาเดียวกับวงแหวนเสี่ยงทาย §14) */
+
+.wrap {
+  display: inline-block;
+  line-height: 0;
+}
+
+.body {
+  position: relative;
+  animation: mascot-bob 3.6s ease-in-out infinite alternate;
+  transform-origin: 50% 92%; /* โยกจากฐาน เหมือนตุ๊กตาล้มลุก */
+}
+.wrap:hover .body {
+  animation: mascot-wiggle 0.55s ease-in-out infinite;
+}
+
+.img {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* เปลือกตา — ellipse สีขนรอบตา + เส้นขนตาโค้งด้านล่าง กวาดปิดลงจากบน (scaleY 0→1) */
+.lid {
+  position: absolute;
+  border-radius: 50%;
+  border-bottom: 3px solid #191410;
+  transform: scaleY(0);
+  transform-origin: center top;
+  pointer-events: none;
+}
+/* ตาซ้าย (ฝั่งหน้าส้ม) — พิกัด % เทียบภาพ 529×472 */
+.lidLeft {
+  left: 28%;
+  top: 25.8%;
+  width: 12.5%;
+  height: 13.5%;
+  background: #d78a2f;
+  animation: mascot-blink 7s linear infinite;
+}
+/* ตาขวา (ฝั่งหน้าน้ำเงินเข้ม) */
+.lidRight {
+  left: 54%;
+  top: 24.8%;
+  width: 12.5%;
+  height: 13.5%;
+  background: #2e4a57;
+  animation: mascot-blink 7s linear infinite;
+}
+
+@keyframes mascot-bob {
+  from {
+    transform: translateY(0) rotate(-1.2deg);
+  }
+  to {
+    transform: translateY(4px) rotate(1.4deg);
+  }
+}
+
+@keyframes mascot-wiggle {
+  0%, 100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+/* กระพริบ 2 จังหวะต่อรอบ 7 วิ — ครั้งแรกกระพริบเดี่ยว ครั้งหลังกระพริบสองที (ดูมีชีวิต) */
+@keyframes mascot-blink {
+  0%, 38% { transform: scaleY(0); }
+  40%, 41.5% { transform: scaleY(1); }
+  43.5%, 84% { transform: scaleY(0); }
+  86%, 87% { transform: scaleY(1); }
+  89% { transform: scaleY(0); }
+  91%, 92% { transform: scaleY(1); }
+  94%, 100% { transform: scaleY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .wrap:hover .body,
+  .lid {
+    animation: none;
+  }
+}

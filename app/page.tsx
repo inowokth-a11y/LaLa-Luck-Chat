@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MascotLogo from "./_components/MascotLogo";
 
 const TOOLS: { href: string; label: string; primary?: boolean }[] = [
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา (วิเคราะห์อิสระ)", primary: true },
@@ -27,6 +28,7 @@ export default function Home() {
         padding: "2rem",
       }}
     >
+      <MascotLogo size={150} />
       <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "2rem" }}>KRUTH ELEMENT</h1>
       <p style={{ fontFamily: "var(--font-sans-thai)", opacity: 0.8 }}>
         แพลตฟอร์มดูดวงที่ &ldquo;คำนวณจริง&rdquo; — ธาตุ · โหราศาสตร์ไทย · ตัวเลข
