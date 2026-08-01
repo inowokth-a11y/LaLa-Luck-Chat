@@ -5,7 +5,7 @@
 
 import { useRef, useState } from "react";
 import styles from "./dream.module.css";
-import { MascotAvatar } from "@/app/_components/MascotLogo";
+import { MascotAvatar, MascotPerch } from "@/app/_components/MascotLogo";
 
 interface SymbolMatch {
   object: string;
@@ -175,7 +175,8 @@ export default function DreamPage() {
       </div>
 
       {remaining === 0 ? null : (
-      <form onSubmit={send} className={styles.composer}>
+      <form onSubmit={send} className={styles.composer} style={{ position: "relative" }}>
+        <MascotPerch size={60} />
         <div className={styles.opts}>
           <select value={day} onChange={(e) => setDay(e.target.value)} className={styles.select}>
             <option value="">วันที่ฝัน (ไม่ระบุ)</option>

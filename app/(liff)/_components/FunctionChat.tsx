@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import { useSyncStatus } from "@/app/_components/AuthStatus";
 import styles from "./FunctionChat.module.css";
-import { MascotAvatar } from "@/app/_components/MascotLogo";
+import { MascotAvatar, MascotPerch } from "@/app/_components/MascotLogo";
 
 interface Msg {
   role: "user" | "ai";
@@ -36,6 +36,7 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
   const [needsLogin, setNeedsLogin] = useState(false);
   const [topup, setTopup] = useState(false);
   const [crisis, setCrisis] = useState<string | null>(null);
+  const [shareTeaser, setShareTeaser] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const syncStatus = useSyncStatus();
@@ -99,6 +100,7 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
         setMsgs((m) => [...m, { role: "ai", text: d.reply }]);
         if (d.questions) setQuestions(d.questions);
         if (typeof d.credits === "number") setCredits(d.credits);
+        setShareTeaser(Boolean(d.shareTeaser));
         syncStatus(); // อัปเดตแถบสถานะมุมบนทันที
       }
     } catch (err) {
@@ -151,6 +153,11 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
       )}
 
       {notice && <p className={styles.notice}>{notice}</p>}
+      {shareTeaser && (
+        <p className={styles.notice}>
+          💡 คำถามฟรีหมดแล้ว — <a href="/profile" style={{ color: "var(--gold)" }}>แชร์การ์ดของคุณ</a> รับคำถามฟรีเพิ่ม +2 (ครั้งแรกครั้งเดียว)
+        </p>
+      )}
       {error && <p className={styles.error}>⚠️ {error}</p>}
 
       {needsLogin ? (
@@ -162,7 +169,8 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
           ⭐ เติมเครดิตเพื่อถามต่อ →
         </a>
       ) : (
-        <form onSubmit={ask} className={styles.form}>
+        <form onSubmit={ask} className={styles.form} style={{ position: "relative" }}>
+          <MascotPerch size={56} />
           <input
             type="text"
             value={input}

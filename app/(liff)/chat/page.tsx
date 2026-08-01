@@ -13,7 +13,7 @@ import Link from "next/link";
 import ChartPanel, { type ChartData } from "../_components/ChartPanel";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import FeedbackBox from "../_components/FeedbackBox";
-import { MascotAvatar } from "@/app/_components/MascotLogo";
+import { MascotAvatar, MascotPerch } from "@/app/_components/MascotLogo";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./chat.module.css";
@@ -157,6 +157,9 @@ export default function FlexibleChatPage() {
         setError(d.error);
       } else {
         setEntries((e) => [...e, { kind: "ai", reply: d.reply, chart: d.chart ?? undefined, caveats: d.caveats ?? [] }]);
+        if (d.shareTeaser) {
+          setEntries((e) => [...e, { kind: "note", text: "💡 คำถามฟรีหมดแล้ว — แชร์การ์ดของคุณที่หน้า \"โปรไฟล์พลังงาน\" รับคำถามฟรีเพิ่ม +2 (ครั้งแรกครั้งเดียว)" }]);
+        }
         if (d.questions) setRemaining(d.questions.remaining);
         if (typeof d.credits === "number") setCredits(d.credits);
         syncStatus(); // อัปเดตแถบสถานะมุมบน
@@ -276,11 +279,13 @@ export default function FlexibleChatPage() {
           {!exhausted && (
             <form
               className={styles.form}
+              style={{ position: "relative" }}
               onSubmit={(e) => {
                 e.preventDefault();
                 ask(input);
               }}
             >
+              <MascotPerch size={60} />
               <input
                 type="text"
                 className={styles.input}

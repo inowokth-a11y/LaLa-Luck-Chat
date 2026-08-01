@@ -11,6 +11,7 @@ import { cardImageUrl } from "@/lib/cards";
 import { supabase } from "@/lib/supabase/client";
 import styles from "./profile.module.css";
 import FunctionChat from "../_components/FunctionChat";
+import ShareCard from "../_components/ShareCard";
 import { useStoredProfile } from "../_components/useStoredProfile";
 
 interface CardRow {
@@ -238,6 +239,8 @@ export default function ProfilePage() {
       )}
     
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
+      {card && cardId && <ShareCard cardId={cardId} cardName={card.energy_name} />}
+
       <FunctionChat
         logicId={1}
         context={card && seed ? { การ์ด: card, ธาตุ: seed, เลขการ์ด: cardId } : null}

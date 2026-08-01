@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 347/347 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 352/352 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -1240,7 +1240,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 347/347
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1248,8 +1248,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 347/347
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **347 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
-| Supabase | ✅ **migration 000-030** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
+| Engine + ทุกฟีเจอร์ | ✅ **352 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
+| Supabase | ✅ **migration 000-031** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
@@ -1269,6 +1269,25 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 ต่อ repo เดียวกัน — **ตัวจริงคือ `lala-lucky-chat`** แนะนำให้ผู้ใช้ลบตัวซ้ำ (แจ้งแล้ว)
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
+
+**✅ เฟส 2 แชร์การ์ด + มาสคоตกวักมือ/เกาะกล่องแชท (1 ส.ค. 2569):**
+- **หน้าแชร์สาธารณะ `/card/<00-99>`** — ข้อมูลการ์ดสาธารณะล้วน (ห้ามมีข้อมูลส่วนตัว —
+  นโยบายใน `lib/share.ts`) + CTA ชวนหาการ์ดตัวเอง · id ผิดรูป = 404
+- **รูป OG วาดสดด้วย next/og ฿0** (`app/card/[id]/opengraph-image.tsx`) — ธีมทอง+หินอ่อน +
+  รูปการ์ด · ฟอนต์ไทย `assets/NotoSansThai-SemiBold.ttf` อ่านด้วย fs (pattern
+  `process.cwd()+literal` ให้ Vercel trace) ⚠️ กับดัก satori: ทุก div ที่ลูก >1 (รวม text
+  interpolation!) ต้องประกาศ display:flex · `new URL(...,import.meta.url)` ใช้กับ runtime
+  nodejs ไม่ได้
+- **รางวัลกดแชร์ +2 คำถามฟรี ครั้งเดียว/บัญชี**: **migration 031_share_reward**
+  (รันบน prod แล้ว) RPC `claim_share_reward` atomic — ยิงพร้อมกัน 3 ครั้งสำเร็จครั้งเดียว
+  (พิสูจน์แล้ว) · `/api/share/claim` (POST เคลม/GET สถานะ) · `ShareCard` ในหน้า /profile:
+  มือถือใช้ navigator.share (ยกเลิก=ไม่เคลม) · desktop ลิงก์ LINE/FB/X+คัดลอก (เคลมตอนกด)
+  · teaser ใน FunctionChat/chat เมื่อ shareTeaser=true
+- **มาสคот: ท่ากวักมือ** (ผู้ใช้ขอ) — clip-path เจาะช่องอุ้งเท้าจากภาพฐาน + สำเนาครอปหมุนที่
+  ข้อมือ (`mascot.module.css` .clipPaw/.paw) ⚠️ บทเรียน: กล่องครоป**ต้องพิกัดเท่าช่องที่เจาะเป๊ะ**
+  ไม่งั้นเห็นตะเข็บ · margin % อิงความกว้างเสมอ (ใช้ absolute top/left แทน) · global
+  `img{max-width:100%}` หนีบภาพครอป ต้อง `max-width:none` · ขอบบนช่องต้องต่ำกว่าแนวหนวด
+- **`MascotPerch`** — แมวเกาะเหนือช่องพิมพ์แชท (dream/chat/FunctionChat) pointer-events:none
 
 **✅ Funnel ใหม่เฟส 1 (1 ส.ค. 2569 — ผู้ใช้ยืนยันหลังถกแนวทาง):** โมเดล 4 บรรทัด:
 ฟีเจอร์คำนวณ=ฟรีไม่จำกัด · พิธี (ฝัน/เสี่ยงทาย)=ทดลอง 2 ครั้ง/คน (bucket logic:4/21 เดิม) ·

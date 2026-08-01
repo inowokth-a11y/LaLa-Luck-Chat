@@ -9,16 +9,34 @@ export function MascotAvatar({ size = 32 }: { size?: number }) {
   return <span className={styles.avatar} style={{ width: size, height: size }} aria-hidden="true" />;
 }
 
-export default function MascotLogo({ size = 160 }: { size?: number }) {
+export default function MascotLogo({ size = 160, wave = true }: { size?: number; wave?: boolean }) {
   return (
     <span className={styles.wrap} style={{ width: size }} aria-hidden="true">
-      <span className={styles.body} style={{ display: "block" }}>
+      <span className={styles.body} style={{ display: "block", position: "relative" }}>
         {/* ใช้ <img> ตรงๆ — ไฟล์ static ใน public/ ขนาดคงที่ ไม่ต้องผ่าน next/image optimizer */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mascot.png" alt="" width={529} height={472} className={styles.img} />
+        <img src="/mascot.png" alt="" width={529} height={472} className={`${styles.img} ${wave ? styles.clipPaw : ""}`} />
+        {wave && (
+          <span className={styles.paw}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/mascot.png" alt="" />
+          </span>
+        )}
         <span className={`${styles.lid} ${styles.lidLeft}`} />
         <span className={`${styles.lid} ${styles.lidRight}`} />
       </span>
+    </span>
+  );
+}
+
+/**
+ * แมวเกาะขอบกล่องแชท — วางใน container ที่ position:relative แล้วแมวจะโผล่เหนือช่องพิมพ์
+ * เหมือนกำลังคุยกับผู้ใช้ (pointer-events: none ไม่บังการพิมพ์)
+ */
+export function MascotPerch({ size = 62 }: { size?: number }) {
+  return (
+    <span className={styles.perch} style={{ top: -Math.round(size * 0.86) }}>
+      <MascotLogo size={size} />
     </span>
   );
 }
