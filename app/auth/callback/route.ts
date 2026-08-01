@@ -4,8 +4,10 @@
 // 🔒 ไม่แตะตาราง users ของ D — แค่ "อ่าน" เพื่อหา platform_d_user_id ที่ line_user_id ตรงกัน (§12)
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { isValidCode, REF_COOKIE, REF_ATTRIBUTION_WINDOW_HOURS } from "@/lib/affiliate/code";
 
 export const runtime = "nodejs";
 
@@ -78,6 +80,30 @@ export async function GET(request: Request) {
         },
         { onConflict: "auth_uid" }
       );
+
+      // แอฟฟิลิเอต: cookie ?ref → ผูกผู้ใช้กับลิงก์แบบ first-touch (ignoreDuplicates = ลิงก์แรกชนะ)
+      // 🔒 เฉพาะบัญชีที่เพิ่งสร้าง (< 24 ชม.) — กันพันธมิตรเคลมผู้ใช้เดิมของระบบด้วยการส่งลิงก์
+      //    ให้คนที่ใช้อยู่แล้ว (§12: จ่ายตามรายได้ของผู้ใช้ที่พามาใหม่จริง)
+      try {
+        const cookieStore = await cookies();
+        const ref = cookieStore.get(REF_COOKIE)?.value;
+        const accountAgeMs = Date.now() - new Date(user.created_at).getTime();
+        if (isValidCode(ref) && accountAgeMs < REF_ATTRIBUTION_WINDOW_HOURS * 3600_000) {
+          const { data: link } = await svc
+            .from("affiliate_links_e")
+            .select("id")
+            .eq("code", ref)
+            .eq("active", true)
+            .maybeSingle();
+          if (link) {
+            await svc
+              .from("affiliate_attributions_e")
+              .upsert({ auth_uid: user.id, link_id: link.id }, { onConflict: "auth_uid", ignoreDuplicates: true });
+          }
+        }
+      } catch (e) {
+        console.warn("[auth/callback] ผูกแอฟฟิลิเอตไม่สำเร็จ (login ยังสำเร็จ)", e);
+      }
 
       // ยังไม่มีโปรไฟล์พื้นฐาน → พาไปกรอกก่อน แล้วค่อยไปปลายทางเดิม
       // ⚠️ ยกเว้น /welcome — flow หน้าแรกใหม่ (1 ส.ค. 2569) มีข้อมูลกรอกรออยู่ใน sessionStorage

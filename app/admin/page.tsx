@@ -10,8 +10,10 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmails, isAdminEmail } from "@/lib/admin/access";
 import { computeUsageStats, type UsageRow, type UsageStats } from "@/lib/admin/usage-stats";
 import { summarizeQuestions, type QuestionRow } from "@/lib/admin/question-stats";
+import { computeAffiliateStats, type AffLinkRow, type AttributionRow, type TopupRow } from "@/lib/affiliate/stats";
 import AdminAssistant from "./AdminAssistant";
 import FeedbackAdmin from "./FeedbackAdmin";
+import AffiliateAdmin from "./AffiliateAdmin";
 
 export const dynamic = "force-dynamic"; // อ่าน session + DB ทุกครั้ง
 
@@ -42,6 +44,21 @@ export default async function AdminPage() {
     .limit(2000);
   const q = summarizeQuestions((qRows as QuestionRow[] | null) ?? []);
 
+  // แอฟฟิลิเอต: ลิงก์ + attribution + ledger การเติมเงิน → สถิติต่อลิงก์ (คำนวณด้วย pure fn)
+  const [{ data: affLinks }, { data: affAttrs }, { data: affTopups }] = await Promise.all([
+    svc
+      .from("affiliate_links_e")
+      .select("id,code,partner_name,note,active,visit_count,created_at")
+      .order("created_at", { ascending: false }),
+    svc.from("affiliate_attributions_e").select("auth_uid,link_id"),
+    svc.from("credit_ledger_e").select("auth_uid,delta").like("action", "topup:%").gt("delta", 0),
+  ]);
+  const affStats = computeAffiliateStats(
+    (affLinks as AffLinkRow[] | null) ?? [],
+    (affAttrs as AttributionRow[] | null) ?? [],
+    (affTopups as TopupRow[] | null) ?? []
+  );
+
   // ความเห็นผู้ใช้ (feedback) — อ่านด้วย service role
   const { data: fbRows } = await svc
     .from("feedback")
@@ -70,6 +87,8 @@ export default async function AdminPage() {
       </section>
 
       <AdminAssistant />
+
+      <AffiliateAdmin links={affStats} />
 
       <Card title="ต้นทุนรายวัน (14 วันล่าสุด)">
         {stats.byDay.length === 0 ? <Empty /> : (

@@ -36,6 +36,7 @@ export default function AuthStatus() {
   const [status, setStatus] = useState<Status | null>(null);
   const [loggedOut, setLoggedOut] = useState(false);
   const [ready, setReady] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const load = useCallback(async () => {
     const supabase = createSupabaseBrowser();
@@ -44,8 +45,19 @@ export default function AuthStatus() {
     if (!u) {
       setStatus(null);
       setLoggedOut(true);
+      setIsAdmin(false);
       setReady(true);
       return;
+    }
+    // แอดมินตัดสินที่ server (ADMIN_EMAILS ไม่อยู่ฝั่ง client) — ปุ่มนี้เป็นแค่ทางลัด
+    // gate จริงอยู่ที่หน้า/route แอดมินทุกตัว ปลอมค่าฝั่งนี้ได้แค่เห็นปุ่มแล้วโดนเด้งออก
+    if (u.email) {
+      void fetch("/api/admin/me")
+        .then((r) => r.json())
+        .then((d) => setIsAdmin(Boolean(d?.admin)))
+        .catch(() => setIsAdmin(false));
+    } else {
+      setIsAdmin(false);
     }
     const [prof, wallet, usage] = await Promise.all([
       supabase.from("user_profiles_e").select("first_name").eq("auth_uid", u.id).maybeSingle(),
@@ -114,7 +126,12 @@ export default function AuthStatus() {
   const sep: React.CSSProperties = { opacity: 0.45 };
 
   return (
-    <div style={wrap}>
+    <div style={{ ...wrap, display: "flex", gap: "0.4rem", alignItems: "center" }}>
+      {status && isAdmin && (
+        <Link href="/admin" style={pill} title="แดชบอร์ดแอดมิน">
+          🛠 แอดมิน
+        </Link>
+      )}
       {status ? (
         <Link href="/account" style={pill} title="บัญชี / เติมเครดิต">
           <span aria-hidden>🐾</span>

@@ -1070,8 +1070,9 @@ Callback: `https://<โดเมน>/api/auth/line/callback`
 2. แดชบอร์ดแอดมิน: cache hit rate · ต้นทุนเฉลี่ย/คำทำนาย · ผู้ใช้ที่แพงที่สุด
 3. ตัดสินราคาใหม่จากข้อมูลจริง
 4. ระบบเครดิต/ชำระเงิน (`subscriptions` มี `omise_customer_id` อยู่แล้ว)
-5. แอฟฟิลิเอต — **จ่ายตามรายได้จริง ไม่ใช่จำนวนคนสมัคร** (Profile/Fortune ฟรีไม่จำกัด
-   ถ้าจ่ายต่อหัวจะมีแรงจูงใจปั๊มบัญชีปลอม) + กัน self-referral
+5. ~~แอฟฟิลิเอต~~ — ✅ **โครงหลักเสร็จ 1 ส.ค. 2569** (ลิงก์+ผูกผู้ใช้+แดชบอร์ดรายรับต่อลิงก์ —
+   ดูบล็อก ✅ ใน §15) · หลักเดิมคงไว้: **จ่ายตามรายได้จริง ไม่ใช่จำนวนคนสมัคร** — อัตราคอมมิชชัน/
+   การจ่ายจริงยังไม่ทำ (แอดมินดูยอดแล้วตัดสินเอง)
 
 
 ---
@@ -1380,6 +1381,38 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 % เทียบภาพ 529×472 · hover ขยับแรงขึ้น · ปิดตาม prefers-reduced-motion) · ไฟล์ใช้จริง
 `public/mascot.png` · ต้นฉบับ `docs/design-assets/lala-lucky-chat-mascot.png` · ตรวจ browser แล้ว
 (บังคับปิดตาเช็คพิกัด + getComputedStyle ยืนยันอนิเมชันวิ่ง)
+
+**✅ ระบบแอฟฟิลิเอต + ปุ่มแอดมิน (1 ส.ค. 2569 — ผู้ใช้สั่ง · ตามหลัก §12 ข้อ 5 เดิม):**
+- **migration 034** (รัน prod แล้ว): `affiliate_links_e` (code unique + partner_name + visit_count +
+  active + created_by) · `affiliate_attributions_e` (**pk = auth_uid → first-touch เชิงโครงสร้าง**
+  ผู้ใช้ 1 คนผูกได้ลิงก์เดียวตลอดไป) · RPC `bump_affiliate_visit` (atomic, เฉพาะลิงก์ active,
+  service role) · RLS เปิดแต่**ไม่มี policy เลย** = client แตะไม่ได้ทั้งหมด (ข้อมูลการตลาดของแอดมิน)
+- **รายรับต่อลิงก์ไม่เก็บซ้ำ** — คำนวณตอนอ่านจาก `credit_ledger_e` (action `topup:%`, delta>0) ของ
+  ผู้ใช้ที่ถูก attribute · `lib/affiliate/stats.ts` (pure): delta เครดิต → เทียบกลับเป็นราคาแพ็ก
+  (`thbForTopupCredits`) · delta ที่ไม่ตรงแพ็ก (เช่นแพ็กเก่า/เติมมือ) = นับเครดิตแต่ธง
+  `revenueUncertain` บอกตรงๆ ไม่เดา
+- **เส้นทางผู้เยี่ยมชม:** ลิงก์ = `/?ref=CODE` → `RefTracker` (root layout, กันยิงซ้ำด้วย
+  sessionStorage) → POST `/api/affiliate/visit` → นับ visit + ตั้ง cookie `kruth_ref` (**httpOnly**
+  30 วัน — ตั้งเฉพาะรหัสที่มีจริง+active, response บอกแค่ ok ไม่เผยว่ารหัสไหนมีจริง)
+- **ผูกผู้ใช้:** `/auth/callback` อ่าน cookie → upsert `ignoreDuplicates` (first-touch ชนะ) ·
+  🔴 **เฉพาะบัญชีอายุ < 24 ชม.** (`REF_ATTRIBUTION_WINDOW_HOURS`) — กันพันธมิตรเคลมผู้ใช้เดิม
+  ด้วยการส่งลิงก์ให้คนที่ใช้อยู่แล้ว (ตาม §12 จ่ายตามรายได้ผู้ใช้ใหม่จริง) · ⚠️ guest ที่อัปเกรดช้า
+  กว่า 24 ชม. จะไม่ถูกผูก (ยอมรับ — guest เติมเงินไม่ได้อยู่แล้ว) · ผูกพังไม่ทำ login พัง
+- **แดชบอร์ด:** `/admin` เพิ่มส่วน "🤝 ลิงก์แอฟฟิลิเอต" (`AffiliateAdmin.tsx`) — ฟอร์มสร้างลิงก์
+  (ชื่อผู้รับ + รหัสตั้งเอง/สุ่ม `randomCode` ตัดอักขระสับสน 0/o/1/l/i) + ตารางต่อลิงก์: เปิดดู/สมัคร/
+  คนเติมเงิน/เครดิตขายได้/รายรับบาท + ปุ่มคัดลอก (origin จริงจาก window.location) + เปิด/ปิดลิงก์
+  (ปิด = หยุดรับคนใหม่+หยุดนับ visit แต่รายรับคนเดิมนับต่อ) · API `/api/admin/affiliate`
+  (POST/PATCH, gate ADMIN_EMAILS)
+- **ปุ่มแอดมิน:** แถบสถานะมุมขวาบนเพิ่ม pill "🛠 แอดมิน" → `/admin` เมื่อ `/api/admin/me` ตอบ
+  admin:true (ตัดสินที่ server — ปุ่มเป็นแค่ทางลัด gate จริงอยู่ที่หน้า/route ทุกตัว)
+- **verify:** เทสต์ 375 ผ่าน (เพิ่ม affiliate 8) · prod DB จริง: anon อ่าน 0/insert+RPC 42501 ·
+  bump นับจริง · ลิงก์ปิดไม่นับ · first-touch ผูกซ้ำไม่ทับ · browser จริง: เปิด `/?ref=` → POST 200
+  → count+1 · reload ไม่นับซ้ำ · cookie มองไม่เห็นจาก JS (httpOnly จริง) · anon: POST admin 403,
+  /admin redirect 307, /api/admin/me {admin:false} · ⚠️ หน้าแอดมินเรนเดอร์เต็ม + ปุ่มแอดมิน +
+  เส้นผูกผ่าน callback จริง ยังไม่ได้ทดสอบ (ต้องมี admin/user session — ผมล็อกอินเองไม่ได้)
+- ⬜ ยังไม่ทำ: อัตรา/การจ่ายคอมมิชชันจริงให้พันธมิตร (ตอนนี้แดชบอร์ดโชว์รายรับให้แอดมินตัดสิน) ·
+  หน้าพันธมิตรดูยอดตัวเอง (§12 ตัดสินไว้: แอดมินอย่างเดียวก่อน) · กัน self-referral เชิงระบบ
+  (first-touch+หน้าต่าง 24 ชม. ช่วยระดับหนึ่ง)
 
 **✅ จูนฉลากระดับพิมพ์ (1 ส.ค. 2569 — งานโค้ดคิวข้อ 1 เดิม):**
 - **prompt Recraft ใหม่** (`app/api/label/artwork/route.ts`) บังคับ 3 อย่าง: ลายอยู่เฉพาะแถบชนขอบ
