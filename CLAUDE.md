@@ -1244,13 +1244,23 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 359/359
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
-### 🆕 สถานะล่าสุด (อัปเดต 27 ก.ค. 2569 — เซสชันใหญ่: journey เปิดธุรกิจ + สมาชิก + แดชบอร์ด)
+### 🆕 สถานะล่าสุด (อัปเดต 1 ส.ค. 2569 — เซสชันใหญ่: เครดิตครบวงจร + รีแบรนด์ + funnel 3 เฟส + PDPA)
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **359 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
-| Supabase | ✅ **migration 000-033** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
-| Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
+| Engine + ทุกฟีเจอร์ | ✅ **359 tests** · tsc + build ผ่าน |
+| Supabase | ✅ **migration 000-033** รันจริง (ล่าสุด: 027 credit wallet · 029 vision cache · 030 topup idempotency · 031 share reward · 032 user memory · 033 pdpa consent) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
+| Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ |
+
+**✅ สรุปเซสชัน 30 ก.ค.–1 ส.ค. 2569 (ทั้งหมด commit+push แล้ว — รายละเอียดในบล็อก ✅ ด้านบน):**
+เครดิตครบวงจร (กระเป๋า+หัก+เติม PromptPay test mode พิสูจน์ E2E, แพ็กแบบ ก ฿29/59/129) ·
+wuXingScore "ทาง ค" + oracle clash · ลายกนก verify · vision จำแนกลวดลาย · gate ล็อกอิน oracle/dream ·
+dream matching ขอบเขตคำ (OOV) · หน้า /wellness · รีแบรนด์ **LaLa Lucky Chat** + หินอ่อน+ทอง ·
+คาแร็กเตอร์ **อาจารย์ลาลา ลักกี้** (persona กลาง + อวตาร + กวักมือ + เกาะกล่องแชท + header ทุกหน้า) ·
+funnel 3 เฟส (ถังคำถามรวม 1+2 · แถบสถานะ · แชร์การ์ด+OG+รางวัล · ความจำแม่หมอ rolling summary) ·
+PDPA (/privacy /consent /welcome + guest anonymous + ลบบัญชี)
+
+**📋 บันทึกเซสชันก่อนหน้า (27 ก.ค.):**
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
 - **AI Chat ยืดหยุ่น (§16)** ครบเฟส 1+2+UI + desktop split-view + ใช้ธาตุประจำตัวจากโปรไฟล์ (`/chat`)
@@ -1371,7 +1381,29 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 `public/mascot.png` · ต้นฉบับ `docs/design-assets/lala-lucky-chat-mascot.png` · ตรวจ browser แล้ว
 (บังคับปิดตาเช็คพิกัด + getComputedStyle ยืนยันอนิเมชันวิ่ง)
 
-### 🎯 คิวที่เหลือจริง (เริ่มเซสชันใหม่ตรงนี้ได้เลย — เรียงตามที่คุยกับผู้ใช้)
+### 🎯 คิวปัจจุบัน ณ 1 ส.ค. 2569 (เซสชันใหม่อ่านบล็อกนี้ก่อน — รายการเลขด้านล่างเป็นประวัติ)
+
+**รอผู้ใช้ทำเอง (โค้ดพร้อมหมดแล้ว — ถามความคืบหน้าก่อนเริ่มงานอื่น):**
+1. **Supabase Dashboard:** เปิด **Anonymous sign-ins** (ปุ่ม "เริ่มเลยแบบผู้เยี่ยมชม" ถึงทำงาน —
+   ตอนนี้ error สุภาพ) + **Manual linking** (guest ผูกบัญชีด้วย linkIdentity)
+2. **Omise Dashboard:** ใส่ webhook `https://lala-lucky-chat.vercel.app/api/payment/webhook`
+   (ยังไม่ยืนยันว่าทำแล้ว) · อนาคต: ยืนยันธุรกิจ → สลับคีย์ live (โค้ดไม่ต้องแก้)
+3. **ทดสอบ E2E ด้วยบัญชีจริง** (สิ่งเดียวที่ Claude ทำแทนไม่ได้): สมัคร→การ์ด→ถามฟรี 1→แชร์+2→
+   ฝัน/เสี่ยงทายฟรี 2→เครดิตหมด→เติม PromptPay (test mode กด Mark as paid ใน Omise)→/admin
+4. เก็บกวาด: ลบโปรเจ็กต์ Vercel ซ้ำ 2 ตัว (ตัวจริง=lala-lucky-chat) · เปลี่ยนชื่อ LINE OA เป็น
+   "อาจารย์ลาลา ลักกี้" · ชื่อผู้ควบคุมข้อมูลจริงใน `lib/consent.ts` (ตอนนี้ placeholder) +
+   ให้ผู้รู้ PDPA ตรวจ /privacy · โดเมนจริง → LINE Login channel · Facebook app review
+
+**งานโค้ดที่เหลือ (เรียงตามความคุ้ม):**
+1. **จูนฉลากระดับพิมพ์** — prompt Recraft ดันลายไปขอบ + ไฟล์พิมพ์ PDF/bleed/CMYK (ข้อ 3 เดิม)
+2. **ช่องทางบัตรเครดิต Omise** (Omise.js token + public key) — PromptPay ใช้ได้แล้ว
+3. Logic 13,15,17 — **รอดู `chat_question_log`** (คำถาม unclear) ก่อนเลือกทำ · Logic 5,6 (ใบหน้า)
+   มีโครง vision แล้วแต่ต้องมี consent ชีวมิติเพิ่ม · UI ดู image_generation_log ใน /admin
+4. **หนี้ความถูกต้อง:** ลัคนาตรวจกับดวงจริง 2-3 ดวง (ขอจากผู้ใช้ — §5.2) ·
+   `users.thai_element` ถามทีม D · normalization พ.ศ./ค.ศ. ชั้น Bridge API
+5. งานวิจัยแยกโปรเจกต์ (อย่าทำแทรก): Flying Stars · 27 ฤกษ์ · อุบากองกลางคืน
+
+### 🎯 คิวที่เหลือจริง (ประวัติ — เรียงตามที่คุยกับผู้ใช้)
 
 1. **ระบบเครดิต — ✅ กระเป๋า+หักจริงเสร็จ 30 ก.ค. 2569 (ดู §12)** · ที่เหลือ: ปุ่มเติมเงิน (Omise —
    ต้องมีบัญชี/คีย์จากผู้ใช้ก่อน) + ตัดสินใจว่า oracle/dream จะบังคับล็อกอินเพื่อหักเครดิตไหม
