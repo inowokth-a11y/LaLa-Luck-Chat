@@ -67,6 +67,14 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
   { priceThb: 100, credits: 40, label: "คุ้มสุด" }, // ฿2.50/เครดิต (+20%) ← ค่าเครดิตต่ำสุด (floor)
 ];
 
+/**
+ * ขั้นต่ำของ PromptPay ฝั่ง Omise = ฿20 (ยืนยันจาก API จริง 30 ก.ค. 2569:
+ * "amount must be greater than or equal to ฿20 (2000 satangs)")
+ * → แพ็ก ฿15 ขายผ่าน PromptPay ไม่ได้ — ⚠️ รอผู้ใช้ตัดสินว่าจะปรับแพ็กเล็กเป็น ฿20 ไหม
+ * ระหว่างนี้ route/UI กรองแพ็กที่ต่ำกว่าขั้นต่ำออกจากช่องทาง PromptPay
+ */
+export const PROMPTPAY_MIN_THB = 20;
+
 /** ค่าเครดิต (บาท/เครดิต) ของแพ็กหนึ่ง */
 export const creditValueThb = (pkg: CreditPackage): number => pkg.priceThb / pkg.credits;
 

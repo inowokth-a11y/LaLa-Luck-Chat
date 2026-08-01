@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 343/343 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 351/351 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -983,8 +983,27 @@ config อยู่ที่ `lib/credits/pricing.ts` (+ `tests/credits-pricing.
 - **verify กับ prod จริง:** anon อ่าน wallet/ledger 0 แถว · insert/RPC ปฏิเสธ 42501 · grant 10→spend 7→
   spend เกิน=-1→spend 0=-2 · ledger ครบ · route 429 anon ทั้ง 2 โหมดขึ้นข้อความเครดิต · เส้นฟรียังปกติ
   ⚠️ เส้นหักเครดิตผ่านเว็บจริงยังไม่ได้ทดสอบ (ต้องมี session ล็อกอิน) — พิสูจน์ระดับ RPC + pure logic แทน
-⬜ **ยังไม่ทำ:** ปุ่มเติมเงิน/ชำระเงิน (Omise) — ต้องมีบัญชี/คีย์ Omise ก่อน · ยังไม่หักเครดิต oracle/dream
-  (มีเรทแล้วแต่สองหน้านี้ยังไม่มี gate ล็อกอิน — ต้องตัดสินใจก่อนว่าจะบังคับล็อกอินไหม)
+✅ **เติมเครดิต Omise PromptPay — ทำแล้ว (30 ก.ค. 2569, คีย์ test mode ใน .env.local):**
+- `lib/payment/{omise,verify,settle}.ts` + `/api/payment/topup` (POST สร้าง charge+QR · GET poll+settle)
+  + `/api/payment/webhook` + UI เลือกแพ็ก/QR/polling ในหน้า `/account` · migration 030 (unique
+  index กันเติมซ้ำ — 1 charge = 1 grant แม้ webhook+polling ชนกัน)
+- 🔴 **หลักความปลอดภัยที่ล็อกไว้:** (1) webhook Omise **ไม่มีลายเซ็น** → payload เป็นแค่สัญญาณ
+  settle ต้อง fetch charge จริงจาก API ด้วย secret key เสมอ (2) จำนวนเครดิตคิดจาก "ยอดเงินจริง
+  ของ charge" เทียบ CREDIT_PACKAGES ฝั่ง server — ยอดไม่ตรงแพ็ก = ปฏิเสธ ไม่ปัดให้
+  (3) webhook คืน 200 เสมอ (polling เป็นทางสำรอง) · เทสต์ verify 9 ตัว (351 รวม)
+- **พิสูจน์ E2E กับ Omise test API + DB prod จริง:** สร้าง charge ฿50 → QR มา → settle ก่อนจ่าย
+  =pending → `POST /charges/{id}/mark_as_paid` (test mode ใช้ได้! จำลองจ่ายอัตโนมัติ) →
+  settle → +18 เครดิต → settle ซ้ำ="already" → ledger แถวเดียว → cleanup ยอดกลับ 0
+- 🔴 **พบข้อจำกัดจริง: PromptPay ขั้นต่ำ ฿20** ("amount must be ≥ ฿20") → **แพ็ก ฿15 ขายผ่าน
+  PromptPay ไม่ได้** — route/UI กรองออกแล้ว (`PROMPTPAY_MIN_THB`) ⚠️ รอผู้ใช้ตัดสิน: ปรับแพ็กเล็ก
+  เป็น ฿20 (เช่น ฿20→7 เครดิต ฿2.86/cr — ladder ยังเรียงถูก) หรือเก็บ ฿15 ไว้รอช่องทางบัตร
+- 🔴 **ผู้ใช้ต้องทำเอง:** (1) Omise dashboard → Settings → Webhooks ใส่
+  `https://lala-lucky-chat.vercel.app/api/payment/webhook` (2) ใส่ OMISE_PUBLIC_KEY/SECRET_KEY
+  ใน Vercel env (3) ตอนจะรับเงินจริง: ยืนยันธุรกิจกับ Omise แล้วสลับคีย์ live
+- ⚠️ **บทเรียนเครือข่าย:** `scripts/db-migrate.mjs` เจอ ENETUNREACH (IPv6) บนเน็ตบางวง →
+  ใช้ pooler IPv4: hostname `aws-0-ap-southeast-1.pooler.supabase.com` user `postgres.<ref>`
+  (migration 030 รันผ่านทางนี้)
+⬜ **ยังไม่ทำ:** ช่องทางบัตรเครดิต (ต้องใช้ Omise.js token ฝั่ง client + public key) · ตัดสินใจแพ็ก ฿15
 
 ### ✅ โลโก้ fal (Logic 19) — โค้ดพร้อมแล้ว 25 ก.ค. 2569 · ⚠️ รอ `FAL_KEY` เพื่อทดสอบจริง
 `lib/image/fal.ts` (client, verify API contract จาก fal docs: `POST fal.run/{model}` + header `Key`) +
@@ -1219,7 +1238,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 343/343
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 351/351
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1227,8 +1246,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 343/343
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **343 tests** · tsc + build ผ่าน (30 ก.ค. — รวม gate oracle/dream + Segmenter แคช + /wellness) |
-| Supabase | ✅ **migration 000-029** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
+| Engine + ทุกฟีเจอร์ | ✅ **351 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
+| Supabase | ✅ **migration 000-030** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
