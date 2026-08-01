@@ -6,7 +6,8 @@ export type AiRole =
   | "router" // Logic 0: จำแนก intent → ชี้ Logic
   | "ai1" // Logic 4: ค้นคว้า+ตัดสินธาตุของสัญลักษณ์ที่ไม่มีในฐาน
   | "ai2" // ตัวหลัก "อาจารย์ลาลา ลักกี้": เรียบเรียงคำทำนาย/บทสนทนา
-  | "vision"; // จำแนกลวดลาย/รูปทรงจากภาพเป็น enum — Claude เท่านั้น (ดู CANDIDATES)
+  | "vision" // จำแนกลวดลาย/รูปทรงจากภาพเป็น enum — Claude เท่านั้น (ดู CANDIDATES)
+  | "memory"; // สรุปประวัติผู้ใช้ (rolling summary เฟส 3) — Claude เท่านั้น (ข้อมูลอ่อนไหว)
 
 export interface GenerateRequest {
   role: AiRole;

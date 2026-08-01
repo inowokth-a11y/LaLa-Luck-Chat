@@ -593,7 +593,7 @@ vs ของจริงที่ตรวจสอบแล้ว (เป็น
 export PATH="$HOME/.local/node/bin:$PATH"   # ⚠️ Node v24 ไม่อยู่ใน PATH ถาวร ต้อง export ก่อนเสมอ
 cd /Users/freeman/Desktop/kruth-element
 ```
-- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 352/352 tests)
+- **ตรวจสุขภาพระบบ:** `npx tsc --noEmit && npm test && npm run build` (ควรได้ 359/359 tests)
 - **dev server:** ใช้ `.claude/launch.json` (ชี้ node binary ตรงๆ เพราะ npm shebang หา node ไม่เจอ)
 - 🐛 **ถ้าหน้า React ฟอร์มรีโหลดเอง/ปุ่มไม่ทำงาน → สงสัย `.next` เสียก่อน** ให้ `rm -rf .next`
   แล้วรีสตาร์ท (เจอ 2 ครั้งแล้ว อาการหลอกมาก: log แสดง `GET /page?` = ฟอร์ม submit แบบ native
@@ -1240,7 +1240,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 359/359
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1248,8 +1248,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 352/352
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **352 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
-| Supabase | ✅ **migration 000-031** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
+| Engine + ทุกฟีเจอร์ | ✅ **359 tests** · tsc + build ผ่าน (30 ก.ค. — รวมเติมเครดิต PromptPay) |
+| Supabase | ✅ **migration 000-032** รันจริง (022 chat_usage_e · 023 question_log · 024 feedback · 025 chat_bonus · 026 storage bucket `logos` · 027 credit_wallet_e/ledger) |
 | Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main |
 
 **✅ ทำเสร็จเซสชันนี้ (ทั้งหมด commit+push แล้ว):**
@@ -1269,6 +1269,22 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 ต่อ repo เดียวกัน — **ตัวจริงคือ `lala-lucky-chat`** แนะนำให้ผู้ใช้ลบตัวซ้ำ (แจ้งแล้ว)
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
+
+**✅ เฟส 3 ความจำแม่หมอ (1 ส.ค. 2569):** แม่หมอจำผู้ใช้ข้ามเซสชัน — ครบทั้ง 3 เฟสของแผน funnel
+- **migration 032** (รัน prod แล้ว): `user_history_e` (เหตุการณ์ย่อ append-only) + `user_memory_e`
+  (rolling summary + ตัวนับ) + RPC `log_user_history` atomic · RLS own-read เขียนผ่าน service
+  ⚠️ ข้อมูลอ่อนไหว (ความฝัน/เรื่องที่ถาม) — **retention policy ยังไม่กำหนด ต้องใส่ privacy policy**
+- `lib/memory/format.ts` (pure, 7 เทสต์ — **ขนาดบล็อกถูกคุมเสมอ** ไม่โตตามอายุผู้ใช้:
+  summary ≤700 ตัวอักษร + เหตุการณ์ล่าสุด 4×160) + `lib/memory/index.ts` (service):
+  `rememberEvent` (จำหลังตอบสำเร็จ, fire-and-forget — ความจำพังห้ามทำคำทำนายพัง) ·
+  `getMemoryBlock` (inject ก่อนตอบ, best-effort) · `refreshSummary` (ครบ 8 เหตุการณ์สรุปใหม่)
+- **role AI ใหม่ "memory"** — Claude เท่านั้น (Haiku→Sonnet) เหตุผลเดียวกับ vision: ประวัติดวง
+  ห้ามผ่าน Gemini free tier · ต้นทุนสรุป ~฿0.05-0.1/รอบ ลง ai_usage_log อัตโนมัติ
+- **wire 4 จุด:** /api/chat (context+plan — plan ส่งผ่าน `runPlanChat(q, ctx, memoryBlock)`
+  ให้เฉพาะ narrator) · /api/dream (จำ "ข้อเท็จจริงจาก engine" เช่น สัญลักษณ์+ธาตุ ไม่ใช่ prose AI)
+  · /api/oracle (การ์ด+คะแนน) · บล็อกมีคำกำกับในตัว "ห้ามใช้แต่งข้อเท็จจริง/คำทำนายใหม่"
+- **พิสูจน์เต็มวงจรกับ DB+Haiku จริง:** log 8 เหตุการณ์ (ฝันงู 3 ครั้ง) → สรุปอัตโนมัติ+รีเซ็ต
+  ตัวนับ → summary จับ "ฝันงูซ้ำ" ได้ถูก → บล็อก 1.2k ตัวอักษร · RLS anon ปฏิเสธครบ
 
 **✅ เฟส 2 แชร์การ์ด + มาสคоตกวักมือ/เกาะกล่องแชท (1 ส.ค. 2569):**
 - **หน้าแชร์สาธารณะ `/card/<00-99>`** — ข้อมูลการ์ดสาธารณะล้วน (ห้ามมีข้อมูลส่วนตัว —

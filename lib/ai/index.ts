@@ -51,6 +51,12 @@ const CANDIDATES: Record<AiRole, Candidate[]> = {
     { provider: claudeProvider, model: "claude-haiku-4-5" }, // งานจำแนกเข้า enum — Haiku พอและถูกสุด
     { provider: claudeProvider, model: "claude-sonnet-5" },
   ],
+  // memory = สรุปประวัติดวง/ความฝันของผู้ใช้ (เฟส 3) — ข้อมูลอ่อนไหว ใช้ Claude เท่านั้น
+  // (เหตุผลเดียวกับ vision: คีย์ Gemini เป็น free tier ที่ Google ใช้ข้อมูล improve products)
+  memory: [
+    { provider: claudeProvider, model: "claude-haiku-4-5" },
+    { provider: claudeProvider, model: "claude-sonnet-5" },
+  ],
 };
 
 // ⚠️ ทำไม Gemini ใช้ Flash ทุกบทบาท (ไม่ใช่ Pro ตามที่ออกแบบไว้ตอนแรก):

@@ -17,6 +17,7 @@ import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
+import { getMemoryBlock, rememberEvent } from "@/lib/memory";
 
 export const runtime = "nodejs";
 
@@ -149,6 +150,9 @@ export async function POST(req: Request) {
       1
     );
 
+    // ความจำแม่หมอ (เฟส 3) — best-effort
+    const memory = await getMemoryBlock(userId);
+
     let reply: string;
     let via = "template";
     try {
@@ -156,8 +160,9 @@ export async function POST(req: Request) {
         role: "ai2",
         logicId: ORACLE_LOGIC_ID,
         channel: "web",
+        userId,
         system: LALA_ORACLE_SYSTEM,
-        input: `<ผลการเสี่ยงทาย>\n${context}\n</ผลการเสี่ยงทาย>\n\nตีความให้ผู้ใช้`,
+        input: `${memory ? `${memory}\n\n` : ""}<ผลการเสี่ยงทาย>\n${context}\n</ผลการเสี่ยงทาย>\n\nตีความให้ผู้ใช้`,
         maxTokens: 1500,
       });
       reply = ai2.text;
@@ -171,6 +176,12 @@ export async function POST(req: Request) {
         `\n\nภาพรวม ${reading.aggregate}/100 — ${reading.label}` +
         `\n\n(ระบบเรียบเรียงอัตโนมัติชั่วคราว — ผู้ช่วย AI ไม่พร้อมใช้งานขณะนี้)`;
     }
+
+    // จำการเสี่ยงทายนี้ (fire-and-forget) — ข้อเท็จจริงจาก engine
+    void rememberEvent(userId, "oracle", {
+      q: question,
+      a: `การ์ด ${card1Id}(${cards[card1Id]?.energy_name ?? "?"}) + ${card2Id}(${cards[card2Id]?.energy_name ?? "?"}) · คะแนน ${reading.aggregate}/100`,
+    });
 
     // หักเมื่อตอบสำเร็จเท่านั้น — เส้นฟรี bump DB (atomic) · เส้นเครดิต spend_credits
     let afterUsed = used;

@@ -26,6 +26,7 @@ import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { lotteryIntercept } from "@/lib/chat/lottery";
 import { logQuestion } from "@/lib/chat/question-log";
+import { getMemoryBlock, rememberEvent } from "@/lib/memory";
 
 export const runtime = "nodejs";
 
@@ -165,6 +166,8 @@ export async function POST(req: Request) {
 
     const logicName = CHAT_LOGIC_NAMES[logicId] ?? `Logic ${logicId}`;
     const contextJson = JSON.stringify(body.context ?? {}, null, 1).slice(0, 6000);
+    // ความจำแม่หมอ (เฟส 3) — best-effort: อ่านพัง = ตอบแบบไม่มีความจำ
+    const memory = await getMemoryBlock(userId);
 
     const ai = await generate({
       role: "ai2",
@@ -173,7 +176,7 @@ export async function POST(req: Request) {
       userId,
       system: CHAT_SYSTEM,
       input: `ฟังก์ชันที่ผู้ใช้กำลังดู: ${logicName}
-
+${memory ? `\n${memory}\n` : ""}
 <ผลที่ผู้ใช้เห็นอยู่>
 ${contextJson}
 </ผลที่ผู้ใช้เห็นอยู่>
@@ -181,6 +184,9 @@ ${contextJson}
 คำถามของผู้ใช้: ${question}`,
       maxTokens: 700, // ตอบสั้น 2-4 ประโยค — กันร่ายยาวเสียเงินฟรี
     });
+
+    // จำเหตุการณ์นี้ (fire-and-forget — ห้ามหน่วง response)
+    void rememberEvent(userId, "chat", { q: question, a: ai.text, tag: logicName });
 
     const settled = await settleCharge(pool);
     return NextResponse.json({
@@ -217,7 +223,9 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
     console.warn("[chat/plan] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
   }
 
-  const result = await runPlanChat(question, profileCtx);
+  // ความจำแม่หมอ (เฟส 3) — แนบให้ narrator
+  const memory = await getMemoryBlock(pool.userId);
+  const result = await runPlanChat(question, profileCtx, memory);
 
   // ถามข้อมูลเพิ่ม / นอกขอบเขต → ไม่หัก (ยังไม่ได้คำตอบจริง)
   if (result.status === "needs_input") {
@@ -230,6 +238,7 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
   }
 
   logQuestion({ question, status: "answered", fns: [...new Set(result.results.map((r) => r.fn))], userId: pool.userId });
+  void rememberEvent(pool.userId, "chat", { q: question, a: result.reply, tag: "วิเคราะห์อิสระ" });
   const settled = await settleCharge(pool);
   return NextResponse.json({
     reply: result.reply,

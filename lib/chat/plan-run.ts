@@ -261,7 +261,9 @@ const UNCLEAR_MESSAGE =
 
 export async function runPlanChat(
   question: string,
-  profileCtx?: PlanProfileContext | null
+  profileCtx?: PlanProfileContext | null,
+  /** บล็อกความจำแม่หมอ (เฟส 3) — แนบให้ narrator เท่านั้น (planner ไม่ต้องใช้) */
+  memoryBlock?: string | null
 ): Promise<PlanChatResult> {
   // ---- จังหวะ 1: planner ----
   const planner = await generate({
@@ -289,7 +291,7 @@ export async function runPlanChat(
     channel: "web",
     logicId: 0,
     system: buildNarratorSystem(),
-    input: buildNarratorInput(question, interp.execution),
+    input: (memoryBlock ? `${memoryBlock}\n\n` : "") + buildNarratorInput(question, interp.execution),
     maxTokens: 700,
   });
 

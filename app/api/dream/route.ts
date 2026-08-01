@@ -17,6 +17,7 @@ import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
+import { getMemoryBlock, rememberEvent } from "@/lib/memory";
 
 export const runtime = "nodejs";
 
@@ -157,6 +158,9 @@ export async function POST(req: Request) {
       1
     );
 
+    // ความจำแม่หมอ (เฟส 3) — best-effort
+    const memory = await getMemoryBlock(userId);
+
     let reply: string;
     let via = "template";
     try {
@@ -164,9 +168,10 @@ export async function POST(req: Request) {
         role: "ai2",
         logicId: 4,
         channel: "web",
+        userId,
         cacheHit: discoverySource === "cache" || result.found_anything,
         system: LALA_SYSTEM,
-        input: `<ผลการวิเคราะห์>\n${context}\n</ผลการวิเคราะห์>\n\nเรียบเรียงเป็นคำตอบให้ผู้ใช้`,
+        input: `${memory ? `${memory}\n\n` : ""}<ผลการวิเคราะห์>\n${context}\n</ผลการวิเคราะห์>\n\nเรียบเรียงเป็นคำตอบให้ผู้ใช้`,
         maxTokens: 2048,
       });
       reply = ai2.text;
@@ -175,6 +180,12 @@ export async function POST(req: Request) {
       console.warn("[dream] AI-2 ล้มเหลว — ใช้ template non-LLM", e);
       reply = renderTemplate(result, discovery); // fallback ขั้นสุดท้าย: ผู้ใช้ยังได้คำตอบ
     }
+
+    // จำความฝันนี้ (fire-and-forget) — เก็บข้อเท็จจริงจาก engine ไม่ใช่ prose ของ AI
+    const facts =
+      (result.symbol_matches ?? []).map((m: { object: string; element: string }) => `${m.object}(${m.element})`).join(", ") ||
+      (discovery?.dream_object ? `${discovery.dream_object}(${discovery.element ?? "?"})` : "ไม่พบสัญลักษณ์ในฐาน");
+    void rememberEvent(userId, "dream", { q: dreamText, a: `สัญลักษณ์: ${facts}` });
 
     // หักเมื่อตอบสำเร็จเท่านั้น — เส้นฟรี bump DB (atomic) · เส้นเครดิต spend_credits
     let afterUsed = used;
