@@ -4,6 +4,11 @@
 
 import styles from "./mascot.module.css";
 
+/** อวตารหัวแมวกลม — ใช้ข้างคำตอบของ "อาจารย์ลาลา ลักกี้" (ครอปหัวด้วย CSS จากภาพเดียวกัน) */
+export function MascotAvatar({ size = 32 }: { size?: number }) {
+  return <span className={styles.avatar} style={{ width: size, height: size }} aria-hidden="true" />;
+}
+
 export default function MascotLogo({ size = 160 }: { size?: number }) {
   return (
     <span className={styles.wrap} style={{ width: size }} aria-hidden="true">

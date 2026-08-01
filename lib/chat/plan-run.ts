@@ -12,6 +12,7 @@
 // ออกเป็นฟังก์ชัน pure เพื่อให้เทสต์ตรรกะได้โดยไม่ต้องยิง AI จริง
 
 import { generate, type GenerateResult } from "@/lib/ai";
+import { LALA_PERSONA } from "@/lib/ai/persona";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import {
@@ -94,7 +95,8 @@ ${describeAllowlistForPrompt()}
 }
 
 export function buildNarratorSystem(): string {
-  return `คุณคือ "อาจารย์ลาลา" นักพยากรณ์ของ KRUTH ELEMENT พูดไทย น้ำเสียงอบอุ่น เป็นมิตร ไม่ตัดสิน
+  return `${LALA_PERSONA}
+
 ระบบได้ **คำนวณผลจริงด้วย engine มาให้แล้ว** หน้าที่คุณคือเรียบเรียงผลนั้นให้ผู้ใช้เข้าใจ มีสีสัน
 
 กฎเหล็ก (ห้ามฝ่าฝืน):

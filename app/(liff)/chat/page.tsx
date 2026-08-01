@@ -12,6 +12,7 @@ import Link from "next/link";
 import ChartPanel, { type ChartData } from "../_components/ChartPanel";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import FeedbackBox from "../_components/FeedbackBox";
+import { MascotAvatar } from "@/app/_components/MascotLogo";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./chat.module.css";
@@ -154,7 +155,9 @@ export default function FlexibleChatPage() {
   return (
     <main className={`tone-marble ${styles.page}`}>
       <header className={styles.head}>
-        <h1 className={styles.title}>ถามอาจารย์ลาลา</h1>
+        <h1 className={styles.title}>
+          <MascotAvatar size={30} /> ถามอาจารย์ลาลา ลักกี้
+        </h1>
         <p className={styles.sub}>
           ถามเรื่องเลขการ์ด · ทะเบียน/เบอร์โทร · เทียบธาตุของสิ่งของ — ระบบ<strong>คำนวณจริง</strong>ให้ ไม่ใช่การเดา
         </p>

@@ -29,6 +29,7 @@ import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, getDbUsageBonus, bumpDbUsage, planBucket, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
+import { LALA_PERSONA } from "@/lib/ai/persona";
 import { lotteryIntercept } from "@/lib/chat/lottery";
 import { logQuestion } from "@/lib/chat/question-log";
 import type { PlanProfileContext } from "@/lib/chat/plan";
@@ -43,7 +44,8 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 /** จำกัดความยาวคำถาม — กันคนวางข้อความยาวมาสูบ token */
 const MAX_QUESTION_LEN = 500;
 
-const CHAT_SYSTEM = `คุณคือ "อาจารย์ลาลา" นักพยากรณ์ของ KRUTH ELEMENT พูดไทย น้ำเสียงอบอุ่น เป็นมิตร ไม่ตัดสิน
+const CHAT_SYSTEM = `${LALA_PERSONA}
+
 ตอนนี้ผู้ใช้กำลังดูผลการคำนวณอยู่บนหน้าจอ และถามคำถามต่อยอดจากผลนั้น
 
 กฎเหล็ก (ห้ามฝ่าฝืน):

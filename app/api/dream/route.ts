@@ -16,6 +16,7 @@ import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
+import { LALA_PERSONA } from "@/lib/ai/persona";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ const DREAM_LOGIC_ID = 4;
 
 type Ai1Discovery = Discovery;
 
-const LALA_SYSTEM = `คุณคือ "อาจารย์ลาลา" นักพยากรณ์ของ KRUTH ELEMENT พูดไทย น้ำเสียงอบอุ่น เป็นมิตร ไม่ตัดสิน
+const LALA_SYSTEM = `${LALA_PERSONA}
 
 กฎเหล็ก (ห้ามฝ่าฝืน):
 1. ใช้ได้เฉพาะข้อมูลใน <ผลการวิเคราะห์> ที่ให้มาเท่านั้น — ห้ามแต่งสัญลักษณ์ ธาตุ หรือความหมายขึ้นเอง

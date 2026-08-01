@@ -2,7 +2,7 @@ import Link from "next/link";
 import MascotLogo from "./_components/MascotLogo";
 
 const TOOLS: { href: string; label: string; primary?: boolean }[] = [
-  { href: "/chat", label: "💬 ถามอาจารย์ลาลา (วิเคราะห์อิสระ)", primary: true },
+  { href: "/chat", label: "💬 ถามอาจารย์ลาลา ลักกี้ (วิเคราะห์อิสระ)", primary: true },
   { href: "/profile", label: "🔮 โปรไฟล์พลังงาน" },
   { href: "/fortune", label: "✨ ดวงของฉัน" },
   { href: "/compatibility", label: "🤝 ข่ายความสัมพันธ์" },

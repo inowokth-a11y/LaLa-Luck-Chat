@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import styles from "./FunctionChat.module.css";
+import { MascotAvatar } from "@/app/_components/MascotLogo";
 
 interface Msg {
   role: "user" | "ai";
@@ -91,7 +92,9 @@ export default function FunctionChat({ logicId, context, placeholder }: Props) {
   return (
     <section className={styles.box}>
       <div className={styles.head}>
-        <h3 className={styles.title}>💬 ถามอาจารย์ลาลาต่อ</h3>
+        <h3 className={styles.title}>
+          <MascotAvatar size={22} /> ถามอาจารย์ลาลา ลักกี้ต่อ
+        </h3>
         <span className={styles.quota}>
           {remaining === null ? `ถามได้ ${limit} คำถาม` : `เหลือ ${remaining}/${limit} คำถาม`}
         </span>

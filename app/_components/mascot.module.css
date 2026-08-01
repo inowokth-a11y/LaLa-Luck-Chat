@@ -88,3 +88,17 @@
     animation: none;
   }
 }
+
+/* ---- อวตารหัวแมว (แม่หมอลาลา ลักกี้ ข้างคำตอบ) ----
+   ครอปหัวจากภาพเต็มด้วย background-position — ไม่ต้องมีไฟล์รูปเพิ่ม */
+.avatar {
+  display: inline-block;
+  border-radius: 50%;
+  background-image: url("/mascot.png");
+  background-size: 300%;
+  background-position: 47% 16%;
+  background-color: #f7efe0; /* หัวแมวโปร่งใส — รองพื้นสว่างให้เห็นชัดทุกโทน */
+  border: 1.5px solid var(--gold-dim, #a89870);
+  flex: 0 0 auto;
+  vertical-align: middle;
+}

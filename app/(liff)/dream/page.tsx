@@ -5,6 +5,7 @@
 
 import { useRef, useState } from "react";
 import styles from "./dream.module.css";
+import { MascotAvatar } from "@/app/_components/MascotLogo";
 
 interface SymbolMatch {
   object: string;
@@ -31,7 +32,7 @@ const DAYS = ["อาทิตย์", "จันทร์", "อังคาร
 
 export default function DreamPage() {
   const [msgs, setMsgs] = useState<Msg[]>([
-    { who: "lala", text: "สวัสดีค่ะ เล่าความฝันเมื่อคืนให้อาจารย์ลาลาฟังหน่อยได้ไหมคะ 🌙" },
+    { who: "lala", text: "ลาลา~ สวัสดีค่ะ เล่าความฝันเมื่อคืนให้อาจารย์ลาลา ลักกี้ฟังหน่อยได้ไหมคะ 🌙" },
   ]);
   const [input, setInput] = useState("");
   const [day, setDay] = useState("");
@@ -94,7 +95,7 @@ export default function DreamPage() {
       <header className={styles.header}>
         <h1>ทำนายฝัน</h1>
         <p className={styles.sub}>
-          อาจารย์ลาลา · ฐานข้อมูล 457 สัญลักษณ์ + 50 ธีมจิตวิทยา
+          อาจารย์ลาลา ลักกี้ 🐾 · ฐานข้อมูล 457 สัญลักษณ์ + 50 ธีมจิตวิทยา
           <br />
           {remaining === null ? "ช่วงทดลอง ถามได้ 2 ครั้ง" : `เหลือ ${remaining}/2 ครั้ง`}
         </p>
@@ -103,6 +104,12 @@ export default function DreamPage() {
       <div className={styles.chat}>
         {msgs.map((m, i) => (
           <div key={i} className={m.who === "user" ? styles.rowUser : styles.rowBot}>
+            {/* อวตารแม่หมอ — เว้นในข้อความ Safety Gate (สถานการณ์วิกฤตไม่ใส่มาสคоต) */}
+            {m.who === "lala" && !m.intercepted && (
+              <span style={{ marginRight: "0.45rem", alignSelf: "flex-end" }}>
+                <MascotAvatar size={30} />
+              </span>
+            )}
             <div className={`${m.who === "user" ? styles.bubbleUser : styles.bubbleBot} ${m.intercepted ? styles.crisis : ""}`}>
               <p className={styles.text}>{m.text}</p>
 
@@ -142,8 +149,11 @@ export default function DreamPage() {
         ))}
         {loading && (
           <div className={styles.rowBot}>
+            <span style={{ marginRight: "0.45rem", alignSelf: "flex-end" }}>
+              <MascotAvatar size={30} />
+            </span>
             <div className={styles.bubbleBot}>
-              <span className={styles.typing}>อาจารย์ลาลากำลังพิจารณา…</span>
+              <span className={styles.typing}>อาจารย์ลาลา ลักกี้กำลังพิจารณา…</span>
             </div>
           </div>
         )}

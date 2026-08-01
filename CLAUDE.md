@@ -1270,6 +1270,16 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 
 🔴 **ผู้ใช้ต้องทำเองบน dashboard:** Supabase Auth URL config = `lala-lucky-chat.vercel.app/**` (ทำแล้ว) · LINE webhook (พักไว้)
 
+**✅ คาแร็กเตอร์ "อาจารย์ลาลา ลักกี้" (1 ส.ค. 2569 — ผู้ใช้ตัดสิน):** แมวกวักคือแม่หมอผู้ทำนาย
+- ชื่อเต็ม "อาจารย์ลาลา ลักกี้" · "ลาลา~" เป็น**คำติดปาก**แบบตัวการ์ตูน (≤1 ครั้ง/คำตอบ เฉพาะทักทาย/
+  ปิดท้าย) · 🐾 ประปราย · **ห้ามภาษาแมว/เมี้ยว** — ความน่าเชื่อถือของ "คำนวณจริง" (§0) มาก่อน
+- 🔴 บุคลิกรวมที่เดียว: `lib/ai/persona.ts` (LALA_PERSONA) — system prompt ทั้ง 5 จุด (dream/oracle/
+  chat/plan-narrator/LINE) import จากนี่ **ห้ามเขียนบุคลิกซ้ำในไฟล์อื่นอีก**
+- 🔴 **ข้อความ Safety Gate ใน element.ts ไม่แตะโดยเจตนา** — วิกฤตต้องจริงจัง + ถูกล็อก golden test
+  และ bubble วิกฤตในหน้า dream **ไม่ใส่อวตารแมว**
+- `MascotAvatar` (หัวแมวกลม — ครอปด้วย CSS background จาก /mascot.png ไฟล์เดียว): ข้าง bubble
+  ในหน้า /dream + หัวข้อ /chat + FunctionChat · ⚠️ ชื่อ display LINE OA ผู้ใช้ต้องเปลี่ยนเองใน Console
+
 **✅ มาสคอต "LALA LUCKY CHAT" (30 ก.ค. 2569):** `app/_components/MascotLogo.tsx` + `mascot.module.css`
 — แมวกวักบนหน้าแรก อนิเมชัน CSS ล้วน (โยกดุ๊กดิ๊ก + กระพริบตาด้วยเปลือกตาซ้อนทับพิกัดตาจริง
 % เทียบภาพ 529×472 · hover ขยับแรงขึ้น · ปิดตาม prefers-reduced-motion) · ไฟล์ใช้จริง

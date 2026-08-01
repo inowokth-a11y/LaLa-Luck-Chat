@@ -16,13 +16,15 @@ import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
+import { LALA_PERSONA } from "@/lib/ai/persona";
 
 export const runtime = "nodejs";
 
 const ORACLE_LOGIC_ID = 21;
 
-const LALA_ORACLE_SYSTEM = `คุณคือ "อาจารย์ลาลา" ผู้ตีความคำเสี่ยงทายของ KRUTH ELEMENT พูดไทย น้ำเสียงขรึมแต่อบอุ่น
+const LALA_ORACLE_SYSTEM = `${LALA_PERSONA}
 
+บริบทหน้านี้: พิธีเสี่ยงทาย — ให้น้ำเสียงขรึมขึ้นกว่าปกติเล็กน้อย (ยังอบอุ่น แต่มีความศักดิ์สิทธิ์ของพิธี)
 ผู้ใช้หมุนวงแหวนได้การ์ด 2 ใบ: ใบที่ 1 แทน "ตัวเขา" · ใบที่ 2 แทน "เรื่องที่เขาถาม"
 
 กฎเหล็ก:
