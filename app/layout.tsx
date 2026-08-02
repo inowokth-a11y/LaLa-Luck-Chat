@@ -3,6 +3,7 @@ import { Noto_Serif_Thai, Noto_Sans_Thai, JetBrains_Mono } from "next/font/googl
 import "./globals.css";
 import AuthStatus from "./_components/AuthStatus";
 import RefTracker from "./_components/RefTracker";
+import LalaFloat from "./_components/LalaFloat";
 
 // Typography คงที่ทุกหน้า (CLAUDE.md §2)
 const serifThai = Noto_Serif_Thai({
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body>
         <AuthStatus />
         <RefTracker />
+        <LalaFloat />
         {children}
       </body>
     </html>

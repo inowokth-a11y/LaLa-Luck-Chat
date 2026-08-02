@@ -1,0 +1,307 @@
+/* แชทลอย "อาจารย์ลาลา ลักกี้" แบบ Messenger/AssistiveTouch — ลอยทับทุกหน้า (root layout)
+   ใช้ตัวแปรสีจาก .tone-marble / .tone-night ของหน้านั้นๆ ห้าม hardcode hex (CLAUDE.md §2)
+   ข้อยกเว้น: เงา (สีดำโปร่ง) เป็นกลางทั้งสองโทน
+   ⚠️ component นี้อยู่นอกคอนเทนเนอร์ของหน้า (ตัวแปรสีประกาศที่ .tone-*) จึงมี fallback ทุกจุด */
+
+/* ---- ปุ่มลอย (สถานะปิด) — ตำแหน่ง default มุมขวาล่าง · ลาก/snap แล้ว override ด้วย inline style ---- */
+
+.launcherWrap {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60; /* เหนือเนื้อหา แต่คนละมุมกับแถบสถานะ (top-right z-50) */
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  transition: left 0.15s ease, right 0.15s ease, top 0.15s ease;
+}
+
+.launcher {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--gold, #b8860b);
+  background: var(--surface, #fffdf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  touch-action: none; /* ให้ pointermove ทำงานบนมือถือ (ไม่โดน scroll แย่ง) */
+}
+.launcher:active {
+  cursor: grabbing;
+}
+
+/* ---- bubble เด้งชวนถาม (nudge — เทมเพลต ฿0) ---- */
+
+.nudge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: min(260px, 62vw);
+  padding: 0.7rem 0.85rem;
+  border-radius: 16px 16px 4px 16px;
+  border: 1px solid var(--gold-dim, rgba(184, 134, 11, 0.4));
+  background: var(--surface, #fffdf8);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.nudgeTitle {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gold, #b8860b);
+  line-height: 1.5;
+  padding-right: 1.1rem; /* เว้นที่ปุ่มปิด */
+}
+
+.nudgeText {
+  border: none;
+  background: transparent;
+  color: var(--text, #2b2620);
+  font-family: inherit;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  padding-right: 1.1rem;
+}
+
+.nudgeClose {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim, #6b6255);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* ชิปคำถามชวนถามต่อ — ใช้ทั้งใน nudge และในแผงแชท */
+.chip {
+  border: 1px solid var(--gold-dim, rgba(184, 134, 11, 0.45));
+  background: color-mix(in srgb, var(--gold, #b8860b) 7%, transparent);
+  color: var(--text, #2b2620);
+  font-family: inherit;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: left;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+.chip:hover {
+  background: color-mix(in srgb, var(--gold, #b8860b) 16%, transparent);
+}
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chips {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+/* ---- แผงแชท (สถานะเปิด) ---- */
+
+.panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 70;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(560px, calc(100dvh - 88px));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, #fffdf8);
+  border: 1px solid var(--gold-dim, rgba(184, 134, 11, 0.35));
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 480px) {
+  .panel {
+    right: 8px !important;
+    left: 8px !important;
+    bottom: 8px;
+    width: auto;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--marble-vein, rgba(184, 134, 11, 0.15));
+  background: color-mix(in srgb, var(--gold, #b8860b) 10%, var(--surface, #fffdf8));
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gold, #b8860b);
+  line-height: 1.3;
+}
+
+.quota {
+  font-size: 0.7rem;
+  color: var(--text-dim, #6b6255);
+  font-family: var(--font-mono), monospace;
+  white-space: nowrap;
+}
+
+.close {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-dim, #6b6255);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.close:hover {
+  background: color-mix(in srgb, var(--text, #2b2620) 10%, transparent);
+}
+
+.thread {
+  flex: 1;
+  min-height: 140px;
+  overflow-y: auto;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* bubble แบบ messenger — ฝั่งเรามุมล่างขวาแหลม ฝั่งแม่หมอมุมล่างซ้ายแหลม */
+.user,
+.ai {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  max-width: 86%;
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--gold, #b8860b);
+  color: var(--surface, #fffdf8);
+  border-radius: 16px 16px 4px 16px;
+}
+
+.ai {
+  align-self: flex-start;
+  background: var(--bg, #f4f0e6);
+  color: var(--text, #2b2620);
+  border: 1px solid var(--marble-vein, rgba(184, 134, 11, 0.12));
+  border-radius: 16px 16px 16px 4px;
+}
+
+.form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--marble-vein, rgba(184, 134, 11, 0.15));
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--marble-vein, rgba(184, 134, 11, 0.25));
+  border-radius: 999px;
+  background: var(--bg, #f4f0e6);
+  color: var(--text, #2b2620);
+  font-family: inherit;
+  font-size: 0.92rem;
+}
+.input:focus {
+  outline: 2px solid var(--gold-bright, var(--gold, #b8860b));
+  outline-offset: 1px;
+}
+
+.send {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--gold, #b8860b);
+  color: var(--surface, #fffdf8);
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ปุ่มเต็มแถว (ล็อกอิน/เติมเครดิต) แทนช่องพิมพ์ */
+.cta {
+  display: block;
+  margin: 0.6rem 0.75rem 0;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  background: var(--gold, #b8860b);
+  color: var(--surface, #fffdf8);
+  text-align: center;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.notice {
+  background: var(--bg, #f4f0e6);
+  border-left: 3px solid var(--gold, #b8860b);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--text, #2b2620);
+  white-space: pre-wrap;
+}
+
+.error {
+  color: var(--bad, #a83a1e);
+  font-size: 0.82rem;
+}
+
+.hint {
+  margin: 0.5rem 0.9rem 0.7rem;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  color: var(--text-dim, #6b6255);
+}
+
+/* ข้อความช่วยเหลือตอนพบสัญญาณวิกฤต — แสดงเดี่ยวๆ ไม่มีปุ่ม ไม่มีการตลาด (กติกา §13) */
+.crisis {
+  padding: 1.1rem;
+  border-left: 3px solid var(--bad, #a83a1e);
+  font-size: 0.92rem;
+  line-height: 1.8;
+  color: var(--text, #2b2620);
+  white-space: pre-wrap;
+  overflow-y: auto;
+}
