@@ -20,6 +20,8 @@ import {
   type ElementSeedResult,
 } from "../engine/element";
 import { getWellnessForMissing, getWellnessPair, FRAMING_CAVEAT } from "../engine/wellness";
+import { DAY_ELEMENT } from "../engine/element";
+import { ELEMENT_TO_COLORS, DIRECTION_TO_ELEMENT, ALL_DIRECTIONS } from "../engine/fengshui";
 import {
   lookup2digit,
   lookup3digit,
@@ -64,6 +66,8 @@ export const PLAN_FN_NAMES = [
   "myNumberScore",
   "myPersonalYear",
   "myWellnessAdvice",
+  "myLuckyColors",
+  "myMatchProfile",
 ] as const;
 
 export type PlanFnName = (typeof PLAN_FN_NAMES)[number];
@@ -385,7 +389,75 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
         : { ธาตุครบสมดุล: true, กิจวัตรธาตุเด่น: getWellnessPair(ctx!.dominant) },
     defaultLabel: () => "กิจกรรมเสริมพลังธาตุ",
   },
+
+  myLuckyColors: {
+    logic: 7,
+    description:
+      "สีมงคลของผู้ใช้ (เสื้อผ้า/เล็บ/ของใช้) จากธาตุที่ขาด+ธาตุที่บำรุงธาตุเด่น+ธาตุประจำวันนี้ — " +
+      "ใช้กับคำถาม 'วันนี้ใส่สีอะไรดี' 'ทำเล็บสีอะไร' 'สีเสริมดวง'",
+    argsHint: "{} (ใช้ธาตุจากโปรไฟล์ — ห้ามใส่ค่าใดๆ)",
+    caveat: "การเลือกสีตามธาตุเป็นเคล็ดเสริมความมั่นใจตามหลักธาตุ ไม่ใช่ข้อบังคับ — สีที่ใส่แล้วมั่นใจคือสีที่ดีเสมอค่ะ",
+    chartable: null,
+    needsProfile: true,
+    check: () => ({ ok: true, args: {} }),
+    run: (_a, ctx) => {
+      const support = SUPPORT_OF[ctx!.dominant]; // ธาตุที่ให้กำเนิดธาตุเด่นเรา (印 บำรุง)
+      const today = THAI_DAY_NAMES[new Date().getDay()];
+      const dayEl = DAY_ELEMENT[today];
+      return {
+        สีเสริมธาตุที่ขาด: ctx!.missing.map((m) => ({ ธาตุ: THAI_LABEL_5[m], สี: ELEMENT_TO_COLORS[m] })),
+        สีบำรุงธาตุเด่น: { ธาตุ: THAI_LABEL_5[support], สี: ELEMENT_TO_COLORS[support] },
+        สีธาตุเด่นของตัวเอง: { ธาตุ: THAI_LABEL_5[ctx!.dominant], สี: ELEMENT_TO_COLORS[ctx!.dominant] },
+        วันนี้: dayEl
+          ? { วัน: today, ธาตุประจำวัน: THAI_LABEL_5[dayEl], สีธาตุของวัน: ELEMENT_TO_COLORS[dayEl] }
+          : { วัน: today },
+      };
+    },
+    defaultLabel: () => "สีมงคลของฉัน",
+  },
+
+  myMatchProfile: {
+    logic: 1,
+    description:
+      "ธาตุของคน/คู่ที่เกื้อหนุนผู้ใช้ที่สุด (จัดอันดับทั้ง 5 ธาตุด้วยคะแนนความเข้ากัน) + ทิศที่ธาตุตรงกัน — " +
+      "ใช้กับคำถาม 'เนื้อคู่/คนที่เหมาะกับฉันเป็นแบบไหน' 'จะเจอคนถูกใจที่ไหน'",
+    argsHint: "{} (ใช้ธาตุจากโปรไฟล์ — ห้ามใส่ค่าใดๆ)",
+    caveat:
+      "หลักธาตุบอกได้แค่ 'พลังงานแบบไหนเกื้อหนุนคุณ' — ระบุตัวบุคคล สถานที่ หรือเวลาที่จะพบกันแน่นอนไม่ได้ค่ะ",
+    chartable: null,
+    needsProfile: true,
+    check: () => ({ ok: true, args: {} }),
+    run: (_a, ctx) => {
+      // จัดอันดับทุกธาตุด้วย wuXingScore ตัวจริง (มุมมองเดียวกับ /compatibility)
+      const ranked = (Object.keys(THAI_LABEL_5) as Element5[])
+        .map((el) => {
+          const s = wuXingScore(ctx!.dominant, el, ctx!.missing);
+          return { ธาตุ: THAI_LABEL_5[el], คะแนน: s.final_score, ความสัมพันธ์: s.relation_th, _el: el };
+        })
+        .sort((a, b) => b.คะแนน - a.คะแนน);
+      const top = ranked[0].คะแนน;
+      const best = ranked.filter((r) => r.คะแนน === top);
+      const dirs = ALL_DIRECTIONS.filter((d) => best.some((b) => DIRECTION_TO_ELEMENT[d] === b._el));
+      return {
+        ธาตุคู่ที่เกื้อหนุนที่สุด: best.map(({ _el, ...r }) => r),
+        อันดับทั้งหมด: ranked.map(({ _el, ...r }) => r),
+        ทิศที่ธาตุตรงกับคู่เกื้อหนุน: dirs,
+      };
+    },
+    defaultLabel: () => "ธาตุคู่ที่เกื้อหนุนฉัน",
+  },
 };
+
+// วงจรให้กำเนิด (相生) — ใครให้กำเนิดธาตุนี้ (印 บำรุงเรา = ทาง ค §5)
+const SUPPORT_OF: Record<Element5, Element5> = {
+  Fire: "Wood",
+  Earth: "Fire",
+  Metal: "Earth",
+  Water: "Metal",
+  Wood: "Water",
+};
+
+const THAI_DAY_NAMES = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
 // ---------------------------------------------------------------------------
 // missingInputs — ชื่อ input ที่ระบบรู้จัก (ใช้เรนเดอร์คำถามกลับไปหาผู้ใช้)

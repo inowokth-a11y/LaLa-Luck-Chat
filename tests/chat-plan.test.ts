@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 11, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 5 ตัว (seed/vsElement/numberScore/personalYear/wellness)");
+  assert.equal(PLAN_FN_NAMES.length, 13, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 7 ตัว (seed/vsElement/numberScore/personalYear/wellness/luckyColors/matchProfile)");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -456,4 +456,34 @@ test("myWellnessAdvice — ธาตุขาดได้กิจกรรม�
     { ...MOCK_PROFILE, missing: [] } as never
   );
   assert.ok((balanced.results[0].output as { ธาตุครบสมดุล?: boolean }).ธาตุครบสมดุล);
+});
+
+test("myLuckyColors — สีจากธาตุขาด/ธาตุบำรุง/ธาตุประจำวันนี้ (ตารางสีจริงของฮวงจุ้ย)", () => {
+  const ex = executePlan(
+    mustPass({ calls: [{ fn: "myLuckyColors", args: {} }] }),
+    { ...MOCK_PROFILE, missing: ["Water"] } as never
+  );
+  const o = ex.results[0].output as Record<string, never>;
+  const missingColors = o.สีเสริมธาตุที่ขาด as Array<{ ธาตุ: string; สี: string[] }>;
+  assert.equal(missingColors[0].ธาตุ, "น้ำ");
+  assert.ok(missingColors[0].สี.length > 0, "ต้องมีสีจริงจากตาราง ELEMENT_TO_COLORS");
+  assert.ok(o.สีบำรุงธาตุเด่น, "ต้องมีสีของธาตุที่ให้กำเนิดธาตุเด่น");
+  assert.ok(o.วันนี้, "ต้องบอกธาตุประจำวันนี้");
+  assert.ok(ex.caveats[0]?.includes("ความมั่นใจ"), "caveat ต้องบอกว่าเป็นเคล็ดเสริม ไม่ใช่ข้อบังคับ");
+});
+
+test("myMatchProfile — จัดอันดับธาตุคู่ด้วย wuXingScore จริง + บอกชัดว่าระบุตัวบุคคล/สถานที่ไม่ได้", () => {
+  const ex = executePlan(
+    mustPass({ calls: [{ fn: "myMatchProfile", args: {} }] }),
+    { dominant: "Fire", missing: ["Water"], seed: MOCK_PROFILE.seed } as never
+  );
+  const o = ex.results[0].output as Record<string, never>;
+  const best = o.ธาตุคู่ที่เกื้อหนุนที่สุด as Array<{ ธาตุ: string; คะแนน: number }>;
+  // ไฟ+ขาดน้ำ (ทาง ค): ไม้บำรุงไฟ = +2 และน้ำ (ขาด) Productive Clash = +2 → ต้องอยู่กลุ่มบนสุด
+  assert.equal(best[0].คะแนน, 2);
+  const names = best.map((b) => b.ธาตุ);
+  assert.ok(names.includes("ไม้") && names.includes("น้ำ"), `กลุ่มบนควรมีไม้+น้ำ ได้ ${names}`);
+  assert.equal((o.อันดับทั้งหมด as unknown[]).length, 5, "ต้องจัดอันดับครบ 5 ธาตุ");
+  assert.ok((o.ทิศที่ธาตุตรงกับคู่เกื้อหนุน as string[]).length > 0, "ต้องมีทิศจาก DIRECTION_TO_ELEMENT");
+  assert.ok(ex.caveats[0]?.includes("ระบุตัวบุคคล"), "caveat ต้องกันความคาดหวังเรื่องระบุตัวตน/สถานที่");
 });
