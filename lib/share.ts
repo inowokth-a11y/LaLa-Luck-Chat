@@ -28,8 +28,14 @@ export function shareLinks(url: string, text: string): { line: string; facebook:
   };
 }
 
-/** ข้อความชวนแชร์มาตรฐาน (ไม่มีข้อมูลส่วนตัว) */
-export function shareText(cardName: string | null): string {
+/**
+ * ข้อความชวนแชร์ (ไม่มีข้อมูลส่วนตัว) — ชูบุคคลต้นแบบเป็นหลักเมื่อรู้จัก
+ * (ผู้ใช้ตัดสิน 2 ส.ค. 2569: "ฉันมีต้นแบบเดียวกับ X" ดึงความสนใจกว่าชื่อการ์ด)
+ */
+export function shareText(cardName: string | null, figure?: string | null): string {
+  if (figure) {
+    return `✨ ฉันมีต้นแบบเดียวกับ "${figure}" — มาเปิดการ์ดพลังงานดูสิ ว่าคุณมีต้นแบบเดียวกับใครในตำนานหรือประวัติศาสตร์ 🐾 LaLa Lucky Chat`;
+  }
   return cardName
     ? `การ์ดพลังงานประจำตัวของฉันคือ "${cardName}" — ค้นหาการ์ดของคุณได้ที่ LaLa Lucky Chat 🐾`
     : "ค้นหาการ์ดพลังงานประจำตัวของคุณได้ที่ LaLa Lucky Chat 🐾";

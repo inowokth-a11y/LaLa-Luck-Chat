@@ -241,7 +241,7 @@ export default function ProfilePage() {
       )}
     
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
-      {card && cardId && <ShareCard cardId={cardId} cardName={card.energy_name} />}
+      {card && cardId && <ShareCard cardId={cardId} cardName={card.energy_name} figure={card.archetype_figure} />}
 
       <FunctionChat
         logicId={1}

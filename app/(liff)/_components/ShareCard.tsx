@@ -14,9 +14,11 @@ import { useSyncStatus } from "@/app/_components/AuthStatus";
 interface Props {
   cardId: string;
   cardName: string | null;
+  /** ชื่อบุคคลต้นแบบ (archetype_figure) — มีแล้วข้อความแชร์จะชูชื่อนี้แทนชื่อการ์ด */
+  figure?: string | null;
 }
 
-export default function ShareCard({ cardId, cardName }: Props) {
+export default function ShareCard({ cardId, cardName, figure }: Props) {
   const [claimed, setClaimed] = useState<boolean | null>(null);
   const [loggedIn, setLoggedIn] = useState(true);
   const [needsUpgrade, setNeedsUpgrade] = useState(false);
@@ -40,7 +42,7 @@ export default function ShareCard({ cardId, cardName }: Props) {
   }, []);
 
   const url = cardShareUrl(typeof window !== "undefined" ? window.location.origin : "", cardId);
-  const text = shareText(cardName);
+  const text = shareText(cardName, figure);
   const links = shareLinks(url, text);
 
   async function claim() {

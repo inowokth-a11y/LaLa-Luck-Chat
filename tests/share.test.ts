@@ -37,6 +37,15 @@ test("ข้อความชวนแชร์มีชื่อการ์�
   assert.ok(shareText(null).includes("LaLa Lucky Chat"));
 });
 
+test("ข้อความแชร์ชูชื่อบุคคลต้นแบบเมื่อรู้จัก (ผู้ใช้ตัดสิน 2 ส.ค. 2569)", () => {
+  const t = shareText("จักรพรรดิแห่งความมั่งคั่ง", "กษัตริย์ไมดาส (King Midas)");
+  assert.ok(t.includes("มีต้นแบบเดียวกับ"), "ต้องขึ้นด้วยประโยคต้นแบบ");
+  assert.ok(t.includes("กษัตริย์ไมดาส (King Midas)"));
+  assert.ok(t.includes("LaLa Lucky Chat"));
+  // ไม่มี figure → fallback ข้อความชื่อการ์ดแบบเดิม
+  assert.ok(shareText("นักปราชญ์", null).includes("นักปราชญ์"));
+});
+
 test("รางวัลแชร์ = 2 (ตรงกับ claim_share_reward ใน migration 031)", () => {
   assert.equal(SHARE_REWARD_QUESTIONS, 2);
 });
