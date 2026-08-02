@@ -23,8 +23,18 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // 🔴 metadataBase จำเป็น — ไม่ตั้งแล้ว Next ใช้ VERCEL_URL (โดเมน vercel.app เก่า) ประกอบ URL รูป OG
+  metadataBase: new URL("https://lalaluckychat.com"),
   title: "LaLa Lucky Chat",
   description: "แพลตฟอร์มดูดวง/ไลฟ์สไตล์ที่คำนวณจริง — ธาตุ โหราศาสตร์ไทย ตัวเลข",
+  openGraph: {
+    title: "LaLa Lucky Chat — ดูดวงที่ “คำนวณจริง”",
+    description: "เปิดการ์ดพลังงานประจำตัวฟรี · ธาตุ · โหราศาสตร์ไทย · ตัวเลข กับอาจารย์ลาลา ลักกี้",
+    siteName: "LaLa Lucky Chat",
+    locale: "th_TH",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({
