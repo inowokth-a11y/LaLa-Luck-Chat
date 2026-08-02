@@ -1538,13 +1538,16 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
    "อาจารย์ลาลา ลักกี้" · ชื่อผู้ควบคุมข้อมูลจริงใน `lib/consent.ts` (ตอนนี้ placeholder) +
    ให้ผู้รู้ PDPA ตรวจ /privacy · ~~โดเมนจริง~~ → ✅ **ซื้อแล้ว 2 ส.ค. 2569: `lalaluckychat.com`**
    ปลดล็อก LINE Login channel + Facebook app review แล้ว
-5. **หลังได้โดเมน (2 ส.ค. 2569) — ผู้ใช้ต้องตามเก็บ 3 จุด:** (1) Vercel Domains → Edit
-   `lala-lucky-chat.vercel.app` → Redirect 308 ไป `lalaluckychat.com` (ลิงก์เก่า+?ref= ตามมาเอง)
-   (2) Supabase Auth URL Config: Site URL + allow-list เพิ่ม `https://lalaluckychat.com/**`
-   (3) Omise webhook เปลี่ยนเป็น `https://lalaluckychat.com/api/payment/webhook`
-6. **ยื่นยืนยันธุรกิจ Omise** (ดูขั้นตอนที่คุยไว้ 2 ส.ค.) — ⚠️ prerequisite ค้างฝั่งโค้ด:
-   **นโยบายคืนเงินบนหน้าเติมเงิน** (Omise บังคับแสดงก่อน/บนจุดชำระเงิน ไม่ใช่แค่ลิงก์) —
-   รอผู้ใช้ตัดสินเงื่อนไขคืนเงินก่อนเขียน
+5. ~~ตามเก็บหลังได้โดเมน~~ — ✅ **ครบแล้ว 2 ส.ค. 2569 (verify ด้วย curl จริงทุกข้อ):**
+   vercel.app → 308 ไป `lalaluckychat.com` (path+?ref= ตามมาครบ) · Supabase Site URL+allow-list ·
+   Omise webhook → โดเมนใหม่ · **รูป OG หน้าเว็บหลัก** (`app/opengraph-image.tsx` วาดสด ฿0
+   มาสคอต+จุดขาย — default ทุกหน้า การ์ดมีของตัวเองทับ) + `metadataBase=lalaluckychat.com`
+   ใน layout (สำคัญ — ไม่ตั้งแล้ว Next ใช้ VERCEL_URL เก่าประกอบ URL รูป OG)
+6. **ยื่นยืนยันธุรกิจ Omise** (ดูขั้นตอนที่คุยไว้ 2 ส.ค.) — ⚠️ 2 เรื่องต้องตัดสิน/ทำก่อน:
+   (1) **นโยบายคืนเงินบนหน้าเติมเงิน** (Omise บังคับแสดงบนจุดชำระ ไม่ใช่แค่ลิงก์) — ผู้ใช้ยัง
+   ไม่ตัดสินเงื่อนไข (มีร่างเสนอไว้ในแชท 2 ส.ค.) (2) **ผู้ใช้กำลังจะจดบริษัท** (บอก 2 ส.ค.) —
+   ถ้าจดเสร็จเร็ว ควรยื่น KYC เป็นนิติบุคคลรอบเดียว (ยื่นบุคคลธรรมดาก่อนแล้วเปลี่ยน = ทำ KYC ใหม่)
+   billing address ของ Vercel ก็รอผูกบัตรบัญชีบริษัท (โดเมนต่ออายุอัตโนมัติ — ห้ามปล่อยหลุด)
 
 **✅ ทดสอบ guest flow E2E จริงทั้งเส้น (2 ส.ค. 2569 — หลังผู้ใช้เปิด Anonymous sign-ins):**
 หน้าแรกกรอกฟอร์ม → /consent ติ๊ก+ปุ่มผู้เยี่ยมชม → anonymous sign-in สำเร็จ → /welcome บันทึก
