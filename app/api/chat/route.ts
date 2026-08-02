@@ -26,6 +26,7 @@ import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/cha
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { lotteryIntercept } from "@/lib/chat/lottery";
+import { chatRedirectIntercept } from "@/lib/chat/redirects";
 import { logQuestion } from "@/lib/chat/question-log";
 import { getMemoryBlock, rememberEvent } from "@/lib/memory";
 
@@ -134,6 +135,13 @@ export async function POST(req: Request) {
     const lottery = lotteryIntercept(question);
     if (lottery) {
       return NextResponse.json({ declined: true, message: lottery.message });
+    }
+
+    // ---- 2.5 คำถามการแพทย์ (ปฏิเสธอ่อนโยน) + คำถามที่มีเครื่องมือเฉพาะ (พาไปใช้) — ฿0 ----
+    // จาก benchmark 2 ส.ค. 2569: เคสพวกนี้เคยได้ข้อความ "ยังไม่มีโหมด" แบบเมนูขายของ
+    const redirect = chatRedirectIntercept(question);
+    if (redirect) {
+      return NextResponse.json({ declined: true, message: redirect.message });
     }
 
     // ---- 3. gate ล็อกอิน — คำถามแชทต้องมีบัญชี (ถังนับต่อคน ไม่มี cookie อีกแล้ว) ----

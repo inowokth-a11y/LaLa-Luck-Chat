@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 9, "6 ตัวไม่ใช้วันเกิด + myElementSeed/myWuXingVsElement/myNumberScore");
+  assert.equal(PLAN_FN_NAMES.length, 11, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 5 ตัว (seed/vsElement/numberScore/personalYear/wellness)");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -424,4 +424,36 @@ test("myWuXingVsElement ทำกราฟ bar ได้ (เทียบธา�
 
 test("planRequiresProfile เป็น false สำหรับแผนที่ไม่มี fn 'ของฉัน'", () => {
   assert.equal(planRequiresProfile(mustPass({ calls: [{ fn: "lookup2digit", args: { num: 7 } }] })), false);
+});
+
+// ---------------------------------------------------------------------------
+// สายคำปรึกษา (2 ส.ค. 2569) — แนวโน้มปี + กิจกรรมเสริมธาตุ จาก engine ล้วน
+// ---------------------------------------------------------------------------
+
+test("myPersonalYear — คำนวณจากวันเกิดในโปรไฟล์ ได้ธีม/โอกาส/ข้อควรระวังจริง", () => {
+  const profile = { ...MOCK_PROFILE, birthDay: 15, birthMonth: 3 };
+  const ex = executePlan(mustPass({ calls: [{ fn: "myPersonalYear", args: {} }] }), profile);
+  const o = ex.results[0].output as Record<string, unknown>;
+  assert.ok(typeof o.เลขปีส่วนบุคคล === "number", "ต้องมีเลขปีจาก engine");
+  assert.ok(o.theme && o.action_advice, "ต้องมีธีม+คำแนะนำจากฐานข้อมูลจริง");
+  assert.ok(ex.caveats[0]?.includes("แนวทางประกอบ"), "caveat ต้องย้ำว่าเป็นแนวทาง ไม่ใช่คำตัดสิน");
+  // โปรไฟล์ไม่มีวัน/เดือน (ctx รุ่นเก่า) → error สุภาพ ไม่ throw
+  const old = executePlan(mustPass({ calls: [{ fn: "myPersonalYear", args: {} }] }), MOCK_PROFILE);
+  assert.ok((old.results[0].output as { error?: string }).error, "ไม่มีวันเกิดเต็มต้องบอกตรงๆ ไม่เดา");
+});
+
+test("myWellnessAdvice — ธาตุขาดได้กิจกรรมเสริม · ธาตุครบได้กิจวัตรธาตุเด่น + caveat ไม่ใช่การรักษา", () => {
+  const missing = executePlan(
+    mustPass({ calls: [{ fn: "myWellnessAdvice", args: {} }] }),
+    { ...MOCK_PROFILE, missing: ["Water"] } as never
+  );
+  const o1 = missing.results[0].output as { กิจกรรมแนะนำ?: Record<string, unknown> };
+  assert.ok(o1.กิจกรรมแนะนำ?.Water, "ขาดน้ำต้องได้กิจกรรมธาตุน้ำ");
+  assert.ok(missing.caveats[0]?.includes("ไม่ใช่การรักษา"), "ต้องมี framing caveat ของ wellness");
+
+  const balanced = executePlan(
+    mustPass({ calls: [{ fn: "myWellnessAdvice", args: {} }] }),
+    { ...MOCK_PROFILE, missing: [] } as never
+  );
+  assert.ok((balanced.results[0].output as { ธาตุครบสมดุล?: boolean }).ธาตุครบสมดุล);
 });

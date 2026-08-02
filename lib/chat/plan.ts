@@ -14,9 +14,12 @@ import {
   wuXingScore,
   THAI_LABEL_5,
   THAI_LABEL_4,
+  calculatePersonalYear,
+  getPersonalYearGuidance,
   type Element5,
   type ElementSeedResult,
 } from "../engine/element";
+import { getWellnessForMissing, getWellnessPair, FRAMING_CAVEAT } from "../engine/wellness";
 import {
   lookup2digit,
   lookup3digit,
@@ -36,6 +39,9 @@ export interface PlanProfileContext {
   missing: Element5[];
   /** ผล ElementSeed เต็ม (สำหรับ myElementSeed) */
   seed: ElementSeedResult;
+  /** วัน/เดือนเกิด (สำหรับ myPersonalYear — แนวโน้มปีส่วนบุคคล) · optional เผื่อ ctx รุ่นเก่า */
+  birthDay?: number;
+  birthMonth?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -56,6 +62,8 @@ export const PLAN_FN_NAMES = [
   "myElementSeed",
   "myWuXingVsElement",
   "myNumberScore",
+  "myPersonalYear",
+  "myWellnessAdvice",
 ] as const;
 
 export type PlanFnName = (typeof PLAN_FN_NAMES)[number];
@@ -338,6 +346,44 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       return { เลข: a.num, ธาตุของเลข: THAI_LABEL_5[el], ...score };
     },
     defaultLabel: (a) => `เลข ${a.num}`,
+  },
+
+  // ---- ฟังก์ชันสายคำปรึกษา (2 ส.ค. 2569 — ผู้ใช้ขอ: แนวโน้ม/แนวทางตัดสินใจจากหลักธาตุ) ----
+  myPersonalYear: {
+    logic: 1,
+    description:
+      "แนวโน้มปีส่วนบุคคลของผู้ใช้ (ธีมปี จุดที่ควรระวัง โอกาส คำแนะนำ) — ใช้กับคำถามขอคำปรึกษา " +
+      "แนวโน้มอนาคต หรือประกอบการตัดสินใจ เช่น 'ปีนี้เหมาะเริ่มอะไรใหม่ไหม' 'ช่วงนี้ควรวางตัวยังไง'",
+    argsHint: "{} (คำนวณจากวันเกิดในโปรไฟล์ — ห้ามใส่ค่าใดๆ)",
+    caveat: "แนวโน้มปีส่วนบุคคลเป็นภาพกว้างตามรอบปี ใช้เป็นแนวทางประกอบ ไม่ใช่คำตัดสินแทนการพิจารณาของคุณ",
+    chartable: null,
+    needsProfile: true,
+    check: () => ({ ok: true, args: {} }), // ไม่มี args — กัน AI ยัดวันเกิด/ปีเอง
+    run: (_a, ctx) => {
+      if (!ctx?.birthDay || !ctx?.birthMonth) return { error: "ต้องมีวันเกิดเต็ม (วัน/เดือน) ในโปรไฟล์" };
+      const year = new Date().getFullYear();
+      const py = calculatePersonalYear(ctx.birthDay, ctx.birthMonth, year);
+      return { ปีปฏิทิน: year, เลขปีส่วนบุคคล: py, ...getPersonalYearGuidance(py) };
+    },
+    defaultLabel: () => "แนวโน้มปีส่วนบุคคล",
+  },
+
+  myWellnessAdvice: {
+    logic: 16,
+    description:
+      "กิจกรรมดูแลตัวเองที่เหมาะกับธาตุของผู้ใช้ (สมาธิ/การหายใจ/การเคลื่อนไหว พร้อมงานวิจัยอ้างอิง) — " +
+      "ใช้กับคำถามแนวเครียด เหนื่อยใจ อยากดูแลตัวเอง หรือขอวิธีเสริมพลังธาตุที่ขาด",
+    argsHint: "{} (ใช้ธาตุที่ขาดจากโปรไฟล์ — ห้ามใส่ค่าใดๆ)",
+    caveat: FRAMING_CAVEAT, // "กิจกรรมสุขภาวะทั่วไป...ไม่ใช่การรักษา หากกังวลควรปรึกษาผู้เชี่ยวชาญ"
+    chartable: null,
+    needsProfile: true,
+    check: () => ({ ok: true, args: {} }),
+    // ขาดธาตุ → กิจกรรมเสริมธาตุนั้น · ธาตุครบ → กิจวัตรของธาตุเด่นแทน (แบบเดียวกับหน้า /wellness)
+    run: (_a, ctx) =>
+      ctx!.missing.length > 0
+        ? { ธาตุที่ขาด: ctx!.missing.map((m) => THAI_LABEL_5[m]), กิจกรรมแนะนำ: getWellnessForMissing(ctx!.missing) }
+        : { ธาตุครบสมดุล: true, กิจวัตรธาตุเด่น: getWellnessPair(ctx!.dominant) },
+    defaultLabel: () => "กิจกรรมเสริมพลังธาตุ",
   },
 };
 
