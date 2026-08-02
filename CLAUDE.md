@@ -1251,7 +1251,7 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 359/359
 |---|---|
 | Engine + ทุกฟีเจอร์ | ✅ **359 tests** · tsc + build ผ่าน |
 | Supabase | ✅ **migration 000-033** รันจริง (ล่าสุด: 027 credit wallet · 029 vision cache · 030 topup idempotency · 031 share reward · 032 user memory · 033 pdpa consent) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
-| Vercel / GitHub | ✅ prod = **`lala-lucky-chat.vercel.app`** · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ |
+| Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
 **✅ สรุปเซสชัน 30 ก.ค.–1 ส.ค. 2569 (ทั้งหมด commit+push แล้ว — รายละเอียดในบล็อก ✅ ด้านบน):**
 เครดิตครบวงจร (กระเป๋า+หัก+เติม PromptPay test mode พิสูจน์ E2E, แพ็กแบบ ก ฿29/59/129) ·
@@ -1536,7 +1536,15 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
    **เส้น guest ทดสอบครบแล้ว** ไม่ต้องทำซ้ำ
 4. เก็บกวาด: ลบโปรเจ็กต์ Vercel ซ้ำ 2 ตัว (ตัวจริง=lala-lucky-chat) · เปลี่ยนชื่อ LINE OA เป็น
    "อาจารย์ลาลา ลักกี้" · ชื่อผู้ควบคุมข้อมูลจริงใน `lib/consent.ts` (ตอนนี้ placeholder) +
-   ให้ผู้รู้ PDPA ตรวจ /privacy · โดเมนจริง → LINE Login channel · Facebook app review
+   ให้ผู้รู้ PDPA ตรวจ /privacy · ~~โดเมนจริง~~ → ✅ **ซื้อแล้ว 2 ส.ค. 2569: `lalaluckychat.com`**
+   ปลดล็อก LINE Login channel + Facebook app review แล้ว
+5. **หลังได้โดเมน (2 ส.ค. 2569) — ผู้ใช้ต้องตามเก็บ 3 จุด:** (1) Vercel Domains → Edit
+   `lala-lucky-chat.vercel.app` → Redirect 308 ไป `lalaluckychat.com` (ลิงก์เก่า+?ref= ตามมาเอง)
+   (2) Supabase Auth URL Config: Site URL + allow-list เพิ่ม `https://lalaluckychat.com/**`
+   (3) Omise webhook เปลี่ยนเป็น `https://lalaluckychat.com/api/payment/webhook`
+6. **ยื่นยืนยันธุรกิจ Omise** (ดูขั้นตอนที่คุยไว้ 2 ส.ค.) — ⚠️ prerequisite ค้างฝั่งโค้ด:
+   **นโยบายคืนเงินบนหน้าเติมเงิน** (Omise บังคับแสดงก่อน/บนจุดชำระเงิน ไม่ใช่แค่ลิงก์) —
+   รอผู้ใช้ตัดสินเงื่อนไขคืนเงินก่อนเขียน
 
 **✅ ทดสอบ guest flow E2E จริงทั้งเส้น (2 ส.ค. 2569 — หลังผู้ใช้เปิด Anonymous sign-ins):**
 หน้าแรกกรอกฟอร์ม → /consent ติ๊ก+ปุ่มผู้เยี่ยมชม → anonymous sign-in สำเร็จ → /welcome บันทึก
