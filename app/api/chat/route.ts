@@ -19,6 +19,7 @@ import {
   questionNeedsLoginMessage,
 } from "@/lib/chat/questions";
 import { runPlanChat, buildProfileContext } from "@/lib/chat/plan-run";
+import { questionSuggestsComputation } from "@/lib/chat/plan";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsageBonus, bumpDbUsage } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
@@ -168,6 +169,42 @@ export async function POST(req: Request) {
     const contextJson = JSON.stringify(body.context ?? {}, null, 1).slice(0, 6000);
     // ความจำแม่หมอ (เฟส 3) — best-effort: อ่านพัง = ตอบแบบไม่มีความจำ
     const memory = await getMemoryBlock(userId);
+
+    // ---- hybrid (2 ส.ค. 2569): คำถามมีเลข/ทะเบียน/เบอร์ → ลอง planner+engine คำนวณจริงก่อน ----
+    // เดิมโหมด context ตอบได้เฉพาะผลบนหน้า → ถามเลขทะเบียนบนหน้าโปรไฟล์ได้แต่ "คำนวณให้ไม่ได้"
+    // ทั้งที่ engine มีครบ (feedback ผู้ใช้จริง) · วางแผนไม่ได้ = ตกกลับเส้น context เดิมด้านล่าง
+    // ต้นทุนเพิ่มเฉพาะคำถามที่เข้าเกณฑ์: planner ~฿0.05 (heuristic เป็น pure ฿0)
+    if (questionSuggestsComputation(question)) {
+      let profileCtx = null;
+      try {
+        const supabase = await createSupabaseServer();
+        const { data } = await supabase
+          .from("user_profiles_e")
+          .select("birth_date")
+          .eq("auth_uid", userId)
+          .maybeSingle();
+        profileCtx = buildProfileContext(data?.birth_date);
+      } catch (e) {
+        console.warn("[chat/hybrid] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
+      }
+      const planned = await runPlanChat(question, profileCtx, memory, contextJson);
+      if (planned.status === "answered") {
+        logQuestion({ question, status: "answered", fns: [...new Set(planned.results.map((r) => r.fn))], userId });
+        void rememberEvent(userId, "chat", { q: question, a: planned.reply, tag: logicName });
+        const settled = await settleCharge(pool);
+        return NextResponse.json({
+          reply: planned.reply,
+          results: planned.results,
+          chart: planned.chart,
+          caveats: planned.caveats,
+          questions: settled.questions,
+          credits: settled.credits,
+          paidWithCredits: settled.paidWithCredits,
+          shareTeaser: settled.questions.remaining === 0 && pool.bonus === 0,
+        });
+      }
+      // needs_input/unclear → ไม่หักอะไร ตกไปให้เส้น context ตอบตามข้อมูลบนหน้า (พฤติกรรมเดิม)
+    }
 
     const ai = await generate({
       role: "ai2",

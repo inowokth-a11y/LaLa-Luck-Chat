@@ -34,3 +34,16 @@ test("ไม่มีอักขระต่างภาษาปลอมป�
     }
   }
 });
+
+// ---- heuristic เส้น hybrid (lib/chat/plan.ts — 2 ส.ค. 2569) ----
+import { questionSuggestsComputation } from "../lib/chat/plan";
+
+test("questionSuggestsComputation — จับคำถามที่มีเลข/ทะเบียน/เบอร์ (เปิดเส้น hybrid)", () => {
+  assert.ok(questionSuggestsComputation('ฉันใช้รถทะเบียน "จง 6266" และอยู่บ้านเลขที่ 444 ส่งผลยังไง'));
+  assert.ok(questionSuggestsComputation("เบอร์โทรของฉันดีไหม")); // มีคำ "เบอร์" แม้ไม่มีเลข
+  assert.ok(questionSuggestsComputation("บ้านเลขที่ของฉันเข้ากับธาตุไหม"));
+  assert.ok(questionSuggestsComputation("เลข ๙๙ ดีไหม")); // เลขไทย
+  // คำถามที่ตอบจาก context ได้ — ไม่ต้องจ่ายค่า planner เพิ่ม
+  assert.equal(questionSuggestsComputation("ธาตุที่ฉันขาดควรเสริมยังไงดี"), false);
+  assert.equal(questionSuggestsComputation("การ์ดใบนี้บอกนิสัยอะไรของฉัน"), false);
+});

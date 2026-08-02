@@ -146,3 +146,28 @@ test("narrator input มีคำถาม + ผลจริง แต่คำ�
 
 
 
+
+test("แผนผิดเฉพาะกราฟ (series ปนหลาย fn) → ตัดกราฟทิ้ง เก็บผลคำนวณ (2 ส.ค. 2569)", () => {
+  const raw = JSON.stringify({
+    calls: [
+      { fn: "artifactElement", args: { num: 6266 }, label: "ทะเบียนรถ" },
+      { fn: "lookup3digit", args: { num: 444 }, label: "บ้านเลขที่" },
+    ],
+    chart: { type: "table", label: "เทียบ", series: "artifactElement" }, // ผิด: มี lookup3digit ปน
+  });
+  const r = interpretPlannerOutput(raw);
+  assert.equal(r.status, "answered", "ต้องไม่ล้มทั้งแผนเพราะกราฟผิดอย่างเดียว");
+  if (r.status === "answered") {
+    assert.equal(r.execution.chart, undefined, "กราฟผิดกฎต้องถูกทิ้ง ไม่ถูกวาด");
+    assert.equal(r.execution.results.length, 2, "ผลคำนวณทั้งสองรายการต้องอยู่ครบ");
+  }
+});
+
+test("แผนที่ calls ผิดเอง (ไม่ใช่แค่กราฟ) → ยัง unclear เหมือนเดิม (กฎไม่หย่อน)", () => {
+  const raw = JSON.stringify({
+    calls: [{ fn: "eval", args: { num: 1 } }],
+    chart: { type: "table", label: "x", series: "eval" },
+  });
+  const r = interpretPlannerOutput(raw);
+  assert.equal(r.status, "unclear");
+});

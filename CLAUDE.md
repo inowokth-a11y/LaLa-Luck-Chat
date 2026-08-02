@@ -1382,6 +1382,28 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 `public/mascot.png` · ต้นฉบับ `docs/design-assets/lala-lucky-chat-mascot.png` · ตรวจ browser แล้ว
 (บังคับปิดตาเช็คพิกัด + getComputedStyle ยืนยันอนิเมชันวิ่ง)
 
+**✅ hybrid chat: โหมด context เรียก engine คำนวณจริงได้แล้ว (2 ส.ค. 2569 — feedback ผู้ใช้):**
+- **ปัญหาจริงที่เจอ:** ถามเลขทะเบียน/บ้านเลขที่บนหน้าโปรไฟล์ → AI ตอบ "คำนวณให้ไม่ได้" ทั้งที่
+  engine มีครบ — เพราะโหมด context ตอบได้เฉพาะผลบนหน้า ส่วนโหมด plan (เรียก engine ได้)
+  ใช้เฉพาะตอนไม่มี context
+- **เส้น hybrid ใน /api/chat โหมด context:** `questionSuggestsComputation()` (pure ฿0 —
+  มีเลขอารบิก/ไทย หรือคำ ทะเบียน/เบอร์/บ้านเลขที่/หมายเลข) → ลอง `runPlanChat` ก่อน
+  (planner+engine+narrator) → answered = ตอบพร้อม results/chart/caveats · needs_input/unclear
+  = **ตกกลับเส้น context เดิม** (ไม่หักซ้ำ ไม่เสียของเดิม) · ต้นทุนเพิ่ม ~฿0.05 เฉพาะคำถามเข้าเกณฑ์
+- `runPlanChat(..., pageContext?)` — narrator เห็น "ผลบนหน้าจอ" ด้วย จึงเชื่อมเลขที่คำนวณใหม่
+  กับพื้นดวง/การ์ดบนหน้าได้ (planner ไม่เห็น — หน้าที่มันแค่แปลงคำถามเป็นแผน)
+- **แผนผิดเฉพาะกราฟ → ตัดกราฟทิ้ง เก็บผลคำนวณ** (`interpretPlannerOutput` revalidate โดยไม่มี
+  chart) — ไม่ใช่การหย่อนกฎ §16: กราฟผิดกฎยังไม่มีวันถูกวาด แค่ไม่ล้มทั้งแผน (เจอจริง: planner
+  ใส่ chart คร่อม artifactElement+myElementSeed → เดิมทั้งแผนตาย) + เข้ม prompt ข้อ 5 เพิ่ม
+- 🔴 **บั๊กเงียบที่เจอพ่วง: gpt-5.5 คืนคำตอบว่าง** — reasoning token กิน max_completion_tokens
+  (700) หมดจนเนื้อความ length 0 แบบไม่ error · แก้ 2 ชั้น: (1) `lib/ai/openai.ts` ข้อความว่าง
+  = **throw** ให้ fallback chain ไปตัวถัดไป (เดิมส่งความว่างถึงผู้ใช้เงียบๆ) (2) narrator
+  maxTokens 700→1100 (เผื่อ reasoning + pageContext)
+- **verify ยิง AI จริง:** คำถามจริงของผู้ใช้ (จง 6266 + บ้าน 444 บนหน้าโปรไฟล์การ์ด 88) →
+  planner เรียก artifactElement+myElementSeed → ทะเบียน=ดิน บ้าน=ไม้ → narrator เชื่อมกับ
+  ไฟเด่น/ขาดน้ำ/การ์ดไมดาสบนหน้า + caveat "ไม่มีวันเป็นทอง" ครบ (16 วิ) · เทสต์ 385 ผ่าน
+  (เพิ่ม heuristic 1 + chart-drop 2)
+
 **✅ แชทลอยทั้งระบบ (AssistiveTouch) + nudge ชวนถามต่อ (2 ส.ค. 2569 — ผู้ใช้ยืนยันสเปก):**
 - **`LalaFloat` (root layout) แทนกล่องแชทประจำหน้า** — ลอยทับทุกหน้า ยกเว้น /dream /chat
   (แชทเต็มหน้า — ห้ามซ้อน §13) + auth/consent/admin/privacy/card · `FunctionChat` เหลือหน้าที่เดียว:

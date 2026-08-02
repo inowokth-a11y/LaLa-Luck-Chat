@@ -89,7 +89,7 @@ ${describeAllowlistForPrompt()}
    (args ของ myElementSeed = {} เสมอ ห้ามใส่วันเกิด)
    ใช้ missingInputs เฉพาะข้อมูลที่ "ไม่ใช่วันเกิด" และไม่มีฟังก์ชันรองรับจริงๆ เท่านั้น
 5. ใส่ "chart" เมื่อผู้ใช้ถามเชิงเปรียบเทียบหลายรายการเท่านั้น และทุก call ต้องเป็น fn เดียวกับ series
-   — เทียบข้ามฟังก์ชันในกราฟเดียวไม่ได้
+   — เทียบข้ามฟังก์ชันในกราฟเดียวไม่ได้ · **ถ้าแผนมีหลาย fn ต่างชนิด ห้ามใส่ chart เลย (ละทิ้งไป)**
 6. จำนวน calls ไม่เกิน ${MAX_CALLS_PER_PLAN}
 7. ถ้าคำถามไม่เกี่ยวกับสิ่งที่ฟังก์ชันเหล่านี้ทำได้เลย → คืน {"calls": []} (ระบบจะจัดการเอง)`;
 }
@@ -183,9 +183,15 @@ export function interpretPlannerOutput(
     return { status: "unclear", errors: ["planner ไม่ได้คืน JSON ที่อ่านได้"] };
   }
 
-  const v = validateChatPlan(json);
+  let v = validateChatPlan(json);
   if (!v.ok && v.kind === "needs_input") {
     return { status: "needs_input", missingInputs: v.missingInputs, message: missingInputPrompt(v.missingInputs) };
+  }
+  // แผนผิดเฉพาะส่วนกราฟ (เช่น series ปนหลาย fn) → ตัดกราฟทิ้งแล้ว validate ใหม่
+  // ไม่ใช่การหย่อนกฎ (§16 ห้าม): กราฟผิดกฎยังไม่มีวันถูกวาด — แค่ไม่ล้มผลคำนวณทั้งแผนไปด้วย
+  if (!v.ok && typeof json === "object" && json !== null && "chart" in json) {
+    const retry = validateChatPlan({ ...(json as Record<string, unknown>), chart: undefined });
+    if (retry.ok) v = retry;
   }
   if (!v.ok) {
     return { status: "unclear", errors: v.errors };
@@ -263,7 +269,13 @@ export async function runPlanChat(
   question: string,
   profileCtx?: PlanProfileContext | null,
   /** บล็อกความจำแม่หมอ (เฟส 3) — แนบให้ narrator เท่านั้น (planner ไม่ต้องใช้) */
-  memoryBlock?: string | null
+  memoryBlock?: string | null,
+  /**
+   * ผลที่แสดงบนหน้าจอผู้ใช้ (JSON string) — เส้น hybrid จากโหมด context (2 ส.ค. 2569):
+   * narrator เห็นทั้งผลคำนวณใหม่จาก engine และผลบนหน้า จึงเชื่อมโยงสองอย่างได้
+   * (planner ไม่เห็น — หน้าที่มันคือแปลงคำถามเป็นแผน ไม่เกี่ยวกับผลบนจอ)
+   */
+  pageContext?: string | null
 ): Promise<PlanChatResult> {
   // ---- จังหวะ 1: planner ----
   const planner = await generate({
@@ -286,13 +298,18 @@ export async function runPlanChat(
   }
 
   // ---- จังหวะ 3: narrator (จังหวะ 2 = execute เกิดใน interpret แล้ว) ----
+  const pageBlock = pageContext
+    ? `<ผลบนหน้าจอของผู้ใช้>\n${pageContext}\n</ผลบนหน้าจอของผู้ใช้>\n(เชื่อมโยงผลคำนวณใหม่กับผลบนหน้าจอได้ แต่ใช้ได้เฉพาะข้อมูลจากสองแหล่งนี้ ห้ามแต่งเพิ่ม)\n\n`
+    : "";
   const narrator = await generate({
     role: "ai2", // gpt-5.5 — สีสันดีกว่า
     channel: "web",
     logicId: 0,
     system: buildNarratorSystem(),
-    input: (memoryBlock ? `${memoryBlock}\n\n` : "") + buildNarratorInput(question, interp.execution),
-    maxTokens: 700,
+    input: (memoryBlock ? `${memoryBlock}\n\n` : "") + pageBlock + buildNarratorInput(question, interp.execution),
+    // 1100 ไม่ใช่ 700 — gpt-5.5 ใช้ reasoning token ร่วมโควตานี้ input ยาว (hybrid มี pageContext)
+    // เคยกินจนเนื้อความว่าง (2 ส.ค. 2569) · เผื่อแล้ว ตัวว่างยัง throw ที่ provider ให้ fallback ต่อ
+    maxTokens: 1100,
   });
 
   return {

@@ -45,8 +45,15 @@ export const openaiProvider: AiProvider = {
       choices?: Array<{ message?: { content?: string } }>;
       usage?: { prompt_tokens?: number; completion_tokens?: number };
     };
+    const text = (json.choices?.[0]?.message?.content ?? "").trim();
+    // gpt-5.5 เป็น reasoning model — reasoning token กิน max_completion_tokens ได้จนเนื้อความ
+    // ว่างเปล่า (เจอจริง 2 ส.ค. 2569: input ยาวขึ้นแล้ว reply.length = 0 แบบเงียบๆ)
+    // ข้อความว่าง = ล้มเหลว ต้อง throw ให้ fallback chain ไปตัวถัดไป ไม่ใช่ส่งความว่างถึงผู้ใช้
+    if (!text) {
+      throw new Error(`OpenAI คืนคำตอบว่าง (completion_tokens=${json.usage?.completion_tokens ?? "?"} — น่าจะโดน reasoning กินโควตา token หมด)`);
+    }
     return {
-      text: (json.choices?.[0]?.message?.content ?? "").trim(),
+      text,
       usage: {
         input_tokens: json.usage?.prompt_tokens ?? 0,
         output_tokens: json.usage?.completion_tokens ?? 0,
