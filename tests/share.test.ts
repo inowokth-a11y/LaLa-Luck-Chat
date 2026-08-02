@@ -2,7 +2,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { isValidCardId, cardShareUrl, shareLinks, shareText, SHARE_REWARD_QUESTIONS } from "../lib/share";
+import {
+  isValidCardId,
+  cardShareUrl,
+  shareLinks,
+  shareText,
+  SHARE_REWARD_QUESTIONS,
+  figureCategoryLabel,
+  thaiSoftWrap,
+} from "../lib/share";
 
 test("id การ์ดที่แชร์ได้ = เลข 2 หลักเท่านั้น (กัน path แปลกเข้าเพจสาธารณะ)", () => {
   assert.equal(isValidCardId("00"), true);
@@ -31,4 +39,20 @@ test("ข้อความชวนแชร์มีชื่อการ์�
 
 test("รางวัลแชร์ = 2 (ตรงกับ claim_share_reward ใน migration 031)", () => {
   assert.equal(SHARE_REWARD_QUESTIONS, 2);
+});
+
+test("figureCategoryLabel — role_title/fictional ต้องบอกชัดว่าไม่ใช่บุคคลจริงคนเดียว (§3.7)", () => {
+  assert.ok(figureCategoryLabel("role_title")?.includes("ไม่ใช่บุคคลเดียว"));
+  assert.ok(figureCategoryLabel("fictional")?.includes("ไม่ใช่บุคคลจริง"));
+  assert.ok(figureCategoryLabel("historical"));
+  assert.equal(figureCategoryLabel("อื่นๆ"), null); // ค่านอก enum = ไม่แสดงป้าย ไม่เดา
+  assert.equal(figureCategoryLabel(null), null);
+});
+
+test("thaiSoftWrap — แทรก ZWSP ระหว่างคำไทย (ให้ satori ห่อบรรทัดได้) โดยเนื้อความไม่เปลี่ยน", () => {
+  const s = "การสร้างอาณาจักรธุรกิจที่ต้องระวังความโลภ";
+  const w = thaiSoftWrap(s);
+  assert.ok(w.includes("​"), "ต้องมี ZWSP อย่างน้อยหนึ่งจุด");
+  assert.equal(w.replaceAll("​", ""), s, "ลบ ZWSP ออกต้องได้ข้อความเดิมเป๊ะ");
+  assert.equal(thaiSoftWrap(""), "");
 });

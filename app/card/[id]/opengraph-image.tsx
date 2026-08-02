@@ -6,7 +6,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { isValidCardId } from "@/lib/share";
+import { isValidCardId, thaiSoftWrap } from "@/lib/share";
 import { cardImageUrl } from "@/lib/cards";
 
 export const runtime = "nodejs";
@@ -21,10 +21,15 @@ async function fetchCard(id: string) {
   );
   const { data } = await supabase
     .from("master_energy_cards")
-    .select("energy_id, energy_name, core_essence")
+    .select("energy_id, energy_name, core_essence, archetype_figure")
     .eq("energy_id", id)
     .maybeSingle();
-  return data as { energy_id: string; energy_name: string | null; core_essence: string | null } | null;
+  return data as {
+    energy_id: string;
+    energy_name: string | null;
+    core_essence: string | null;
+    archetype_figure: string | null;
+  } | null;
 }
 
 export default async function OgImage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,8 +48,12 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
       : Promise.resolve(null),
   ]);
 
-  const name = card?.energy_name ?? "การ์ดพลังงาน";
-  const essence = (card?.core_essence ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ").slice(0, 90);
+  // 🔴 thaiSoftWrap ทุกข้อความไทย — satori ตัดบรรทัดตามช่องว่างเท่านั้น ข้อความไทยยาว
+  //    (ไม่มีช่องว่าง) จะทะลุขอบ/มุดใต้รูปการ์ด (บั๊กที่เจอจริงตอนแชร์ขึ้น Facebook)
+  const name = thaiSoftWrap(card?.energy_name ?? "การ์ดพลังงาน");
+  const essence = thaiSoftWrap((card?.core_essence ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ").slice(0, 90));
+  // ชื่อบุคคลไม่ soft-wrap — สั้นพอไม่ล้น และ ZWSP จะทำให้วงเล็บปิดตกบรรทัดเดี่ยว
+  const figure = card?.archetype_figure ?? null;
 
   return new ImageResponse(
     (
@@ -68,11 +77,17 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
             gap: 48,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-            <div style={{ display: "flex", fontSize: 30, color: "#6b6255" }}>{`การ์ดพลังงานหมายเลข ${card?.energy_id ?? "??"}`}</div>
-            <div style={{ display: "flex", fontSize: 64, color: "#96700a", fontWeight: 700, marginTop: 10, lineHeight: 1.2 }}>{name}</div>
-            <div style={{ display: "flex", fontSize: 30, color: "#2b2620", marginTop: 22, lineHeight: 1.5 }}>{essence}</div>
-            <div style={{ fontSize: 28, color: "#b8860b", marginTop: 34, display: "flex", alignItems: "center" }}>
+          {/* minWidth:0 บังคับคอลัมน์ข้อความหดในกรอบ flex — ไม่ดันทับรูปการ์ดฝั่งขวา */}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", fontSize: 28, color: "#6b6255" }}>{`การ์ดพลังงานหมายเลข ${card?.energy_id ?? "??"}`}</div>
+            <div style={{ display: "flex", fontSize: 56, color: "#96700a", fontWeight: 700, marginTop: 8, lineHeight: 1.2 }}>{name}</div>
+            {figure && (
+              <div style={{ display: "flex", fontSize: 30, color: "#a8541e", marginTop: 16, lineHeight: 1.4 }}>
+                {`✨ คุณมีต้นแบบเดียวกับ ${figure}`}
+              </div>
+            )}
+            <div style={{ display: "flex", fontSize: 27, color: "#2b2620", marginTop: 16, lineHeight: 1.5 }}>{essence}</div>
+            <div style={{ fontSize: 26, color: "#b8860b", marginTop: 26, display: "flex", alignItems: "center" }}>
               🐾 LaLa Lucky Chat — ดูดวงที่ &ldquo;คำนวณจริง&rdquo;
             </div>
           </div>

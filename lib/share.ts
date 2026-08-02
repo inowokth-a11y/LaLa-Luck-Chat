@@ -34,3 +34,36 @@ export function shareText(cardName: string | null): string {
     ? `การ์ดพลังงานประจำตัวของฉันคือ "${cardName}" — ค้นหาการ์ดของคุณได้ที่ LaLa Lucky Chat 🐾`
     : "ค้นหาการ์ดพลังงานประจำตัวของคุณได้ที่ LaLa Lucky Chat 🐾";
 }
+
+/** หมวดบุคคลต้นแบบ (figure_category จาก migration 016 — ดู §3.7) */
+export type FigureCategory = "historical" | "religious" | "mythological" | "legendary" | "fictional" | "role_title";
+
+/**
+ * ป้ายหมวดที่แสดงให้ผู้ใช้ — §3.7 บังคับ: `role_title` ต้องบอกชัดว่าไม่ใช่บุคคลเดียว
+ * และ `fictional` ต้องบอกว่าเป็นตัวละคร ไม่ใช่คนจริง (ห้ามพูดเหมือนเป็นบุคคลจริง)
+ */
+export const FIGURE_CATEGORY_LABEL: Record<FigureCategory, string> = {
+  historical: "บุคคลจริงในประวัติศาสตร์",
+  religious: "บุคคลสำคัญทางศาสนา",
+  mythological: "จากเทพปกรณัม",
+  legendary: "บุคคลกึ่งตำนาน",
+  fictional: "ตัวละครในวรรณกรรม (ไม่ใช่บุคคลจริง)",
+  role_title: "ตำแหน่งในประวัติศาสตร์ (ไม่ใช่บุคคลเดียว)",
+};
+
+export function figureCategoryLabel(cat: string | null | undefined): string | null {
+  return cat && cat in FIGURE_CATEGORY_LABEL ? FIGURE_CATEGORY_LABEL[cat as FigureCategory] : null;
+}
+
+/**
+ * แทรก zero-width space ตามขอบคำไทย — renderer ที่ตัดบรรทัดตามช่องว่าง (satori/next-og)
+ * ห่อข้อความไทยไม่ได้เพราะไทยไม่มีช่องว่างระหว่างคำ → ข้อความทะลุขอบภาพ (บั๊กที่เจอจริงบน OG)
+ */
+export function thaiSoftWrap(s: string): string {
+  try {
+    const seg = new Intl.Segmenter("th", { granularity: "word" });
+    return [...seg.segment(s)].map((x) => x.segment).join("\u200b");
+  } catch {
+    return s; // runtime ไม่มี ICU — แสดงแบบเดิมดีกว่าพัง
+  }
+}

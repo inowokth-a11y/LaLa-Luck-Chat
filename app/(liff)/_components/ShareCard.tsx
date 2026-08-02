@@ -127,18 +127,17 @@ export default function ShareCard({ cardId, cardName }: Props) {
       <p style={{ margin: "0.3rem 0 0.7rem", fontSize: "0.78rem", color: "var(--ink-dim, #6b6255)" }}>
         หน้าแชร์มีแค่ข้อมูลการ์ด (เลข/ชื่อ/ความหมาย) — ไม่มีวันเกิดหรือข้อมูลส่วนตัวของคุณ
       </p>
+      {/* โชว์ปุ่มแพลตฟอร์มเสมอ — เดิมซ่อนเมื่อมี navigator.share แล้วผู้ใช้หาปุ่ม Facebook
+          ไม่เจอ (feedback จริง 2 ส.ค. 2569) · native share เป็นปุ่มเสริมเมื่อเครื่องรองรับ */}
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-        {hasNative ? (
+        {hasNative && (
           <button onClick={nativeShare} style={{ ...btn, background: "var(--gold)", color: "#fffdf8", border: "1px solid var(--gold)" }}>
             📤 แชร์การ์ด
           </button>
-        ) : (
-          <>
-            <button onClick={() => openAndClaim(links.line)} style={btn}>LINE</button>
-            <button onClick={() => openAndClaim(links.facebook)} style={btn}>Facebook</button>
-            <button onClick={() => openAndClaim(links.x)} style={btn}>X</button>
-          </>
         )}
+        <button onClick={() => openAndClaim(links.facebook)} style={btn}>Facebook</button>
+        <button onClick={() => openAndClaim(links.line)} style={btn}>LINE</button>
+        <button onClick={() => openAndClaim(links.x)} style={btn}>X</button>
         <button onClick={copyLink} style={btn}>🔗 คัดลอกลิงก์</button>
       </div>
       {message && <p style={{ margin: "0.6rem 0 0", fontSize: "0.85rem", color: "var(--good, #2f6b3f)" }}>{message}</p>}

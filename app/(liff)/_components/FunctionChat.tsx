@@ -2,15 +2,20 @@
 
 // กล่องแชท "อาจารย์ลาลา ลักกี้" ประจำฟังก์ชัน — ใช้ร่วมกันทุกหน้า LIFF
 //
+// รูปแบบ (ผู้ใช้ตัดสิน 2 ส.ค. 2569): **แชทลอยแบบ Messenger** — ปุ่มหัวแมวมุมขวาล่าง
+// เปิดเป็นแผงโค้งมนซ้อนบนหน้า (ไม่ฝังท้ายหน้าแบบเดิมที่ผู้ใช้เลื่อนผ่านแล้วลืม)
+// ใช้เฉพาะหน้า "ฟังก์ชัน" (profile/fortune/compat/fengshui/oracle) — หน้า /dream และ /chat
+// เป็นแชทเต็มหน้าอยู่แล้ว ห้ามใส่ซ้อน (กติกาเดิม §13)
+//
 // โมเดลถังคำถามรวม (1 ส.ค. 2569 — lib/chat/questions.ts):
 //  - ต้องล็อกอิน · คำถามฟรี 1 ข้อ (+โบนัสจากรางวัล) ใช้ร่วมกันทุกหน้า · หมดแล้วหักเครดิต 1/คำถาม
 //  - เครดิตหมดด้วย → ปุ่ม "เติมเครดิต" พาไป /account
 //  - Safety Gate ทำฝั่ง server — **ห้ามพ่วงปุ่ม/การตลาดตอนแสดงข้อความวิกฤต**
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSyncStatus } from "@/app/_components/AuthStatus";
 import styles from "./FunctionChat.module.css";
-import { MascotAvatar, MascotPerch } from "@/app/_components/MascotLogo";
+import { MascotAvatar } from "@/app/_components/MascotLogo";
 
 interface Msg {
   role: "user" | "ai";
@@ -23,11 +28,13 @@ interface Props {
   context: unknown;
   /** ข้อความชวนถาม ปรับตามแต่ละฟังก์ชัน */
   placeholder?: string;
-  /** ข้อความชวนจากแม่หมอตอนกล่องเปิด (ใช้ตอน onboarding พาเข้าการ์ดใบแรก) */
+  /** ข้อความชวนจากแม่หมอ — แสดงเป็น bubble ข้างปุ่มลอยก่อนเปิด และเป็นข้อความแรกในแผง */
   invite?: string;
 }
 
 export default function FunctionChat({ logicId, context, placeholder, invite }: Props) {
+  const [open, setOpen] = useState(false);
+  const [everOpened, setEverOpened] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -39,6 +46,7 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
   const [shareTeaser, setShareTeaser] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
   const syncStatus = useSyncStatus();
 
   // โหลดสถานะถัง/เครดิตตอนเปิดกล่อง — ให้ผู้ใช้เห็นทรัพยากรก่อนถาม
@@ -60,7 +68,18 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
     };
   }, []);
 
+  // เลื่อนเธรดลงล่างสุดเมื่อมีข้อความใหม่ (พฤติกรรม messenger มาตรฐาน)
+  useEffect(() => {
+    const el = threadRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [msgs, busy, notice, shareTeaser, error]);
+
   if (context === null || context === undefined) return null;
+
+  function show() {
+    setOpen(true);
+    setEverOpened(true);
+  }
 
   async function ask(e: React.FormEvent) {
     e.preventDefault();
@@ -110,14 +129,6 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
     }
   }
 
-  if (crisis) {
-    return (
-      <section className={styles.crisis}>
-        <p>{crisis}</p>
-      </section>
-    );
-  }
-
   const quotaLabel = needsLogin
     ? ""
     : questions === null
@@ -128,68 +139,95 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
     ? `ใช้เครดิต (มี ${credits})`
     : "คำถามฟรีหมด";
 
+  // ---- ปุ่มลอย (ปิดอยู่) ----
+  if (!open) {
+    return (
+      <div className={styles.launcherWrap}>
+        {invite && !everOpened && (
+          <button type="button" className={styles.teaser} onClick={show}>
+            🐾 {invite}
+          </button>
+        )}
+        <button type="button" className={styles.launcher} onClick={show} aria-label="เปิดแชทถามอาจารย์ลาลา ลักกี้">
+          <MascotAvatar size={40} />
+        </button>
+      </div>
+    );
+  }
+
+  // ---- แผงแชท (เปิดอยู่) ----
   return (
-    <section className={styles.box}>
+    <section className={styles.panel} aria-label="แชทกับอาจารย์ลาลา ลักกี้">
       <div className={styles.head}>
-        <h3 className={styles.title}>
-          <MascotAvatar size={22} /> ถามอาจารย์ลาลา ลักกี้
-        </h3>
-        {quotaLabel && <span className={styles.quota}>{quotaLabel}</span>}
+        <MascotAvatar size={26} />
+        <div className={styles.headText}>
+          <span className={styles.title}>อาจารย์ลาลา ลักกี้</span>
+          {quotaLabel && <span className={styles.quota}>{quotaLabel}</span>}
+        </div>
+        <button type="button" className={styles.close} onClick={() => setOpen(false)} aria-label="ย่อแชท">
+          ─
+        </button>
       </div>
 
-      {invite && msgs.length === 0 && !needsLogin && (
-        <p className={styles.notice}>🐾 {invite}</p>
-      )}
-
-      {msgs.length > 0 && (
-        <div className={styles.thread}>
-          {msgs.map((m, i) => (
-            <div key={i} className={m.role === "user" ? styles.user : styles.ai}>
-              {m.text}
-            </div>
-          ))}
-          {busy && <div className={styles.ai}>กำลังคิด…</div>}
-        </div>
-      )}
-
-      {notice && <p className={styles.notice}>{notice}</p>}
-      {shareTeaser && (
-        <p className={styles.notice}>
-          💡 คำถามฟรีหมดแล้ว — <a href="/profile" style={{ color: "var(--gold)" }}>แชร์การ์ดของคุณ</a> รับคำถามฟรีเพิ่ม +2 (ครั้งแรกครั้งเดียว)
-        </p>
-      )}
-      {error && <p className={styles.error}>⚠️ {error}</p>}
-
-      {needsLogin ? (
-        <a href={`/login?next=${typeof window !== "undefined" ? window.location.pathname : "/"}`} className={styles.send} style={{ display: "inline-block", textDecoration: "none", textAlign: "center" }}>
-          เข้าสู่ระบบเพื่อรับคำถามฟรี →
-        </a>
-      ) : topup ? (
-        <a href="/account" className={styles.send} style={{ display: "inline-block", textDecoration: "none", textAlign: "center" }}>
-          ⭐ เติมเครดิตเพื่อถามต่อ →
-        </a>
+      {crisis ? (
+        // วิกฤต: ข้อความช่วยเหลือเดี่ยวๆ — ไม่มี input ไม่มีปุ่มการตลาด (กติกา §13)
+        <div className={styles.crisis}>{crisis}</div>
       ) : (
-        <form onSubmit={ask} className={styles.form} style={{ position: "relative" }}>
-          <MascotPerch size={56} />
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={placeholder ?? "ถามเกี่ยวกับผลนี้ได้เลย…"}
-            maxLength={500}
-            disabled={busy}
-            className={styles.input}
-          />
-          <button type="submit" disabled={busy || !input.trim()} className={styles.send}>
-            {busy ? "…" : "ถาม"}
-          </button>
-        </form>
-      )}
+        <>
+          <div className={styles.thread} ref={threadRef}>
+            {invite && !needsLogin && <div className={styles.ai}>🐾 {invite}</div>}
+            {!invite && msgs.length === 0 && !needsLogin && (
+              <div className={styles.ai}>ถามเรื่องผลที่คำนวณได้บนหน้านี้ได้เลยค่ะ ลาลา~</div>
+            )}
+            {msgs.map((m, i) => (
+              <div key={i} className={m.role === "user" ? styles.user : styles.ai}>
+                {m.text}
+              </div>
+            ))}
+            {busy && <div className={styles.ai}>กำลังคิด…</div>}
+            {notice && <p className={styles.notice}>{notice}</p>}
+            {shareTeaser && (
+              <p className={styles.notice}>
+                💡 คำถามฟรีหมดแล้ว — <a href="/profile" style={{ color: "var(--gold)" }}>แชร์การ์ดของคุณ</a> รับคำถามฟรีเพิ่ม +2 (ครั้งแรกครั้งเดียว)
+              </p>
+            )}
+            {error && <p className={styles.error}>⚠️ {error}</p>}
+          </div>
 
-      <p className={styles.hint}>
-        คำถามฟรีใช้ร่วมกันทุกหน้า · หมดแล้วถามต่อได้ด้วยเครดิต (1 เครดิต/คำถาม) ·
-        AI ตอบจากผลที่คำนวณได้เท่านั้น ไม่ใช่คำทำนายเพิ่มเติม
-      </p>
+          {needsLogin ? (
+            <a
+              href={`/login?next=${typeof window !== "undefined" ? window.location.pathname : "/"}`}
+              className={styles.cta}
+            >
+              เข้าสู่ระบบเพื่อรับคำถามฟรี →
+            </a>
+          ) : topup ? (
+            <a href="/account" className={styles.cta}>
+              ⭐ เติมเครดิตเพื่อถามต่อ →
+            </a>
+          ) : (
+            <form onSubmit={ask} className={styles.form}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={placeholder ?? "ถามเกี่ยวกับผลนี้ได้เลย…"}
+                maxLength={500}
+                disabled={busy}
+                className={styles.input}
+              />
+              <button type="submit" disabled={busy || !input.trim()} className={styles.send} aria-label="ส่งคำถาม">
+                {busy ? "…" : "➤"}
+              </button>
+            </form>
+          )}
+
+          <p className={styles.hint}>
+            คำถามฟรีใช้ร่วมกันทุกหน้า · หมดแล้วถามต่อด้วยเครดิต (1 เครดิต/คำถาม) ·
+            AI ตอบจากผลที่คำนวณได้เท่านั้น
+          </p>
+        </>
+      )}
     </section>
   );
 }

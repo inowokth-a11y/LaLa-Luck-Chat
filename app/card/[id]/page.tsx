@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { isValidCardId } from "@/lib/share";
+import { isValidCardId, figureCategoryLabel } from "@/lib/share";
 import { cardImageUrl } from "@/lib/cards";
 import MascotLogo from "@/app/_components/MascotLogo";
 
@@ -17,6 +17,8 @@ interface CardRow {
   energy_name: string | null;
   core_essence: string | null;
   archetype_figure: string | null;
+  figure_bio: string | null;
+  figure_category: string | null;
 }
 
 // อ่านด้วย anon key — ตารางเปิดสาธารณะอยู่แล้ว ไม่ต้องใช้ service role
@@ -27,7 +29,7 @@ async function fetchCard(id: string): Promise<CardRow | null> {
   );
   const { data } = await supabase
     .from("master_energy_cards")
-    .select("energy_id, energy_name, core_essence, archetype_figure")
+    .select("energy_id, energy_name, core_essence, archetype_figure, figure_bio, figure_category")
     .eq("energy_id", id)
     .maybeSingle();
   return (data as CardRow) ?? null;
@@ -39,7 +41,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const card = await fetchCard(id);
   const name = card?.energy_name ?? `การ์ดพลังงาน ${id}`;
   const title = `การ์ดพลังงาน ${id} — ${name} | LaLa Lucky Chat`;
-  const description = card?.core_essence ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ — คำนวณจริงจากวันเกิด";
+  // ชูบุคคลต้นแบบใน description — จุดดึงความสนใจตอนลิงก์ถูกแชร์ (ข้อมูลการ์ดสาธารณะล้วน)
+  const description = card?.archetype_figure
+    ? `คุณมีต้นแบบเดียวกับ ${card.archetype_figure} — ${card.core_essence ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ"}`
+    : card?.core_essence ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ — คำนวณจริงจากวันเกิด";
   return {
     title,
     description,
@@ -82,14 +87,31 @@ export default async function CardSharePage({ params }: { params: Promise<{ id: 
           <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.6rem", color: "var(--gold)", margin: "0.3rem 0 0" }}>
             {card.energy_name ?? "การ์ดพลังงาน"}
           </h1>
-          {card.archetype_figure && (
-            <p style={{ color: "var(--ink-dim)", fontSize: "0.88rem", marginTop: "0.25rem" }}>ต้นแบบ: {card.archetype_figure}</p>
-          )}
           {card.core_essence && (
             <p style={{ lineHeight: 1.7, fontSize: "0.95rem", marginTop: "0.7rem" }}>{card.core_essence}</p>
           )}
         </div>
       </div>
+
+      {/* บุคคลต้นแบบ + เรื่องราวสั้น (figure_bio จาก §3.7) — จุดดึงความสนใจของหน้าแชร์ */}
+      {card.archetype_figure && (
+        <div className="gold-frame" style={{ width: "100%", maxWidth: 420 }}>
+          <div className="gold-frame-inner" style={{ padding: "1.2rem 1.2rem 1.1rem", textAlign: "left" }}>
+            <p style={{ color: "var(--ink-dim)", fontSize: "0.8rem", margin: 0 }}>✨ ผู้ถือการ์ดใบนี้มีต้นแบบเดียวกับ</p>
+            <p style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.15rem", color: "var(--gold)", margin: "0.25rem 0 0", fontWeight: 700 }}>
+              {card.archetype_figure}
+            </p>
+            {figureCategoryLabel(card.figure_category) && (
+              <p style={{ display: "inline-block", fontSize: "0.72rem", color: "var(--ink-dim)", border: "1px solid var(--gold-dim, #cbb98f)", borderRadius: 999, padding: "0.12rem 0.6rem", margin: "0.45rem 0 0" }}>
+                {figureCategoryLabel(card.figure_category)}
+              </p>
+            )}
+            {card.figure_bio && (
+              <p style={{ lineHeight: 1.75, fontSize: "0.9rem", marginTop: "0.6rem", marginBottom: 0 }}>{card.figure_bio}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       <MascotLogo size={110} />
       <p style={{ fontFamily: "var(--font-sans-thai)", color: "var(--ink-dim)", fontSize: "0.92rem", margin: 0 }}>
