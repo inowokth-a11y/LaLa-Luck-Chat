@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 8, "6 ตัวไม่ใช้วันเกิด + myElementSeed + myWuXingVsElement");
+  assert.equal(PLAN_FN_NAMES.length, 9, "6 ตัวไม่ใช้วันเกิด + myElementSeed/myWuXingVsElement/myNumberScore");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -297,16 +297,45 @@ test("ป้ายชื่อจาก AI ถูกตัดความยา�
 // caveat — ข้อจำกัดต้องไหลถึงผู้ใช้ ไม่ถูกกลืนหาย (§5)
 // ---------------------------------------------------------------------------
 
-test("🔴 สูตรที่ยังไม่ verify ต้องแนบ caveat มาด้วยเสมอ", () => {
+test("🔴 สูตรที่ยังไม่ verify ต้องแนบ caveat มาด้วยเสมอ — และเป็นภาษาผู้ใช้ ไม่ใช่ศัพท์ภายใน", () => {
   const ex = executePlan(mustPass({ calls: [{ fn: "analyzePhoneNumber", args: { phone: "0812345678" } }] }));
   assert.ok(ex.results[0].caveat, "เบอร์โทรเป็นสูตรออกแบบเอง ต้องมี caveat");
-  assert.ok(ex.caveats.length === 1 && ex.caveats[0].includes("verify"));
+  assert.ok(ex.caveats.length === 1 && ex.caveats[0].includes("แนวทางเสริม"));
+  // 🔴 caveat ไหลถึงหน้าจอผู้ใช้ตรงๆ (ผู้ใช้สั่ง 2 ส.ค. 2569) — ห้ามมีศัพท์ภายในทุกตัว
+  for (const fn of Object.values(PLAN_ALLOWLIST)) {
+    if (!fn.caveat) continue;
+    for (const jargon of ["Logic", "digit", "element", "fallback", "verify", "บั๊ก", "ตาราง"]) {
+      assert.ok(!fn.caveat.includes(jargon), `caveat มีศัพท์ภายใน "${jargon}": ${fn.caveat}`);
+    }
+  }
 });
 
-test('caveat ของ artifactElement ต้องเตือนว่าไม่มีวันได้ "ทอง"', () => {
+test("artifactElement ไม่มี caveat แล้ว (เกร็ด 'ไม่มีทอง' ไม่เกี่ยวคำทำนาย — ผู้ใช้ตัดสิน 2 ส.ค. 2569)", () => {
+  assert.equal(PLAN_ALLOWLIST.artifactElement.caveat, null);
+  // ข้อจำกัดจริงยังอยู่: ตาราง 4 ธาตุคืน Metal ไม่ได้ (พฤติกรรม engine ไม่เปลี่ยน แค่ไม่พูดกับผู้ใช้)
   const ex = executePlan(mustPass({ calls: [{ fn: "artifactElement", args: { num: 8899 } }] }));
-  assert.ok(ex.caveats[0].includes("ทอง"));
   assert.notEqual(ex.results[0].output, "Metal", "ตาราง 4 ธาตุคืน Metal ไม่ได้");
+});
+
+test("myNumberScore — เลข→ธาตุ→คะแนนเทียบธาตุเรา (คะแนนต่อรายการ + กราฟ bar ได้)", () => {
+  const profile = { dominant: "Fire", missing: ["Water"], seed: {} } as never;
+  const plan = mustPass({
+    calls: [
+      { fn: "myNumberScore", args: { num: 6266 } },
+      { fn: "myNumberScore", args: { num: 444 } },
+    ],
+    chart: { type: "bar", label: "เทียบเลขของฉัน", series: "myNumberScore" },
+  });
+  const ex = executePlan(plan, profile);
+  assert.equal(ex.results.length, 2);
+  for (const r of ex.results) {
+    const o = r.output as { final_score: number; ธาตุของเลข: string };
+    assert.ok(Number.isFinite(o.final_score), "ต้องมีคะแนนจริงจาก engine");
+    assert.ok(o.ธาตุของเลข, "ต้องบอกธาตุของเลข");
+  }
+  assert.ok(ex.chart && ex.chart.type === "bar", "ต้องได้กราฟแท่งคะแนนต่อเลข");
+  // ต้องใช้โปรไฟล์ — ไม่มีวันเกิด = ห้ามเดา
+  assert.equal(PLAN_ALLOWLIST.myNumberScore.needsProfile, true);
 });
 
 test("caveat ซ้ำถูกยุบเหลืออันเดียว และ engine ที่ verify แล้วไม่ต้องมี caveat", () => {

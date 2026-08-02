@@ -55,6 +55,7 @@ export const PLAN_FN_NAMES = [
   "wuXingScore",
   "myElementSeed",
   "myWuXingVsElement",
+  "myNumberScore",
 ] as const;
 
 export type PlanFnName = (typeof PLAN_FN_NAMES)[number];
@@ -174,8 +175,10 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     logic: 2,
     description: "เปิดความหมายเลข 3 หลัก (000-999)",
     argsHint: "{ num: 0-999 }",
+    // 🔴 caveat เขียนเป็น "ภาษาผู้ใช้" (ผู้ใช้สั่ง 2 ส.ค. 2569) — ห้ามมีศัพท์ภายใน
+    //    (Logic/ตาราง/fallback/verify) เพราะข้อความนี้ไหลถึงหน้าจอผู้ใช้ตรงๆ
     caveat:
-      "ตารางเลข 3 หลักมีแค่ 14 แถวตัวอย่าง เลขที่ไม่อยู่ในตารางจะวิเคราะห์รายหลักแทน (fallback ที่ออกแบบเอง ไม่ใช่สูตรต้นฉบับ)",
+      "เลขสามหลักบางชุดไม่มีคำทำนายตรงตัวในตำรา แม่หมอจึงประเมินจากพลังของเลขแต่ละหลักแทน",
     chartable: null,
     check: (a) => {
       const r = intInRange(a.num, 0, 999, "num", CROSS_CONTEXT_HINT);
@@ -190,7 +193,7 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     description: "วิเคราะห์เบอร์โทร (เลข 3 ตัวท้าย + ผลรวมทั้งเบอร์)",
     argsHint: '{ phone: "0812345678" }',
     caveat:
-      "สูตรวิเคราะห์เบอร์โทรเป็นแนวทางที่ออกแบบเสริมเอง ยังไม่ verify กับเอกสารต้นฉบับ KRUTH",
+      "การวิเคราะห์เบอร์โทรเป็นแนวทางเสริมของแม่หมอ ยังไม่ได้อ้างอิงตำราโดยตรง — ใช้ประกอบการพิจารณานะคะ",
     chartable: null,
     check: (a) => {
       const p = a.phone;
@@ -214,8 +217,10 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     logic: 2,
     description: "หาธาตุของวัตถุ/ทะเบียน/เลขใดๆ จากผลรวมเลข",
     argsHint: "{ num: 0-9999999999 }",
-    caveat:
-      'ตาราง digit→element ของ Logic 2 มีแค่ 4 ธาตุไทย (ไฟ/ดิน/ลม/น้ำ) — ผลลัพธ์จึง**ไม่มีวันเป็น "ทอง"** เป็นข้อจำกัดของตารางต้นฉบับ ไม่ใช่บั๊ก',
+    // เกร็ดเรื่อง "ตารางไม่มีธาตุทอง" ถูกถอดจาก caveat แล้ว (ผู้ใช้ตัดสิน 2 ส.ค. 2569) —
+    // เป็นข้อเท็จจริงเชิงโครงสร้างที่ไม่กระทบคำทำนาย ผู้ใช้ทั่วไปอ่านแล้วงงมากกว่าได้ประโยชน์
+    // (ข้อจำกัดนี้ยังบันทึกอยู่ใน CLAUDE.md §10 + เทสต์ engine เดิม — แค่ไม่พูดกับผู้ใช้)
+    caveat: null,
     chartable: null,
     check: (a) => {
       const r = intInRange(a.num, 0, 9_999_999_999, "num", "รองรับสูงสุด 10 หลัก");
@@ -311,6 +316,28 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     // ตัวเรา = dominant ของผู้ใช้ · missing ของผู้ใช้ → Productive Clash คิดจากของจริง
     run: (a, ctx) => wuXingScore(ctx!.dominant, a.objectElement as Element5, ctx!.missing),
     defaultLabel: (a) => `ฉัน ↔ ${THAI_LABEL_5[a.objectElement as Element5]}`,
+  },
+
+  myNumberScore: {
+    logic: 2,
+    description:
+      "คะแนนความเข้ากันของเลขหนึ่งชุด (ทะเบียนรถ/บ้านเลขที่/เลขใดๆ) กับธาตุประจำตัวผู้ใช้ — " +
+      "ใช้เมื่อถามว่าเลขนั้นส่งผลต่อ 'ตัวฉัน' อย่างไร · หลายเลขให้เรียกทีละเลขแล้วใส่ chart bar เทียบกัน",
+    argsHint: "{ num: 0-9999999999 }",
+    caveat: null, // ประกอบจาก artifactElement (ตาราง §5.4) + wuXingScore ที่ผ่าน golden test
+    chartable: { scale: [-2, 2], pick: (o) => (o as { final_score: number }).final_score },
+    needsProfile: true,
+    check: (a) => {
+      const r = intInRange(a.num, 0, 9_999_999_999, "num", "รองรับสูงสุด 10 หลัก");
+      return r.ok ? { ok: true, args: { num: a.num } } : r;
+    },
+    // เลข → ธาตุ (ตาราง §5.4) → คะแนนเทียบธาตุประจำตัว — engine ล้วนทั้งสาย ไม่มี AI คำนวณ
+    run: (a, ctx) => {
+      const el = toElement5(artifactElement(a.num as number))!; // ตารางให้ 4 ธาตุไทย — อยู่ใน Element5 เสมอ
+      const score = wuXingScore(ctx!.dominant, el, ctx!.missing);
+      return { เลข: a.num, ธาตุของเลข: THAI_LABEL_5[el], ...score };
+    },
+    defaultLabel: (a) => `เลข ${a.num}`,
   },
 };
 
