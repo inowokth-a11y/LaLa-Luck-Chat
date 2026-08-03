@@ -25,6 +25,10 @@ import {
   CONSULT_TOPIC_SUGGESTIONS,
   WORK_PATTERN_KEY,
   WORK_PATTERN_SUGGESTIONS,
+  TIMING_TASK_KEY,
+  TIMING_TASK_SUGGESTIONS,
+  DIRECTION_KEY,
+  DIRECTION_SUGGESTIONS,
 } from "@/lib/chat/plan";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsageBonus, bumpDbUsage } from "@/lib/chat/usage-db";
@@ -294,6 +298,10 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
         ? { suggest: WORK_PATTERN_SUGGESTIONS }
         : result.missingInputs.includes(CONSULT_TOPIC_KEY)
         ? { suggest: CONSULT_TOPIC_SUGGESTIONS }
+        : result.missingInputs.includes(TIMING_TASK_KEY)
+        ? { suggest: TIMING_TASK_SUGGESTIONS }
+        : result.missingInputs.includes(DIRECTION_KEY)
+        ? { suggest: DIRECTION_SUGGESTIONS }
         : {}),
     });
   }

@@ -1301,6 +1301,27 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ ชื่อ/ฤกษ์/ฮวงจุ้ย ตอบในแชทด้วย engine จริง + ปิดรูรั่ว AI เดาธาตุชื่อ (4 ส.ค. 2569 — นโยบายผู้ใช้:
+"Logic ที่มีแล้วให้ดึงมาตอบในแชท + ถามข้อมูลที่ขาด แทน redirect ยกเว้นสายพิธี/ภาพ"):**
+- 🔴 **รูรั่ว §16 ที่จับได้จากการทดสอบ:** ถาม "ชื่อ สมชาย เข้ากับดวงฉันไหม" → planner เดาธาตุชื่อเป็น
+  "ไฟ" ส่งเข้า myWuXingVsElement ทั้งที่ engine จริง (nameElement) บอก**ทอง** = เดาที่แต่งตัวเป็น
+  การคำนวณ → ปิดด้วย fn ใหม่ + กฎ planner "ห้ามกำหนด/เดาธาตุของสิ่งใดเอง — ธาตุต้องออกจาก fn"
+- **fn ใหม่ 3 ตัว (allowlist 16→19, เทสต์ล็อกจำนวน):**
+  · `myNameMatch {name}` — scoreCandidateName (Logic 19) + namePower · caveat "หลักกลุ่มอักษร
+    ยังรอการยืนยันจากเจ้าของสูตร" (ตาราง GROUP_TO_ELEMENT ยังไม่ verify §5) · เทสต์ล็อก สมชาย=Metal
+  · `myAuspiciousDays {task, days?}` — rankAuspiciousDays ฿0 (ไม่ใช้วันเกิด — anon ถามได้) ·
+    ถามกลับ timingTask พร้อมชิป 5 ประเภทงาน · **บั๊กพ่วงที่เจอ+แก้: วันที่ต้องเป็นวันไทย UTC+7**
+    (toISOString ให้วัน UTC → "พรุ่งนี้" เคยชี้ผิดวัน — มีเทสต์ล็อก + ฟิลด์ วันนี้ของไทย ให้ narrator)
+  · `myFengshuiCheck {direction, purpose?, color?, shape?}` — analyzeFengShui เต็ม · ถามกลับ
+    direction พร้อมชิปทิศ
+- **redirects.ts ถอด timing+fengshui ออก** (ตอบในแชทแล้ว) — dream/oracle ยัง redirect ตามข้อยกเว้น
+  ผู้ใช้ (พิธี/แชทเต็มหน้า) · narrator กฎ 11: ปิดท้ายแนะนำเมนูเต็ม (/timing /fengshui) 1 ประโยค
+- missingInputPrompt: key แปลกที่ planner ตั้งเอง → ประโยคไทย "รายละเอียดที่เกี่ยวข้อง..." ไม่โชว์
+  key อังกฤษดิบ (เคยโชว์ "newSurname_candidates" ใส่ผู้ใช้)
+- **verify AI จริง 3 สาย:** ชื่อสมชาย → ทอง พิฆาต -2 + เลขศาสตร์ 22 (ตรง engine) · ออกรถกี่โมง →
+  ยามอุบากอง 08:25-10:48 + ธงชัย/โลกาวินาศ ตรง engine · โต๊ะทิศตะวันตก → ไฟพิฆาตทอง + แก้เคล็ด
+  ธาตุดิน + ทิศทางเลือก · เทสต์ 432
+
 **✅ คะแนนเลข 5 ด้าน 0-10 — แก้คำตอบสายเลขสั้นเกินไป (3-4 ส.ค. 2569 ผู้ใช้สั่งพร้อมสเปกละเอียด):**
 - **`lib/engine/number-aspects.ts`** (5 เทสต์): คะแนน การเงิน/ความรัก/สุขภาพกายใจ/โชค/อำนาจบารมี
   ต่อเลขหนึ่งชุด — ⚠️ **สูตรเสริมออกแบบเอง** (แบบเดียวกับสูตรเบอร์โทร/คะแนน compatibility) 3 ชั้น

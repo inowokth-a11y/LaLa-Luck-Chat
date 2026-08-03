@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 16, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 10 ตัว (รวม myNumberAspects 3 ส.ค. 2569)");
+  assert.equal(PLAN_FN_NAMES.length, 19, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 11 ตัว (รวม myNameMatch 4 ส.ค. 2569)");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -181,10 +181,11 @@ test("missingInputs ว่าง/ไม่ใช่ array → ถือว่า
   mustPass({ calls: [{ fn: "lookup2digit", args: { num: 7 } }], missingInputs: "birthDate" });
 });
 
-test("ข้อความถามข้อมูลที่ขาดต้องอ่านรู้เรื่องเป็นภาษาคน", () => {
+test("ข้อความถามข้อมูลที่ขาดต้องอ่านรู้เรื่องเป็นภาษาคน — key ดิบภาษาอังกฤษห้ามโผล่ใส่ผู้ใช้", () => {
   const m = missingInputPrompt(["birthDate", "unknownKey"]);
   assert.ok(m.includes(MISSING_INPUT_LABELS.birthDate));
-  assert.ok(m.includes("unknownKey"), "คีย์ที่ไม่รู้จักต้องไม่หายไปเงียบๆ");
+  assert.ok(!m.includes("unknownKey"), "key ที่ไม่รู้จักต้องถูกแปลงเป็นประโยคไทย (4 ส.ค. 2569)");
+  assert.ok(m.includes("รายละเอียดที่เกี่ยวข้อง"), "แต่ต้องไม่หายเงียบ — มีบรรทัดชวนเล่าเพิ่ม");
 });
 
 // ---------------------------------------------------------------------------
@@ -501,4 +502,41 @@ test("myMindCare — state ถูก normalize (ไทย→enum) · ค่า�
   assert.ok(หลัก.ชื่อ.includes("หายใจกล่อง"), "ขาดน้ำ+เครียด → หายใจกล่อง (น้ำ+ดิน) เป็นหลัก");
   assert.ok(o.สัญญาณที่ควรพบผู้เชี่ยวชาญ);
   assert.ok(ex.caveats[0]?.includes("ไม่ใช่การรักษา"));
+});
+
+test("myNameMatch — ธาตุชื่อจาก engine จริง (สมชาย=ทอง ไม่ใช่ที่ AI เคยเดาว่าไฟ) + validate ชื่อ", () => {
+  const spec = PLAN_ALLOWLIST.myNameMatch;
+  const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
+  const ok = spec.check({ name: " สมชาย " });
+  assert.ok(ok.ok && ok.args.name === "สมชาย", "trim ให้");
+  const out = spec.run({ name: "สมชาย" }, ctx) as Record<string, unknown>;
+  assert.equal(out.name_element, "Metal"); // ตารางกลุ่มอักษรจริง — จับรูรั่วที่ AI เคยเดาผิดเป็น Fire
+  assert.equal(typeof out.ผลรวมเลขศาสตร์, "number");
+  assert.ok(!spec.check({ name: "" }).ok);
+  assert.ok(!spec.check({ name: "123-456" }).ok, "ไม่มีตัวอักษร = ปฏิเสธ");
+  assert.ok(!spec.check({ name: "ก".repeat(61) }).ok);
+});
+
+test("myAuspiciousDays — ฤกษ์ในแชท ฿0 (นโยบาย 4 ส.ค. 2569: Logic ที่มีแล้วตอบในแชท ไม่ redirect)", () => {
+  const spec = PLAN_ALLOWLIST.myAuspiciousDays;
+  assert.ok(!spec.needsProfile, "ฤกษ์ระดับปี/วันไม่ใช้วันเกิด — anon ถามได้");
+  assert.ok(!spec.check({ task: "แต่งงาน" }).ok, "task นอก enum ถูกปฏิเสธ ไม่เดา");
+  const ok = spec.check({ task: "car_registration", days: 7 });
+  assert.ok(ok.ok);
+  const out = spec.run(ok.ok ? ok.args : {}, undefined) as { วันแนะนำ: unknown[]; วันนี้ของไทย: string };
+  assert.ok(Array.isArray(out.วันแนะนำ) && out.วันแนะนำ.length > 0, "ต้องมีวันแนะนำ");
+  // วันเริ่มต้องเป็นวันของไทย (UTC+7) ไม่ใช่วัน UTC — บั๊ก "พรุ่งนี้ชี้ผิดวัน" ที่เจอ 4 ส.ค. 2569
+  const bkkToday = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+  assert.equal(out.วันนี้ของไทย, bkkToday);
+  assert.ok(spec.caveat && spec.caveat.includes("กาลโยค"), "caveat กาลโยคต้องติดไปเสมอ (§3.6)");
+});
+
+test("myFengshuiCheck — ทิศนอก enum ถูกปฏิเสธ · ทิศจริงได้ผลจาก engine", () => {
+  const spec = PLAN_ALLOWLIST.myFengshuiCheck;
+  assert.ok(!spec.check({ direction: "ทิศเหนือๆ" }).ok);
+  const ok = spec.check({ direction: "ตะวันตก" });
+  assert.ok(ok.ok);
+  const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
+  const out = spec.run(ok.ok ? ok.args : {}, ctx) as Record<string, unknown>;
+  assert.ok(JSON.stringify(out).length > 50, "ได้ผลวิเคราะห์จริงจาก engine");
 });

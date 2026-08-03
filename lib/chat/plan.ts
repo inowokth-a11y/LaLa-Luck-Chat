@@ -24,6 +24,10 @@ import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../en
 import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work-toxic";
 import { DAY_ELEMENT } from "../engine/element";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
+import { scoreCandidateName } from "../engine/naming";
+import { rankAuspiciousDays, ACTIVITIES, TIMING_CAVEAT, type Emphasis } from "../engine/timing";
+import { analyzeFengShui, type Direction, type Purpose } from "../engine/fengshui";
+import { namePower } from "../engine/card-id";
 import { ELEMENT_TO_COLORS, DIRECTION_TO_ELEMENT, ALL_DIRECTIONS } from "../engine/fengshui";
 import {
   lookup2digit,
@@ -68,6 +72,9 @@ export const PLAN_FN_NAMES = [
   "myWuXingVsElement",
   "myNumberScore",
   "myNumberAspects",
+  "myNameMatch",
+  "myAuspiciousDays",
+  "myFengshuiCheck",
   "myPersonalYear",
   "myWellnessAdvice",
   "myLuckyColors",
@@ -377,6 +384,117 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     defaultLabel: (a) => `เลข ${a.num}`,
   },
 
+  myNameMatch: {
+    logic: 19,
+    description:
+      "ธาตุของชื่อ/คำ (จากตารางกลุ่มอักษร) + คะแนนความเข้ากับธาตุประจำตัวผู้ใช้ + ผลรวมเลขศาสตร์ — " +
+      "**ตัวหลักสำหรับคำถามเรื่องชื่อ นามสกุล ชื่อร้าน ชื่อแบรนด์** ว่าเข้ากับดวงไหม · " +
+      "หลายชื่อให้เรียกทีละชื่อ (chart bar เทียบได้) · 🔴 ห้ามเดาธาตุของชื่อเองแล้วไปเรียก fn อื่น",
+    argsHint: '{ name: "ชื่อภาษาไทยหรืออังกฤษ" } (เอาเฉพาะชื่อ ไม่รวมคำนำหน้า)',
+    caveat:
+      "การเทียบธาตุของชื่อใช้หลักกลุ่มอักษรซึ่งยังรอการยืนยันจากเจ้าของสูตร " +
+      "ใช้เป็นแนวทางประกอบ ไม่ใช่คำตัดสิน",
+    chartable: { scale: [-2, 2], pick: (o) => (o as { final_score?: number }).final_score ?? 0 },
+    needsProfile: true,
+    check: (a) => {
+      const raw = typeof a.name === "string" ? a.name.trim() : "";
+      if (!raw || raw.length > 60) {
+        return { ok: false, error: "name ต้องเป็นข้อความ 1-60 ตัวอักษร" };
+      }
+      if (!/[ก-๙A-Za-z]/.test(raw)) {
+        return { ok: false, error: "name ต้องมีตัวอักษรไทยหรืออังกฤษอย่างน้อย 1 ตัว" };
+      }
+      return { ok: true, args: { name: raw } };
+    },
+    // ธาตุชื่อจากตารางกลุ่มอักษร (engine Logic 19) + wuXingScore ตัวจริง — AI ไม่มีสิทธิ์กำหนดธาตุ
+    run: (a, ctx) => {
+      const name = a.name as string;
+      const scored = scoreCandidateName(name, ctx!.dominant, ctx!.missing);
+      if ("error" in scored && scored.element === null) {
+        return { ชื่อ: name, error: scored.error };
+      }
+      return { ...scored, ผลรวมเลขศาสตร์: namePower(name) };
+    },
+    defaultLabel: (a) => `ชื่อ ${a.name}`,
+  },
+
+  myAuspiciousDays: {
+    logic: 3,
+    description:
+      "จัดอันดับวันดี+ยามมงคลรายชั่วโมงล่วงหน้า (กาลโยค+อุบากอง) — **ตัวหลักสำหรับคำถามฤกษ์/วันไหนดี/" +
+      "กี่โมงดี** เช่น ออกรถ เปิดกิจการ ขึ้นบ้าน เจรจา · ไม่รู้ประเภทงาน → missingInputs:[\"timingTask\"]",
+    argsHint:
+      '{ task: "open_company"|"car_registration"|"housewarming"|"negotiation"|"general", days?: 3-30 (default 14) }',
+    caveat: TIMING_CAVEAT,
+    chartable: null,
+    needsProfile: false, // ฤกษ์ระดับปี/วัน ไม่ใช้วันเกิด (ชั้นดวงส่วนตัวยังไม่รวม — อยู่ใน caveat)
+    check: (a) => {
+      const task = ACTIVITIES.find((x) => x.key === a.task);
+      if (!task) {
+        return { ok: false, error: `task ต้องเป็นหนึ่งใน: ${ACTIVITIES.map((x) => x.key).join(", ")}` };
+      }
+      const d = typeof a.days === "number" && Number.isInteger(a.days) && a.days >= 3 && a.days <= 30 ? a.days : 14;
+      return { ok: true, args: { task: task.key, days: d } };
+    },
+    run: (a) => {
+      const act = ACTIVITIES.find((x) => x.key === a.task)!;
+      // 🔴 วันที่ต้องเป็น "วันของไทย" (UTC+7) — toISOString ล้วนให้วัน UTC ซึ่งช่วงหัวค่ำ-เที่ยงคืนไทย
+      // ยังเป็นเมื่อวาน → เคยทำให้ "พรุ่งนี้" ในคำตอบชี้ผิดวัน (เจอจริง 4 ส.ค. 2569)
+      const BKK_MS = 7 * 3600_000;
+      const from = new Date(Date.now() + BKK_MS);
+      const to = new Date(from.getTime() + (a.days as number) * 86400_000);
+      const iso = (dt: Date) => dt.toISOString().slice(0, 10);
+      const r = rankAuspiciousDays({ fromISO: iso(from), toISO: iso(to), emphasis: act.emphasis as Emphasis });
+      // ย่อผล — เอาเฉพาะหัวตาราง (ดีสุด 4 + ควรเลี่ยง 2) กัน context บวม
+      const best = r.days.slice(0, 4);
+      const avoid = r.days.filter((d) => d.verdict === "avoid").slice(0, 2);
+      return {
+        ประเภทงาน: act.label,
+        วันนี้ของไทย: iso(from),
+        ช่วงที่ดู: `${iso(from)} ถึง ${iso(to)}`,
+        วันแนะนำ: best,
+        วันควรเลี่ยง: avoid,
+      };
+    },
+    defaultLabel: (a) => `ฤกษ์${ACTIVITIES.find((x) => x.key === a.task)?.label ?? ""}`,
+  },
+
+  myFengshuiCheck: {
+    logic: 7,
+    description:
+      "วิเคราะห์ฮวงจุ้ยจากทิศ (และสี/รูปทรงถ้าผู้ใช้บอก) เทียบธาตุประจำตัวผู้ใช้ พร้อมคำแนะนำแก้เคล็ด — " +
+      "**ตัวหลักสำหรับคำถามฮวงจุ้ย/หันทิศไหน/โต๊ะ-เตียง-ประตูทิศนี้ดีไหม** · " +
+      'ไม่รู้ทิศ → missingInputs:["direction"]',
+    argsHint:
+      '{ direction: "เหนือ"|"ใต้"|"ตะวันออก"|"ตะวันตก"|"ตะวันออกเฉียงเหนือ"|"ตะวันออกเฉียงใต้"|' +
+      '"ตะวันตกเฉียงเหนือ"|"ตะวันตกเฉียงใต้"|"กลาง", purpose?: "bedroom"|"office"|"living"|"entrance", ' +
+      'color?: "ชื่อสีไทย", shape?: "รูปทรง" }',
+    caveat: "ผลนี้วิเคราะห์จากทิศ สี และรูปทรงตามหลักธาตุ ยังไม่รวมศาสตร์ดาวเหิน โปรดใช้เป็นแนวทางประกอบ",
+    chartable: null,
+    needsProfile: true,
+    check: (a) => {
+      if (!ALL_DIRECTIONS.includes(a.direction as Direction)) {
+        return { ok: false, error: `direction ต้องเป็นหนึ่งใน: ${ALL_DIRECTIONS.join(", ")}` };
+      }
+      const purpose = ["bedroom", "office", "living", "entrance"].includes(a.purpose as string)
+        ? (a.purpose as Purpose)
+        : ("office" as Purpose);
+      const out: Record<string, unknown> = { direction: a.direction, purpose };
+      // สี/รูปทรงเป็นข้อความอิสระ — engine จับคู่เอง จับไม่ได้ = ข้าม (ไม่เดา)
+      if (typeof a.color === "string" && a.color.trim()) out.color = a.color.trim().slice(0, 30);
+      if (typeof a.shape === "string" && a.shape.trim()) out.shape = a.shape.trim().slice(0, 30);
+      return { ok: true, args: out };
+    },
+    run: (a, ctx) =>
+      analyzeFengShui(ctx!.dominant, ctx!.missing, {
+        direction: a.direction as Direction,
+        purpose: a.purpose as Purpose,
+        color: (a.color as string) ?? null,
+        shape: (a.shape as string) ?? null,
+      }),
+    defaultLabel: (a) => `ฮวงจุ้ยทิศ${a.direction}`,
+  },
+
   // ---- ฟังก์ชันสายคำปรึกษา (2 ส.ค. 2569 — ผู้ใช้ขอ: แนวโน้ม/แนวทางตัดสินใจจากหลักธาตุ) ----
   myPersonalYear: {
     logic: 1,
@@ -571,7 +689,19 @@ const THAI_DAY_NAMES = ["อาทิตย์", "จันทร์", "อั�
 // missingInputs — ชื่อ input ที่ระบบรู้จัก (ใช้เรนเดอร์คำถามกลับไปหาผู้ใช้)
 // ---------------------------------------------------------------------------
 
+/** key ถามกลับสายฤกษ์ — route แนบชิปประเภทงาน (เทมเพลต ฿0) */
+export const TIMING_TASK_KEY = "timingTask";
+export const TIMING_TASK_SUGGESTIONS = ACTIVITIES.map((a) => `หาฤกษ์${a.label}ให้หน่อย`);
+
+/** key ถามกลับสายฮวงจุ้ย — route แนบชิปทิศ */
+export const DIRECTION_KEY = "direction";
+export const DIRECTION_SUGGESTIONS = ["เหนือ", "ใต้", "ตะวันออก", "ตะวันตก"].map(
+  (d) => `หันทิศ${d}`
+);
+
 export const MISSING_INPUT_LABELS: Record<string, string> = {
+  timingTask: "ประเภทงานที่จะหาฤกษ์ (เปิดกิจการ / ออกรถ / ขึ้นบ้านใหม่ / เจรจา / ทั่วไป)",
+  direction: "ทิศที่หันหรือตั้งอยู่ (เช่น เหนือ ตะวันตกเฉียงใต้)",
   birthDate: "วันเดือนปีเกิด (ค.ศ.)",
   birthTime: "เวลาเกิด",
   birthProvince: "จังหวัดที่เกิด",
@@ -626,7 +756,12 @@ export function missingInputPrompt(missing: string[]): string {
       "บอกมาแล้วแม่หมอจะคำนวณแนวทางที่เหมาะกับธาตุและจังหวะปีของคุณให้เลยค่ะ (ถามกลับแบบนี้ไม่นับสิทธิ์นะคะ)"
     );
   }
-  const items = missing.map((k) => `• ${MISSING_INPUT_LABELS[k] ?? k}`).join("\n");
+  const known = missing.filter((k) => MISSING_INPUT_LABELS[k]);
+  const unknownCount = missing.length - known.length;
+  const lines = known.map((k) => `• ${MISSING_INPUT_LABELS[k]}`);
+  // planner ตั้ง key นอกลิสต์เองได้ — แสดงเป็นประโยคชวนเล่า ไม่โชว์ key ภาษาอังกฤษดิบใส่ผู้ใช้
+  if (unknownCount > 0) lines.push("• รายละเอียดที่เกี่ยวข้อง (พิมพ์เล่าเพิ่มในคำถามได้เลยค่ะ)");
+  const items = lines.join("\n");
   return `ขอข้อมูลเพิ่มอีกนิดนะคะ เพื่อให้คำนวณได้จริง ไม่ใช่เดา 🙏\n\n${items}`;
 }
 

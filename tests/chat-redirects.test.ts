@@ -21,12 +21,13 @@ test("medical ชนะ tool เมื่อปนกัน — 'ฤกษ์ผ
 
 test("คำถามที่มีเครื่องมือเฉพาะ → พาไปหน้าเครื่องมือ ไม่ใช่ 'ยังไม่มีโหมด'", () => {
   assert.equal(chatRedirectIntercept("ฝันเห็นงูใหญ่ หมายถึงอะไร")?.kind, "dream");
-  assert.equal(chatRedirectIntercept("ฤกษ์แต่งงานเดือนหน้าวันไหนดี")?.kind, "timing");
-  assert.equal(chatRedirectIntercept("โต๊ะทำงานหันทิศไหนดี ฮวงจุ้ยห้องนอน")?.kind, "fengshui");
+  // นโยบาย 4 ส.ค. 2569: ฤกษ์/ฮวงจุ้ยตอบในแชทด้วย engine จริง (myAuspiciousDays/myFengshuiCheck)
+  assert.equal(chatRedirectIntercept("ฤกษ์แต่งงานเดือนหน้าวันไหนดี"), null);
+  assert.equal(chatRedirectIntercept("โต๊ะทำงานหันทิศไหนดี ฮวงจุ้ยห้องนอน"), null);
   assert.equal(chatRedirectIntercept("อยากเสี่ยงทายเรื่องงาน")?.kind, "oracle");
   // ข้อความต้องบอกชื่อหน้า (ผู้ใช้กดตามได้)
   assert.ok(chatRedirectIntercept("ทำนายฝันหน่อย")!.message.includes("/dream"));
-  assert.ok(chatRedirectIntercept("หาวันมงคลออกรถ")!.message.includes("/timing"));
+  assert.equal(chatRedirectIntercept("หาวันมงคลออกรถ"), null);
 });
 
 test("คำถามปกติต้องไม่ถูกดัก — ปล่อยไปเส้น AI/engine", () => {
