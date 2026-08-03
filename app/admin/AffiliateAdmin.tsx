@@ -170,8 +170,14 @@ export default function AffiliateAdmin({ links }: { links: LinkStats[] }) {
                       {copied === l.code ? "✓ คัดลอกแล้ว" : "คัดลอก"}
                     </button>
                   </td>
-                  <td style={S.tdR}>{l.visit_count}</td>
-                  <td style={S.tdR}>{l.signups}</td>
+                  <td style={S.tdR} title={l.share_visit_count > 0 ? `ในนั้นเปิดจากแชร์ต่อ ${l.share_visit_count}` : undefined}>
+                    {l.visit_count}
+                    {l.share_visit_count > 0 && <span style={{ opacity: 0.6, fontSize: "0.72rem" }}> (+{l.share_visit_count}แชร์)</span>}
+                  </td>
+                  <td style={S.tdR} title={l.signupsViaShare > 0 ? `ในนั้นมาจากแชร์ต่อ ${l.signupsViaShare}` : undefined}>
+                    {l.signups}
+                    {l.signupsViaShare > 0 && <span style={{ opacity: 0.6, fontSize: "0.72rem" }}> (+{l.signupsViaShare}แชร์)</span>}
+                  </td>
                   <td style={S.tdR}>{l.payingUsers}</td>
                   <td style={S.tdR}>{l.creditsSold}</td>
                   <td style={{ ...S.tdR, color: "var(--gold)" }}>
@@ -208,7 +214,9 @@ export default function AffiliateAdmin({ links }: { links: LinkStats[] }) {
         รายรับ = ยอดเติมเครดิตจริงของคนที่มาจากลิงก์นั้น (ตาม §12: จ่ายพันธมิตรตามรายได้จริง ไม่ใช่ยอดสมัคร) ·
         ลิงก์ที่ปิดจะหยุดรับคนใหม่ แต่รายรับของคนเดิมยังนับต่อ ·
         ค่าคอม = รายรับ × % ของลิงก์ (เริ่มต้น 15% กดที่ตัวเลข % เพื่อแก้) · ปุ่มบันทึกจ่าย = จดยอดที่โอนแล้ว
-        ระบบคำนวณค้างจ่ายให้เอง (ไม่มีการโอนอัตโนมัติ)
+        ระบบคำนวณค้างจ่ายให้เอง (ไม่มีการโอนอัตโนมัติ) ·
+        (+n แชร์) = ยอดที่มาจาก "การ์ดที่ผู้ใช้แชร์ต่อ" — ผู้ใช้ที่มาจากลิงก์พันธมิตรจะพก ref ติดไป
+        กับการ์ดที่แชร์ คนกดต่อสมัครก็ยังนับให้พันธมิตรต้นทาง (วัดว่าลิงก์ไหนพา traffic ที่ viral จริง)
       </p>
     </section>
   );

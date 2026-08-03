@@ -22,11 +22,19 @@ export default function ShareCard({ cardId, cardName, figure }: Props) {
   const [claimed, setClaimed] = useState<boolean | null>(null);
   const [loggedIn, setLoggedIn] = useState(true);
   const [needsUpgrade, setNeedsUpgrade] = useState(false);
+  const [refCode, setRefCode] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const syncStatus = useSyncStatus();
 
   useEffect(() => {
     let active = true;
+    // ref พันธมิตรของผู้ใช้ (ถ้าถูกผูกไว้) — พกไปกับลิงก์แชร์ (เลเยอร์การแชร์ 3 ส.ค. 2569)
+    fetch("/api/share/reflink")
+      .then((r) => r.json())
+      .then((d) => {
+        if (active && typeof d.code === "string") setRefCode(d.code);
+      })
+      .catch(() => {});
     fetch("/api/share/claim")
       .then((r) => r.json())
       .then((d) => {
@@ -41,7 +49,7 @@ export default function ShareCard({ cardId, cardName, figure }: Props) {
     };
   }, []);
 
-  const url = cardShareUrl(typeof window !== "undefined" ? window.location.origin : "", cardId);
+  const url = cardShareUrl(typeof window !== "undefined" ? window.location.origin : "", cardId, refCode);
   const text = shareText(cardName, figure);
   const links = shareLinks(url, text);
 

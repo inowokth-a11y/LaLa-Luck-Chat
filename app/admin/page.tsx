@@ -48,9 +48,9 @@ export default async function AdminPage() {
   const [{ data: affLinks }, { data: affAttrs }, { data: affTopups }, { data: affPayouts }] = await Promise.all([
     svc
       .from("affiliate_links_e")
-      .select("id,code,partner_name,note,active,visit_count,commission_pct,created_at")
+      .select("id,code,partner_name,note,active,visit_count,share_visit_count,commission_pct,created_at")
       .order("created_at", { ascending: false }),
-    svc.from("affiliate_attributions_e").select("auth_uid,link_id"),
+    svc.from("affiliate_attributions_e").select("auth_uid,link_id,via"),
     svc.from("credit_ledger_e").select("auth_uid,delta").like("action", "topup:%").gt("delta", 0),
     svc.from("affiliate_payouts_e").select("link_id,amount_thb"),
   ]);

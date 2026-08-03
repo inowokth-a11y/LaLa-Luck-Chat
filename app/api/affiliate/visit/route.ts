@@ -7,13 +7,15 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { isValidCode, REF_COOKIE, REF_COOKIE_MAX_AGE_S } from "@/lib/affiliate/code";
+import { encodeRefCookie, toRefVia } from "@/lib/affiliate/ref";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json().catch(() => ({}))) as { code?: unknown };
+    const body = (await req.json().catch(() => ({}))) as { code?: unknown; via?: unknown };
     const code = body.code;
+    const via = toRefVia(body.via); // 'share' = มาจากการ์ดที่แชร์ต่อ · อื่นๆ = คลิกลิงก์ตรง
     if (!isValidCode(code)) return NextResponse.json({ ok: true }); // รูปแบบผิด — เงียบๆ พอ
 
     const svc = createServiceClient();
@@ -26,8 +28,8 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({ ok: true });
     if (link) {
-      await svc.rpc("bump_affiliate_visit", { p_code: code });
-      res.cookies.set(REF_COOKIE, code, {
+      await svc.rpc("bump_affiliate_visit", { p_code: code, p_share: via === "share" });
+      res.cookies.set(REF_COOKIE, encodeRefCookie(code, via), {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",

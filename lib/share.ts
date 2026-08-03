@@ -13,8 +13,11 @@ export function isValidCardId(id: string): boolean {
 }
 
 /** URL หน้าแชร์สาธารณะของการ์ด */
-export function cardShareUrl(origin: string, cardId: string): string {
-  return `${origin.replace(/\/$/, "")}/card/${cardId}`;
+export function cardShareUrl(origin: string, cardId: string, refCode?: string | null): string {
+  const base = `${origin.replace(/\/$/, "")}/card/${cardId}`;
+  // เลเยอร์การแชร์: ผู้ใช้ที่มาจากลิงก์พันธมิตรพก ref ติดไปกับการ์ดที่แชร์ —
+  // คนกดต่อจะถูกผูกกลับลิงก์เดิม (via 'share') ดู /api/share/reflink
+  return refCode ? `${base}?ref=${encodeURIComponent(refCode)}` : base;
 }
 
 /** ลิงก์แชร์ต่อแพลตฟอร์ม — ใช้เมื่อเบราว์เซอร์ไม่มี navigator.share (desktop) */

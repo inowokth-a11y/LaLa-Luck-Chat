@@ -14,6 +14,8 @@ export interface AffLinkRow {
   note: string | null;
   active: boolean;
   visit_count: number;
+  /** เปิดผ่านการ์ดที่แชร์ต่อ (subset ของ visit_count — migration 039) */
+  share_visit_count: number;
   /** % คอมมิชชันจากรายรับจริง (migration 038 — ค่าเริ่มต้น 15 แก้ได้รายลิงก์) */
   commission_pct: number;
   created_at: string;
@@ -22,6 +24,8 @@ export interface AffLinkRow {
 export interface AttributionRow {
   auth_uid: string;
   link_id: string;
+  /** 'link' = คลิกลิงก์ตรง · 'share' = ผ่านการ์ดที่แชร์ต่อ (migration 039 — แถวเก่า default 'link') */
+  via?: string | null;
 }
 
 /** แถว ledger เฉพาะการเติมเงิน (delta > 0, action like 'topup:%') */
@@ -39,6 +43,8 @@ export interface PayoutRow {
 export interface LinkStats extends AffLinkRow {
   /** ผู้ใช้ใหม่ที่สมัครผ่านลิงก์นี้ */
   signups: number;
+  /** ในนั้นมีกี่คนที่มาจากการแชร์ต่อ (ไม่ใช่คลิกลิงก์ตรง) — ตัววัดความ viral */
+  signupsViaShare: number;
   /** ในนั้นมีกี่คนที่เติมเงินจริง (ตัววัดคุณภาพ traffic ของพันธมิตร) */
   payingUsers: number;
   /** จำนวนครั้งเติมเงินรวม */
@@ -74,18 +80,22 @@ export function computeAffiliateStats(
 
   const byLink = new Map<
     string,
-    { signups: number; payers: Set<string>; topupCount: number; creditsSold: number; revenueThb: number; uncertain: boolean }
+    { signups: number; signupsViaShare: number; payers: Set<string>; topupCount: number; creditsSold: number; revenueThb: number; uncertain: boolean }
   >();
   const bucket = (id: string) => {
     let b = byLink.get(id);
     if (!b) {
-      b = { signups: 0, payers: new Set(), topupCount: 0, creditsSold: 0, revenueThb: 0, uncertain: false };
+      b = { signups: 0, signupsViaShare: 0, payers: new Set(), topupCount: 0, creditsSold: 0, revenueThb: 0, uncertain: false };
       byLink.set(id, b);
     }
     return b;
   };
 
-  for (const a of attributions) bucket(a.link_id).signups++;
+  for (const a of attributions) {
+    const b = bucket(a.link_id);
+    b.signups++;
+    if (a.via === "share") b.signupsViaShare++;
+  }
 
   for (const t of topups) {
     const linkId = linkOfUser.get(t.auth_uid);
@@ -113,6 +123,7 @@ export function computeAffiliateStats(
     return {
       ...l,
       signups: b?.signups ?? 0,
+      signupsViaShare: b?.signupsViaShare ?? 0,
       payingUsers: b?.payers.size ?? 0,
       topupCount: b?.topupCount ?? 0,
       creditsSold: b?.creditsSold ?? 0,

@@ -7,7 +7,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { createServiceClient } from "@/lib/supabase/server";
-import { isValidCode, REF_COOKIE, REF_ATTRIBUTION_WINDOW_HOURS } from "@/lib/affiliate/code";
+import { REF_COOKIE, REF_ATTRIBUTION_WINDOW_HOURS } from "@/lib/affiliate/code";
+import { parseRefCookie } from "@/lib/affiliate/ref";
 
 export const runtime = "nodejs";
 
@@ -86,19 +87,22 @@ export async function GET(request: Request) {
       //    ให้คนที่ใช้อยู่แล้ว (§12: จ่ายตามรายได้ของผู้ใช้ที่พามาใหม่จริง)
       try {
         const cookieStore = await cookies();
-        const ref = cookieStore.get(REF_COOKIE)?.value;
+        const ref = parseRefCookie(cookieStore.get(REF_COOKIE)?.value); // "CODE" หรือ "CODE|s" (แชร์ต่อ)
         const accountAgeMs = Date.now() - new Date(user.created_at).getTime();
-        if (isValidCode(ref) && accountAgeMs < REF_ATTRIBUTION_WINDOW_HOURS * 3600_000) {
+        if (ref && accountAgeMs < REF_ATTRIBUTION_WINDOW_HOURS * 3600_000) {
           const { data: link } = await svc
             .from("affiliate_links_e")
             .select("id")
-            .eq("code", ref)
+            .eq("code", ref.code)
             .eq("active", true)
             .maybeSingle();
           if (link) {
             await svc
               .from("affiliate_attributions_e")
-              .upsert({ auth_uid: user.id, link_id: link.id }, { onConflict: "auth_uid", ignoreDuplicates: true });
+              .upsert(
+                { auth_uid: user.id, link_id: link.id, via: ref.via },
+                { onConflict: "auth_uid", ignoreDuplicates: true }
+              );
           }
         }
       } catch (e) {

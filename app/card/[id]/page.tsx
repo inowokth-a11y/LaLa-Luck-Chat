@@ -10,6 +10,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { isValidCardId, figureCategoryLabel } from "@/lib/share";
+import { isValidCode } from "@/lib/affiliate/code";
 import { cardImageUrl } from "@/lib/cards";
 import MascotLogo from "@/app/_components/MascotLogo";
 
@@ -60,12 +61,24 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 //    ตัวเก็บพรีวิวของ LINE จริงๆ ใช้ "line-poker" (และบางทีมาในนาม facebookexternalhit)
 const CRAWLER_RE = /bot|crawler|spider|facebookexternalhit|facebot|twitterbot|slackbot|discordbot|telegrambot|whatsapp|line-poker|pinterest|vkshare|quora|embedly|preview/i;
 
-export default async function CardSharePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CardSharePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
   if (!isValidCardId(id)) notFound();
 
   const ua = (await headers()).get("user-agent") ?? "";
-  if (!CRAWLER_RE.test(ua)) redirect("/");
+  if (!CRAWLER_RE.test(ua)) {
+    // การ์ดที่แชร์โดยผู้ใช้ที่มาจากลิงก์พันธมิตรพก ?ref=CODE มาด้วย — ส่งต่อไปหน้าแรก
+    // พร้อมธง via=share ให้ RefTracker นับเป็น "เปิดจากแชร์ต่อ" (เลเยอร์การแชร์ 3 ส.ค. 2569)
+    const sp = await searchParams;
+    const ref = typeof sp.ref === "string" ? sp.ref : undefined;
+    redirect(ref && isValidCode(ref) ? `/?ref=${encodeURIComponent(ref)}&via=share` : "/");
+  }
   const card = await fetchCard(id);
   if (!card) notFound();
 

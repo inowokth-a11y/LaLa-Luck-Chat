@@ -54,6 +54,7 @@ const link = (id: string, code: string, pct = 15): AffLinkRow => ({
   note: null,
   active: true,
   visit_count: 0,
+  share_visit_count: 0,
   commission_pct: pct,
   created_at: "2026-08-01T00:00:00Z",
 });
@@ -137,4 +138,16 @@ test("คอมมิชชัน — ไม่ส่ง payouts (ค่าเ�
   assert.equal(s1.commissionThb, 8.85); // 15% ของ ฿59
   assert.equal(s1.paidThb, 0);
   assert.equal(s1.owedThb, 8.85);
+});
+
+test("เลเยอร์การแชร์ — แยกยอดสมัครจากแชร์ต่อ (via 'share') + cookie encode/parse round-trip", () => {
+  const links = [link("L1", "a")];
+  const attributions = [
+    { auth_uid: "u1", link_id: "L1", via: "link" },
+    { auth_uid: "u2", link_id: "L1", via: "share" },
+    { auth_uid: "u3", link_id: "L1" }, // แถวเก่าก่อน migration 039 ไม่มี via = คลิกตรง
+  ];
+  const [s1] = computeAffiliateStats(links, attributions, []);
+  assert.equal(s1.signups, 3);
+  assert.equal(s1.signupsViaShare, 1);
 });

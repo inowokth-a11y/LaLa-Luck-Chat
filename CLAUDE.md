@@ -1301,6 +1301,24 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ เลเยอร์การแชร์ต่อของแอฟฟิลิเอต (3 ส.ค. 2569 — ผู้ใช้สั่ง "แยกให้ถูกว่าใครทำงานได้ดี"):**
+- **ref ไหลตามการแชร์เป็นทอดๆ**: ผู้ใช้ที่ถูกผูกกับลิงก์พันธมิตร → ShareCard ดึง code จาก
+  `/api/share/reflink` มาพ่วงใน URL แชร์ (`/card/88?ref=CODE`) → คนกด (human) ถูก redirect
+  `/?ref=CODE&via=share` → RefTracker ส่ง via → cookie `CODE|s` (encode/parse ใน
+  `lib/affiliate/ref.ts` pure) → สมัครแล้ว attribution เก็บ `via='share'` → คนนั้นแชร์ต่อ
+  ก็ยังพก ref เดิม = **ตามถึงพันธมิตรต้นทางไม่ว่ากี่ทอด** (first-touch เดิมไม่เปลี่ยน)
+- **migration 039 (รัน prod แล้ว)**: attributions.via ('link'|'share') · links.share_visit_count ·
+  RPC `bump_affiliate_visit(p_code, p_share default false)` แทนตัวเดิม (service role เท่านั้น)
+- ลิงก์ปิด (active=false) → reflink คืน null = หยุดกระจายต่อ (นโยบายเดียวกับหยุดรับคนใหม่)
+- แดชบอร์ด: คอลัมน์ เปิดดู/สมัคร แสดง "(+n แชร์)" — วัดว่าลิงก์ไหน viral จริง
+- **verify**: เทสต์ 421 (ref round-trip + stats via) · RPC จริง 2/1 · **E2E browser จริง**:
+  /card/88?ref=X → เด้ง /?ref=X&via=share → นับ visit 1/share 1 บน prod · cookie มองไม่เห็นจาก JS
+- 🐛 **บทเรียนใหม่: DROP/CREATE function บน Supabase แล้ว PostgREST ยังแคช schema เก่า**
+  (เรียก RPC ด้วย signature ใหม่ได้ PGRST202 "ไม่พบฟังก์ชัน" **เงียบๆ**) → ต้องสั่ง
+  `NOTIFY pgrst, 'reload schema'` ผ่าน SQL หลัง migration ที่แตะ function ทุกครั้ง
+- ⚠️ ยังไม่ได้ทดสอบด้วย session จริง: attribution ตอนสมัคร (ต้อง OAuth) + ShareCard พก ref
+  (ต้องผู้ใช้ล็อกอินที่ถูกผูกลิงก์) — ครอบด้วย unit test + โค้ดเส้นเดียวกับ E2E ที่ผ่านแล้ว
+
 **✅ ปรับหน้าแรก + OG แชร์เป็นสตอรี่ + คลิกแชร์เข้าหน้าแรก (3 ส.ค. 2569 — ผู้ใช้สั่งจาก screenshot จริง):**
 - หน้าแรก: สโลแกนใหม่ "ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน..." · ปุ่มล็อกอิน → "ใส่ข้อมูลเพื่อรับคำทำนาย"
 - OG การ์ดแชร์: เนื้อหลักเปลี่ยนจาก essence → **สตอรี่ figure_bio** (ตัดขอบคำด้วย Segmenter + "…")

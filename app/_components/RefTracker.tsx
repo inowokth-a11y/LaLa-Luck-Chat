@@ -10,7 +10,10 @@ import { isValidCode } from "@/lib/affiliate/code";
 export default function RefTracker() {
   useEffect(() => {
     try {
-      const code = new URLSearchParams(window.location.search).get("ref");
+      const q = new URLSearchParams(window.location.search);
+      const code = q.get("ref");
+      // via=share มาจาก redirect ของการ์ดที่แชร์ต่อ (/card/xx?ref=...) — ค่าอื่นถือเป็นคลิกตรง
+      const via = q.get("via") === "share" ? "share" : "link";
       if (!isValidCode(code)) return;
       // กันยิงซ้ำตอน navigate ไปมาใน SPA — ครั้งเดียวต่อแท็บต่อรหัส
       const key = `kruth_ref_sent:${code}`;
@@ -19,7 +22,7 @@ export default function RefTracker() {
       void fetch("/api/affiliate/visit", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, via }),
       }).catch(() => {});
     } catch {
       // sessionStorage/URL พังในบาง browser mode — ไม่ใช่เหตุให้หน้าเว็บพัง
