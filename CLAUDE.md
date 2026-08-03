@@ -1312,6 +1312,9 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 4. **(ต่อเนื่องรอบสอง) figure_bio รอบ 2**: religious 8 + ฤษี + สุ่ม historical 12 → ผ่าน 18 แก้ 3
    (พระพุทธเจ้า/โกแกง/เล่าจื๊อ→legendary) · migration 037 รัน prod · **verified 47/100** (ดู §3.7)
 5. **Dream Psychology 22 vs 50 ปิดธง** — 28 รายการส่วนเกินคือของจริงที่วางแผนไว้ (ดู §4 ข้อ 7)
+6. **favicon โลโก้ (ผู้ใช้ขอ):** `app/icon.png` + `app/apple-icon.png` — ครอปหัวแมวจาก
+   public/mascot.png ด้วย sips (offset 22,118 ขนาด 252 → 256px) ไม่เอาข้อความ "LALA LUCKY CHAT"
+   (เล็กเกินอ่านที่ขนาดแท็บ) · Next App Router เสิร์ฟเป็น favicon อัตโนมัติตาม convention
 
 **✅ สลับผู้เล่าเรื่อง (ai2) เป็น Gemini Flash — "ทาง ค" ของราคาแชท (3 ส.ค. 2569 ผู้ใช้เลือก):**
 - **เหตุ:** วัดต้นทุนใหม่จาก ai_usage_log จริง 202 แถว — gpt-5.5 narrator ขึ้นเป็น ฿0.62/คำตอบ
