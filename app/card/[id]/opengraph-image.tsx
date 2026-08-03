@@ -14,6 +14,21 @@ export const alt = "การ์ดพลังงาน — LaLa Lucky Chat";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+function truncateAtWord(text: string, max: number): string {
+  if (text.length <= max) return text;
+  try {
+    const seg = new Intl.Segmenter("th", { granularity: "word" });
+    let out = "";
+    for (const w of seg.segment(text)) {
+      if (out.length + w.segment.length > max) break;
+      out += w.segment;
+    }
+    return (out || text.slice(0, max)) + "…";
+  } catch {
+    return text.slice(0, max) + "…";
+  }
+}
+
 async function fetchCard(id: string) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +36,7 @@ async function fetchCard(id: string) {
   );
   const { data } = await supabase
     .from("master_energy_cards")
-    .select("energy_id, energy_name, core_essence, archetype_figure")
+    .select("energy_id, energy_name, core_essence, archetype_figure, figure_bio")
     .eq("energy_id", id)
     .maybeSingle();
   return data as {
@@ -29,6 +44,7 @@ async function fetchCard(id: string) {
     energy_name: string | null;
     core_essence: string | null;
     archetype_figure: string | null;
+    figure_bio: string | null;
   } | null;
 }
 
@@ -51,7 +67,9 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
   // 🔴 thaiSoftWrap ทุกข้อความไทย — satori ตัดบรรทัดตามช่องว่างเท่านั้น ข้อความไทยยาว
   //    (ไม่มีช่องว่าง) จะทะลุขอบ/มุดใต้รูปการ์ด (บั๊กที่เจอจริงตอนแชร์ขึ้น Facebook)
   const name = thaiSoftWrap(card?.energy_name ?? "การ์ดพลังงาน");
-  const essence = thaiSoftWrap((card?.core_essence ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ").slice(0, 90));
+  // สตอรี่บุคคลต้นแบบเป็นเนื้อหลักของภาพแชร์ (ผู้ใช้สั่ง 3 ส.ค. 2569) — ไม่มี bio ค่อยตกไป essence
+  // ตัดที่ขอบคำ (ไม่ตัดกลางคำ) แล้วเติม … — ไทยไม่มีช่องว่าง ต้องใช้ Segmenter หาขอบ
+  const story = thaiSoftWrap(truncateAtWord((card?.figure_bio ?? card?.core_essence) ?? "ค้นหาการ์ดพลังงานประจำตัวของคุณ", 145));
   // ชื่อบุคคลไม่ soft-wrap — สั้นพอไม่ล้น และ ZWSP จะทำให้วงเล็บปิดตกบรรทัดเดี่ยว
   const figure = card?.archetype_figure ?? null;
 
@@ -86,9 +104,23 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
                 {`✨ คุณมีต้นแบบเดียวกับ ${figure}`}
               </div>
             )}
-            <div style={{ display: "flex", fontSize: 27, color: "#2b2620", marginTop: 16, lineHeight: 1.5 }}>{essence}</div>
-            <div style={{ fontSize: 26, color: "#b8860b", marginTop: 26, display: "flex", alignItems: "center" }}>
-              🐾 LaLa Lucky Chat — ดูดวงที่ &ldquo;คำนวณจริง&rdquo;
+            <div style={{ display: "flex", fontSize: 24, color: "#2b2620", marginTop: 14, lineHeight: 1.5 }}>{story}</div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 28,
+                color: "#8a5a00",
+                fontWeight: 700,
+                marginTop: 22,
+                padding: "10px 18px",
+                background: "rgba(184,134,11,0.14)",
+                borderRadius: 12,
+              }}
+            >
+              👉 กดเพื่อดู — คุณเหมือนใครในตำนาน/ประวัติศาสตร์?
+            </div>
+            <div style={{ fontSize: 22, color: "#b8860b", marginTop: 14, display: "flex", alignItems: "center" }}>
+              🐾 LaLa Lucky Chat
             </div>
           </div>
           {cardImg && (

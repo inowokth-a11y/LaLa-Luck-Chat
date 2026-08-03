@@ -100,13 +100,13 @@ export default function Home() {
             LaLa Lucky Chat
           </h1>
           <p style={{ fontFamily: "var(--font-sans-thai)", color: "var(--ink-dim)", marginTop: "0.35rem", fontSize: "0.9rem" }}>
-            แพลตฟอร์มดูดวงที่ &ldquo;คำนวณจริง&rdquo; — ธาตุ · โหราศาสตร์ไทย · ตัวเลข
+            ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน ให้คำทำนายได้กว้างที่สุด เชื่อมโยงกันอย่างเป็นระบบมากที่สุด
           </p>
 
           {loggedIn === true && (
             <div style={{ marginTop: "1.1rem" }}>
               <button style={S.gold} onClick={() => router.push("/profile?auto=1")}>
-                🔮 ดูการ์ดของฉัน
+                🔮 ใส่ข้อมูลเพื่อรับคำทำนาย
               </button>
             </div>
           )}

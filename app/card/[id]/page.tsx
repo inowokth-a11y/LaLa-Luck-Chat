@@ -6,7 +6,8 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { isValidCardId, figureCategoryLabel } from "@/lib/share";
 import { cardImageUrl } from "@/lib/cards";
@@ -53,9 +54,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
+// crawler ของโซเชียล (มาเก็บ OG) — คนจริงถูกส่งไปหน้าแรกเพื่อเริ่มคำทำนาย (ผู้ใช้สั่ง 3 ส.ค. 2569:
+// "กดการ์ดที่แชร์แล้วเข้าหน้าแรก" — เรื่องราวการ์ดเล่าจบในภาพ OG แล้ว)
+// ⚠️ ห้ามใส่ "line" เดี่ยวๆ — เบราว์เซอร์ในแอป LINE ของคนจริงมี "Line/" ใน UA
+//    ตัวเก็บพรีวิวของ LINE จริงๆ ใช้ "line-poker" (และบางทีมาในนาม facebookexternalhit)
+const CRAWLER_RE = /bot|crawler|spider|facebookexternalhit|facebot|twitterbot|slackbot|discordbot|telegrambot|whatsapp|line-poker|pinterest|vkshare|quora|embedly|preview/i;
+
 export default async function CardSharePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!isValidCardId(id)) notFound();
+
+  const ua = (await headers()).get("user-agent") ?? "";
+  if (!CRAWLER_RE.test(ua)) redirect("/");
   const card = await fetchCard(id);
   if (!card) notFound();
 

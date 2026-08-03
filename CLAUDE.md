@@ -1301,6 +1301,16 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ ปรับหน้าแรก + OG แชร์เป็นสตอรี่ + คลิกแชร์เข้าหน้าแรก (3 ส.ค. 2569 — ผู้ใช้สั่งจาก screenshot จริง):**
+- หน้าแรก: สโลแกนใหม่ "ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน..." · ปุ่มล็อกอิน → "ใส่ข้อมูลเพื่อรับคำทำนาย"
+- OG การ์ดแชร์: เนื้อหลักเปลี่ยนจาก essence → **สตอรี่ figure_bio** (ตัดขอบคำด้วย Segmenter + "…")
+  + แถบ CTA "👉 กดเพื่อดู — คุณเหมือนใครในตำนาน/ประวัติศาสตร์?" ท้ายภาพ
+- **/card/[id] คนจริงถูก redirect → หน้าแรก** (เรื่องราวเล่าจบในภาพ OG แล้ว) · crawler (CRAWLER_RE)
+  ยังได้หน้า OG เต็ม — ⚠️ **ห้ามใส่ "line" เดี่ยวๆ ใน CRAWLER_RE**: เบราว์เซอร์ในแอป LINE ของคนจริง
+  มี "Line/" ใน UA (ตัวเก็บพรีวิว LINE จริงใช้ "line-poker") · verify: crawler 200 + meta ครบ ·
+  คนจริง 307 → / · OG render ตรวจด้วยตาแล้ว
+- 🐛 .next เสียซ้ำ (Duplicate identifier d 2.ts) — rm -rf .next แก้ตามบทเรียนเดิม
+
 **✅ 4 การตัดสินใจค้างถูกเคาะ + ทำครบในรอบเดียว (3 ส.ค. 2569 — ผู้ใช้ตอบ 4 ข้อ):**
 1. **retention ความจำแม่หมอ = 12 เดือน** — `MEMORY_RETENTION_MONTHS` (lib/memory) ·
    `/api/cron/retention` (ลบ user_history_e เก่ากว่า 12 เดือน + user_memory_e ที่นิ่งเกิน 12 เดือน)
