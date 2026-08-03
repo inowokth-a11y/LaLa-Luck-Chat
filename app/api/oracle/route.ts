@@ -17,6 +17,7 @@ import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
+import { FIGURE_TONE_PROMPT } from "@/lib/share";
 import { getMemoryBlock, rememberEvent } from "@/lib/memory";
 
 export const runtime = "nodejs";
@@ -34,13 +35,16 @@ const LALA_ORACLE_SYSTEM = `${LALA_PERSONA}
 3. เชื่อมโยงการ์ดใบที่ 1 กับใบที่ 2 ว่าคุยกันอย่างไร แล้วจึงตอบคำถามที่เขาถาม
 4. อธิบายความสัมพันธ์ของธาตุที่ระบบคำนวณมา ว่าหมายถึงอะไรกับคำถามของเขา
 5. ความยาว 3-4 ย่อหน้าสั้น ๆ ปิดท้ายด้วยข้อคิด 1 ประโยค
-6. คะแนนรวมเป็นเพียงตัวช่วยอ่านภาพรวม **ห้ามพูดเหมือนเป็นคำฟันธง**`;
+6. คะแนนรวมเป็นเพียงตัวช่วยอ่านภาพรวม **ห้ามพูดเหมือนเป็นคำฟันธง**
+
+${FIGURE_TONE_PROMPT}`;
 
 interface CardRow {
   energy_id: string;
   energy_name: string | null;
   core_essence: string | null;
   archetype_figure: string | null;
+  figure_category: string | null;
 }
 
 export async function POST(req: Request) {
@@ -137,7 +141,7 @@ export async function POST(req: Request) {
       const supabase = createServiceClient();
       const { data } = await supabase
         .from("master_energy_cards")
-        .select("energy_id, energy_name, core_essence, archetype_figure")
+        .select("energy_id, energy_name, core_essence, archetype_figure, figure_category")
         .in("energy_id", [card1Id, card2Id]);
       for (const row of (data ?? []) as CardRow[]) cards[row.energy_id] = row;
     } catch (e) {

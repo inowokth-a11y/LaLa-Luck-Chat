@@ -31,6 +31,7 @@ import { getDbUsageBonus, bumpDbUsage } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
+import { FIGURE_TONE_PROMPT } from "@/lib/share";
 import { lotteryIntercept } from "@/lib/chat/lottery";
 import { chatRedirectIntercept } from "@/lib/chat/redirects";
 import { logQuestion } from "@/lib/chat/question-log";
@@ -52,7 +53,9 @@ const CHAT_SYSTEM = `${LALA_PERSONA}
 3. ห้ามฟันธงชะตาชีวิต ห้ามทำนายเรื่องสุขภาพ/การเงิน/ความตายแบบชี้ขาด
 4. ห้ามให้คำแนะนำทางการแพทย์หรือจิตเวช
 5. ตอบสั้น 2-4 ประโยค เข้าเรื่องเลย ไม่ต้องทวนคำถาม
-6. ถ้าผู้ใช้ถามเรื่องที่ไม่เกี่ยวกับผลบนหน้าจอเลย ให้ตอบสั้นๆ แล้วชวนกลับมาที่เรื่องดวง`;
+6. ถ้าผู้ใช้ถามเรื่องที่ไม่เกี่ยวกับผลบนหน้าจอเลย ให้ตอบสั้นๆ แล้วชวนกลับมาที่เรื่องดวง
+
+${FIGURE_TONE_PROMPT}`;
 
 interface ChatBody {
   /** "context" (ค่าเริ่มต้น) = ถามต่อจากผลบนหน้าจอ · "plan" = วิเคราะห์อิสระ (§16) */

@@ -8,6 +8,7 @@ import {
   shareLinks,
   shareText,
   SHARE_REWARD_QUESTIONS,
+  FIGURE_TONE_PROMPT,
   figureCategoryLabel,
   thaiSoftWrap,
 } from "../lib/share";
@@ -64,4 +65,15 @@ test("thaiSoftWrap — แทรก ZWSP ระหว่างคำไทย (�
   assert.ok(w.includes("​"), "ต้องมี ZWSP อย่างน้อยหนึ่งจุด");
   assert.equal(w.replaceAll("​", ""), s, "ลบ ZWSP ออกต้องได้ข้อความเดิมเป๊ะ");
   assert.equal(thaiSoftWrap(""), "");
+});
+
+test("FIGURE_TONE_PROMPT — ครบทุกหมวด + ทะเบียนคำถูกหลัก (ผู้ใช้ตัดสิน 3 ส.ค. 2569)", () => {
+  for (const cat of ["mythological", "legendary", "fictional", "role_title", "religious", "historical"]) {
+    assert.ok(FIGURE_TONE_PROMPT.includes(cat), `ต้องมีหมวด ${cat}`);
+  }
+  // กลุ่มตำนานต้องใช้กรอบ "ตำนานเล่าว่า..."
+  assert.ok(FIGURE_TONE_PROMPT.includes('"ตำนานเล่าว่า..."'));
+  // กลุ่มศาสนาห้ามใช้คำว่า "ตำนาน" — ต้องเป็นทะเบียนคำคัมภีร์/ความเชื่อ
+  const relLine = FIGURE_TONE_PROMPT.split("\n").find((l) => l.includes("religious"))!;
+  assert.ok(relLine.includes("ห้ามใช้คำว่า") && relLine.includes("ตามคัมภีร์"));
 });

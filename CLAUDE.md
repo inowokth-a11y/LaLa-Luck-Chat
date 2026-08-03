@@ -1312,7 +1312,13 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 4. **(ต่อเนื่องรอบสอง) figure_bio รอบ 2**: religious 8 + ฤษี + สุ่ม historical 12 → ผ่าน 18 แก้ 3
    (พระพุทธเจ้า/โกแกง/เล่าจื๊อ→legendary) · migration 037 รัน prod · **verified 47/100** (ดู §3.7)
 5. **Dream Psychology 22 vs 50 ปิดธง** — 28 รายการส่วนเกินคือของจริงที่วางแผนไว้ (ดู §4 ข้อ 7)
-6. **favicon โลโก้ (ผู้ใช้ขอ):** `app/icon.png` + `app/apple-icon.png` — ครอปหัวแมวจาก
+6. **กติกาทะเบียนคำ "ตำนานเล่าว่า..." (ผู้ใช้ตัดสิน):** `FIGURE_TONE_PROMPT` ใน lib/share.ts —
+   AI ต้องเล่าบุคคลต้นแบบตาม figure_category: mythological/legendary → กรอบ "ตำนานเล่าว่า..." ·
+   fictional/role_title → บอกชัดไม่ใช่บุคคลจริง/คนเดียว · **religious → "ตามคัมภีร์/ตามความเชื่อ"
+   ห้ามใช้คำว่า "ตำนาน"** (บางท่านมีตัวตนจริง + เสี่ยงกระทบศรัทธา) · wire เข้า oracle (เพิ่ม
+   figure_category ใน select) + แชท context · เทสต์ล็อก + ยิง AI จริง: การ์ดไมดาส →
+   "บุคคลกึ่งตำนาน...ตำนานเล่าว่า" ตรงตามกติกา (เทสต์ 414)
+7. **favicon โลโก้ (ผู้ใช้ขอ):** `app/icon.png` + `app/apple-icon.png` — ครอปหัวแมวจาก
    public/mascot.png ด้วย sips (offset 22,118 ขนาด 252 → 256px) ไม่เอาข้อความ "LALA LUCKY CHAT"
    (เล็กเกินอ่านที่ขนาดแท็บ) · Next App Router เสิร์ฟเป็น favicon อัตโนมัติตาม convention
 
