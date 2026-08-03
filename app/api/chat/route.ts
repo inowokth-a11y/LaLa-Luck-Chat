@@ -19,7 +19,13 @@ import {
   questionNeedsLoginMessage,
 } from "@/lib/chat/questions";
 import { runPlanChat, buildProfileContext } from "@/lib/chat/plan-run";
-import { questionSuggestsComputation, CONSULT_TOPIC_KEY, CONSULT_TOPIC_SUGGESTIONS } from "@/lib/chat/plan";
+import {
+  questionSuggestsComputation,
+  CONSULT_TOPIC_KEY,
+  CONSULT_TOPIC_SUGGESTIONS,
+  WORK_PATTERN_KEY,
+  WORK_PATTERN_SUGGESTIONS,
+} from "@/lib/chat/plan";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsageBonus, bumpDbUsage } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
@@ -279,8 +285,12 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
       needsInput: true,
       message: result.message,
       missingInputs: result.missingInputs,
-      // ถามกลับเรื่องใจ (เฟส 1 จิตวิทยา) → แนบชิปคำตอบสำเร็จรูป ฿0 — จิ้มแล้วเป็นคำถามเต็มทันที
-      ...(result.missingInputs.includes(CONSULT_TOPIC_KEY) ? { suggest: CONSULT_TOPIC_SUGGESTIONS } : {}),
+      // ถามกลับเรื่องใจ/ที่ทำงาน → แนบชิปคำตอบสำเร็จรูป ฿0 — จิ้มแล้วเป็นคำถามเต็มทันที
+      ...(result.missingInputs.includes(WORK_PATTERN_KEY)
+        ? { suggest: WORK_PATTERN_SUGGESTIONS }
+        : result.missingInputs.includes(CONSULT_TOPIC_KEY)
+        ? { suggest: CONSULT_TOPIC_SUGGESTIONS }
+        : {}),
     });
   }
   if (result.status === "unclear") {

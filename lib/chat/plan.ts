@@ -21,6 +21,7 @@ import {
 } from "../engine/element";
 import { getWellnessForMissing, getWellnessPair, FRAMING_CAVEAT } from "../engine/wellness";
 import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../engine/mind-care";
+import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work-toxic";
 import { DAY_ELEMENT } from "../engine/element";
 import { ELEMENT_TO_COLORS, DIRECTION_TO_ELEMENT, ALL_DIRECTIONS } from "../engine/fengshui";
 import {
@@ -70,6 +71,7 @@ export const PLAN_FN_NAMES = [
   "myLuckyColors",
   "myMatchProfile",
   "myMindCare",
+  "myWorkShield",
 ] as const;
 
 export type PlanFnName = (typeof PLAN_FN_NAMES)[number];
@@ -491,6 +493,46 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     },
     defaultLabel: () => "เทคนิคดูแลใจ",
   },
+
+  myWorkShield: {
+    logic: 16,
+    description:
+      "กลยุทธ์รับมือปัญหาที่ทำงานเป็นพิษ (ขโมยผลงาน/ทำให้สงสัยตัวเอง/โยนความผิด/จุกจิกควบคุม/" +
+      "ประชดเงียบใส่/ประจานต่อหน้า/กีดกัน/เล่นพวก/อยากลาออก) พร้อมสคริปต์พูดจริง+เทคนิคตั้งหลักตามธาตุ — " +
+      "ใช้เมื่อผู้ใช้เล่าปัญหากับหัวหน้า/เพื่อนร่วมงานแบบเจาะจง",
+    argsHint:
+      '{ pattern: "credit_stealing|gaslighting|scapegoating|micromanagement|passive_aggression|public_humiliation|exclusion|favoritism|exit_thoughts" }',
+    caveat: WORK_SHIELD_CAVEAT,
+    chartable: null,
+    needsProfile: true,
+    check: (a) => {
+      const p = toWorkPattern(a.pattern);
+      if (!p) {
+        return { ok: false, error: `pattern "${String(a.pattern)}" ไม่อยู่ในรูปแบบที่ระบบรู้จัก` };
+      }
+      return { ok: true, args: { pattern: p } };
+    },
+    run: (a, ctx) => {
+      const r = getWorkShield(a.pattern as never, ctx!.missing);
+      return {
+        รูปแบบที่เจอ: r.nameTh,
+        คำยืนยัน: r.validation,
+        ...(r.signs ? { สัญญาณที่มักเจอ: r.signs } : {}),
+        ...(r.strategy ? { วิธีรับมือ: r.strategy } : {}),
+        ...(r.script ? { สคริปต์พูดหรือเขียน: r.script } : {}),
+        ...(r.escalation ? { จุดที่ควรยกระดับ: r.escalation } : {}),
+        ...(r.elementNote ? { พลังงานของรูปแบบนี้: r.elementNote } : {}),
+        เทคนิคตั้งหลัก: {
+          ชื่อ: `${r.grounding.nameTh} (${r.grounding.name})`,
+          วิธีทำ: r.grounding.steps,
+          ใช้เวลา_นาที: r.grounding.durationMin,
+          เสริมธาตุ: r.grounding.elementNote,
+        },
+        ...(r.exitSteps ? { ขั้นแรกก่อนตัดสินใจ: r.exitSteps } : {}),
+      };
+    },
+    defaultLabel: () => "แนวทางรับมือที่ทำงาน",
+  },
 };
 
 // วงจรให้กำเนิด (相生) — ใครให้กำเนิดธาตุนี้ (印 บำรุงเรา = ทาง ค §5)
@@ -519,7 +561,18 @@ export const MISSING_INPUT_LABELS: Record<string, string> = {
   targetNumber: "ตัวเลขที่อยากให้ดู",
   userElement: "ธาตุประจำตัว (ต้องคำนวณจากวันเกิดก่อน)",
   consultTopic: "เรื่องที่หนักใจเป็นด้านไหน (งาน / เงิน / ความรัก / ครอบครัว / สุขภาพใจ)",
+  workPattern: "รูปแบบปัญหาที่เจอในที่ทำงาน",
 };
+
+/** ถามกลับเมื่อเล่าปัญหาที่ทำงานแบบกว้างๆ — ชิปให้จิ้มเป็นคำถามเต็ม (สไลซ์ B) */
+export const WORK_PATTERN_KEY = "workPattern";
+export const WORK_PATTERN_SUGGESTIONS: string[] = [
+  "โดนขโมยผลงาน/เครดิต ทำยังไงดี",
+  "โดนพูดจนสงสัยความจำตัวเอง ทำยังไงดี",
+  "โดนจุกจิกควบคุมทุกอย่าง ทำยังไงดี",
+  "โดนตำหนิต่อหน้าคนอื่น ทำยังไงดี",
+  "อยากลาออกแต่ไม่แน่ใจ ช่วยคิดหน่อย",
+];
 
 /**
  * เฟส 1 จิตวิทยาในแชท (ผู้ใช้ยืนยัน 2 ส.ค. 2569): คำปรึกษาที่คลุมเครือ → ถามกลับ 1 คำถาม
@@ -537,6 +590,13 @@ export const CONSULT_TOPIC_SUGGESTIONS: string[] = [
 
 /** ข้อความถามข้อมูลที่ขาด — ถามตรงๆ ดีกว่ารันแล้วเดา */
 export function missingInputPrompt(missing: string[]): string {
+  // ถามกลับเรื่องที่ทำงาน — validate ความรู้สึกก่อน (จาก opening_toxic ของ KB ต้นฉบับ)
+  if (missing.includes(WORK_PATTERN_KEY)) {
+    return (
+      "ฟังดูเหนื่อยมากเลยนะคะ สิ่งที่เจออยู่มีชื่อเรียกและมีวิธีรับมือ — ไม่ใช่ความอ่อนแอของคุณค่ะ 🐾\n\n" +
+      "เล่าเพิ่มอีกนิดได้ไหมคะ ว่าสิ่งที่เจอบ่อยที่สุดเป็นแบบไหน แม่หมอจะได้แนะวิธีรับมือที่ตรงจุด (ถามกลับแบบนี้ไม่นับสิทธิ์นะคะ)"
+    );
+  }
   // ถามกลับเชิงปรึกษา — โทนเห็นใจ ไม่ใช่ฟอร์มขอข้อมูล
   if (missing.includes(CONSULT_TOPIC_KEY)) {
     return (

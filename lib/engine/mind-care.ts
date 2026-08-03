@@ -36,7 +36,7 @@ export interface MindTechnique {
   caution: string | null;
 }
 
-const T: Record<string, MindTechnique> = {
+export const MIND_TECHNIQUES: Record<string, MindTechnique> = {
   GR001: {
     id: "GR001",
     name: "5-4-3-2-1 Grounding",
@@ -152,8 +152,8 @@ export interface MindCareResult {
  */
 export function getMindCare(state: MindState, missing: Element5[]): MindCareResult {
   const [a, b] = STATE_TECHNIQUES[state];
-  let primary = T[a];
-  let alternative = T[b];
+  let primary = MIND_TECHNIQUES[a];
+  let alternative = MIND_TECHNIQUES[b];
   const boosts = (t: MindTechnique) => t.elements.some((e) => missing.includes(e));
   if (!boosts(primary) && boosts(alternative)) {
     [primary, alternative] = [alternative, primary];

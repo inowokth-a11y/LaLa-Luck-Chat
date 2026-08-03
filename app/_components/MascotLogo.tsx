@@ -4,9 +4,15 @@
 
 import styles from "./mascot.module.css";
 
-/** อวตารหัวแมวกลม — ใช้ข้างคำตอบของ "อาจารย์ลาลา ลักกี้" (ครอปหัวด้วย CSS จากภาพเดียวกัน) */
+/** อวตารหัวแมวกลม — ใช้ข้างคำตอบของ "อาจารย์ลาลา ลักกี้" (ครอปหัวด้วย CSS จากภาพเดียวกัน)
+ *  กระพริบตาเหมือนกำลังมอง (ผู้ใช้ขอ 2 ส.ค. 2569) — เปลือกตาซ้อนพิกัดตาในครอป */
 export function MascotAvatar({ size = 32 }: { size?: number }) {
-  return <span className={styles.avatar} style={{ width: size, height: size }} aria-hidden="true" />;
+  return (
+    <span className={styles.avatar} style={{ width: size, height: size }} aria-hidden="true">
+      <span className={`${styles.avatarLid} ${styles.avatarLidLeft}`} />
+      <span className={`${styles.avatarLid} ${styles.avatarLidRight}`} />
+    </span>
+  );
 }
 
 export default function MascotLogo({ size = 160, wave = true }: { size?: number; wave?: boolean }) {

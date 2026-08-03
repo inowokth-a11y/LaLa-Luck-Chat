@@ -158,3 +158,41 @@
   flex: 0 0 auto;
   vertical-align: middle;
 }
+
+/* เปลือกตาของอวตารหัวแมว (ผู้ใช้ขอ 2 ส.ค. 2569 — "กระพริบเหมือนกำลังมอง")
+   พิกัดคำนวณจาก crop ของ .avatar (background 300% ตำแหน่ง 47%/16%):
+   bgW=3W · bgH=3W×472/529≈2.677W · offsetX=−0.94W · offsetY=−0.268W
+   ตาซ้ายภาพ (28%,25.8%,12.5%,13.5%) → กล่อง avatar: left −10% top 42.3% w 37.5% h 36.1%
+   ตาขวาภาพ (54%,24.8%) → left 68% top 39.6% */
+.avatar {
+  position: relative;
+  overflow: hidden; /* เปลือกตาโดนขลิบตามวงกลม */
+}
+.avatarLid {
+  position: absolute;
+  border-radius: 50%;
+  border-bottom: 2px solid #191410;
+  transform: scaleY(0);
+  transform-origin: center top;
+  pointer-events: none;
+  animation: mascot-blink 6s linear infinite;
+}
+.avatarLidLeft {
+  left: -10%;
+  top: 42.3%;
+  width: 37.5%;
+  height: 36.1%;
+  background: #d78a2f;
+}
+.avatarLidRight {
+  left: 68%;
+  top: 39.6%;
+  width: 37.5%;
+  height: 36.1%;
+  background: #2e4a57;
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatarLid {
+    animation: none;
+  }
+}

@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 14, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 8 ตัว (seed/vsElement/numberScore/personalYear/wellness/luckyColors/matchProfile/mindCare)");
+  assert.equal(PLAN_FN_NAMES.length, 15, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 9 ตัว (+mindCare/workShield)");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
