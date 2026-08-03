@@ -1301,6 +1301,21 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ แก้ OG การ์ด 500 บน prod + สโลแกนใหม่ทุกจุด (3 ส.ค. 2569 — ผู้ใช้รายงานรูปไม่ขึ้นตอนแชร์):**
+- ผู้ใช้แชร์ลิงก์หน้าแรกใน Messenger รูปไม่ขึ้น → ตรวจพบ 2 เรื่องซ้อน: (1) แคป FB (แก้ด้วย Sharing
+  Debugger "Scrape Again" — ฝั่งเราปกติ) (2) **OG การ์ด /card/[id]/opengraph-image ตอบ 500 บน
+  Vercel ทุกใบ ทั้งที่ local ปกติ**
+- 🔴 **วิธีหาสาเหตุที่ได้ผล (log Vercel เข้าไม่ได้ — โปรเจกต์อยู่บัญชี inowok):** ห่อ try/catch
+  ชั่วคราวให้ route คาย error เป็น text → deploy → curl เจอทันที: **ENOENT ฟอนต์
+  `/var/task/assets/NotoSansThai-SemiBold.ttf`** = Vercel ไม่ trace ฟอนต์เข้า lambda ของ route นี้
+  (เคย trace ได้ — หลุดหลังแก้ไฟล์ ทั้งที่ pattern readFile เดิมเป๊ะ)
+- **ทางแก้ถาวร:** `outputFileTracingIncludes` ใน next.config.mjs บังคับ pack `./assets/**` ให้ทั้ง
+  /card/[id]/opengraph-image และ /opengraph-image — **อย่าพึ่ง trace อัตโนมัติกับ asset ที่อ่านด้วย fs**
+- สโลแกนใหม่ "ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน..." ครบทุกจุดแล้ว: หน้าแรก (รอบก่อน) +
+  รูป OG หน้าแรก + og:title/description ใน layout — verify รูปจริงจาก prod ทั้งการ์ด (สตอรี่+CTA) และหน้าแรก
+- ⚠️ ผู้ใช้ต้อง "Scrape Again" ที่ developers.facebook.com/tools/debug สำหรับ URL ที่เคยแชร์ไปแล้ว
+  (แคช FB/Messenger ต่อ URL — ของใหม่ไม่ติด)
+
 **✅ เลเยอร์การแชร์ต่อของแอฟฟิลิเอต (3 ส.ค. 2569 — ผู้ใช้สั่ง "แยกให้ถูกว่าใครทำงานได้ดี"):**
 - **ref ไหลตามการแชร์เป็นทอดๆ**: ผู้ใช้ที่ถูกผูกกับลิงก์พันธมิตร → ShareCard ดึง code จาก
   `/api/share/reflink` มาพ่วงใน URL แชร์ (`/card/88?ref=CODE`) → คนกด (human) ถูก redirect
