@@ -21,6 +21,13 @@ import {
 export type { HistoryKind, HistoryContent } from "./format";
 
 /**
+ * ระยะเก็บความจำแม่หมอ (เดือน) — ผู้ใช้ตัดสิน 3 ส.ค. 2569: 12 เดือน
+ * บังคับใช้โดย /api/cron/retention (Vercel Cron รายวัน) + ประกาศใน /privacy §3
+ * 🔴 เปลี่ยนค่านี้ = ต้องแก้ข้อความใน /privacy + ขยับ PDPA_VERSION ด้วยเสมอ
+ */
+export const MEMORY_RETENTION_MONTHS = 12;
+
+/**
  * บันทึกเหตุการณ์ + ถ้าครบเกณฑ์ → สรุปใหม่เบื้องหลัง (ไม่ block)
  * เรียกหลังตอบผู้ใช้สำเร็จเท่านั้น (เหตุการณ์ที่ล้มเหลว/ถูก gate ไม่ใช่ความจำ)
  */

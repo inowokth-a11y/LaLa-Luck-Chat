@@ -14,6 +14,8 @@ export interface AffLinkRow {
   note: string | null;
   active: boolean;
   visit_count: number;
+  /** % คอมมิชชันจากรายรับจริง (migration 038 — ค่าเริ่มต้น 15 แก้ได้รายลิงก์) */
+  commission_pct: number;
   created_at: string;
 }
 
@@ -26,6 +28,12 @@ export interface AttributionRow {
 export interface TopupRow {
   auth_uid: string;
   delta: number;
+}
+
+/** การจ่ายคอมมิชชันที่บันทึกแล้ว (affiliate_payouts_e) */
+export interface PayoutRow {
+  link_id: string;
+  amount_thb: number;
 }
 
 export interface LinkStats extends AffLinkRow {
@@ -41,6 +49,12 @@ export interface LinkStats extends AffLinkRow {
   revenueThb: number;
   /** true = มีรายการเติมที่เทียบแพ็กไม่ได้ (revenueThb ต่ำกว่าจริง) */
   revenueUncertain: boolean;
+  /** ค่าคอมที่ควรจ่ายสะสม = revenueThb × commission_pct/100 (ปัดสตางค์) */
+  commissionThb: number;
+  /** จ่ายไปแล้วรวม (จาก affiliate_payouts_e) */
+  paidThb: number;
+  /** ค้างจ่าย = commissionThb − paidThb (ไม่ติดลบ — จ่ายเกินถือว่า 0 ไม่หักคืน) */
+  owedThb: number;
 }
 
 /** delta เครดิตของการเติม 1 ครั้ง → ราคาแพ็ก (บาท) · ไม่ตรงแพ็กไหน = null */
@@ -51,7 +65,8 @@ export function thbForTopupCredits(delta: number): number | null {
 export function computeAffiliateStats(
   links: AffLinkRow[],
   attributions: AttributionRow[],
-  topups: TopupRow[]
+  topups: TopupRow[],
+  payouts: PayoutRow[] = []
 ): LinkStats[] {
   // ผู้ใช้ → ลิงก์ (attribution เป็น first-touch: 1 ผู้ใช้มีแถวเดียวโดย schema)
   const linkOfUser = new Map<string, string>();
@@ -84,16 +99,28 @@ export function computeAffiliateStats(
     else b.revenueThb += thb;
   }
 
+  const paidByLink = new Map<string, number>();
+  for (const p of payouts) {
+    if (p.amount_thb > 0) paidByLink.set(p.link_id, (paidByLink.get(p.link_id) ?? 0) + p.amount_thb);
+  }
+
   return links.map((l) => {
     const b = byLink.get(l.id);
+    const revenueThb = b?.revenueThb ?? 0;
+    // ปัดเป็นสตางค์กันเศษ float สะสม (เช่น 15% ของ ฿129 = ฿19.35 พอดี)
+    const commissionThb = Math.round(revenueThb * l.commission_pct) / 100;
+    const paidThb = Math.round((paidByLink.get(l.id) ?? 0) * 100) / 100;
     return {
       ...l,
       signups: b?.signups ?? 0,
       payingUsers: b?.payers.size ?? 0,
       topupCount: b?.topupCount ?? 0,
       creditsSold: b?.creditsSold ?? 0,
-      revenueThb: b?.revenueThb ?? 0,
+      revenueThb,
       revenueUncertain: b?.uncertain ?? false,
+      commissionThb,
+      paidThb,
+      owedThb: Math.max(0, Math.round((commissionThb - paidThb) * 100) / 100),
     };
   });
 }

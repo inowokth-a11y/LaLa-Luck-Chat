@@ -47,13 +47,14 @@ test("thbForTopupCredits — เทียบ delta เครดิตกลั�
   assert.equal(thbForTopupCredits(5), null); // เช่นแอดมินเติมมือ 5 เครดิต — ไม่ใช่แพ็กขาย
 });
 
-const link = (id: string, code: string): AffLinkRow => ({
+const link = (id: string, code: string, pct = 15): AffLinkRow => ({
   id,
   code,
   partner_name: code,
   note: null,
   active: true,
   visit_count: 0,
+  commission_pct: pct,
   created_at: "2026-08-01T00:00:00Z",
 });
 
@@ -106,4 +107,34 @@ test("computeAffiliateStats — delta ติดลบ (การหักใช�
   );
   assert.equal(s.topupCount, 0);
   assert.equal(s.payingUsers, 0);
+});
+
+test("คอมมิชชัน — เริ่มต้น 15% ของรายรับจริง + หักยอดจ่ายแล้ว + ค้างจ่ายไม่ติดลบ (ผู้ใช้ตัดสิน 3 ส.ค. 2569)", () => {
+  const links = [link("L1", "a"), link("L2", "b", 20)];
+  const attributions = [
+    { auth_uid: "u1", link_id: "L1" },
+    { auth_uid: "u2", link_id: "L2" },
+  ];
+  const topups = [
+    { auth_uid: "u1", delta: 51 }, // ฿129 → คอม 15% = ฿19.35
+    { auth_uid: "u2", delta: 9 },  // ฿29 → คอม 20% = ฿5.80
+  ];
+  const payouts = [
+    { link_id: "L1", amount_thb: 10 },
+    { link_id: "L2", amount_thb: 99 }, // จ่ายเกินค่าคอม — ค้างจ่ายต้องเป็น 0 ไม่ติดลบ
+  ];
+  const [s1, s2] = computeAffiliateStats(links, attributions, topups, payouts);
+  assert.equal(s1.commissionThb, 19.35);
+  assert.equal(s1.paidThb, 10);
+  assert.equal(s1.owedThb, 9.35);
+  assert.equal(s2.commissionThb, 5.8);
+  assert.equal(s2.owedThb, 0);
+});
+
+test("คอมมิชชัน — ไม่ส่ง payouts (ค่าเริ่มต้น) = จ่ายแล้ว 0 ค้างจ่ายเท่าค่าคอม", () => {
+  const links = [link("L1", "a")];
+  const [s1] = computeAffiliateStats(links, [{ auth_uid: "u1", link_id: "L1" }], [{ auth_uid: "u1", delta: 21 }]);
+  assert.equal(s1.commissionThb, 8.85); // 15% ของ ฿59
+  assert.equal(s1.paidThb, 0);
+  assert.equal(s1.owedThb, 8.85);
 });

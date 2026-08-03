@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowser } from "@/lib/supabase/auth-browser";
 import { CREDIT_PACKAGES, PROMPTPAY_MIN_THB } from "@/lib/credits/pricing";
+import { REFUND_POLICY_TITLE, REFUND_POLICY_POINTS, REFUND_CONTACT_NOTE } from "@/lib/payment/refund-policy";
+import { DATA_CONTACT_EMAIL } from "@/lib/consent";
 
 interface View {
   email: string | null;
@@ -272,6 +274,20 @@ export default function AccountPage() {
         <p style={{ fontSize: "0.75rem", opacity: 0.65, marginTop: "0.8rem", lineHeight: 1.6 }}>
           เครดิตใช้กับ ทำนายฝัน · เสี่ยงทาย · คำถามแชท · โลโก้/ฉลาก AI — ดูยอดและประวัติได้ที่หน้านี้
         </p>
+
+        {/* Omise บังคับแสดงนโยบายคืนเงิน ณ จุดชำระเงิน — เนื้อหาจาก lib/payment/refund-policy.ts */}
+        <details style={{ marginTop: "0.6rem", fontSize: "0.78rem", lineHeight: 1.65 }}>
+          <summary style={{ cursor: "pointer", color: "var(--gold)", fontWeight: 600 }}>{REFUND_POLICY_TITLE}</summary>
+          <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.2rem", opacity: 0.85 }}>
+            {REFUND_POLICY_POINTS.map((pt, i) => (
+              <li key={i} style={{ marginBottom: "0.35rem" }}>{pt}</li>
+            ))}
+          </ul>
+          <p style={{ margin: "0.5rem 0 0", opacity: 0.85 }}>
+            {REFUND_CONTACT_NOTE}{" "}
+            <a href={`mailto:${DATA_CONTACT_EMAIL}`} style={{ color: "var(--gold)" }}>{DATA_CONTACT_EMAIL}</a>
+          </p>
+        </details>
       </section>
 
       <section style={card}>

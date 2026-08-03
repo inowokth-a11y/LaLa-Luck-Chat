@@ -3,7 +3,8 @@
 // 🔴 แก้เนื้อหานโยบาย = ต้องขยับ PDPA_VERSION — ระบบเก็บว่าผู้ใช้ยินยอมกับ "รุ่นไหน"
 //    (user_profiles_e.pdpa_version — migration 033)
 
-export const PDPA_VERSION = "2026-08-01.1";
+// 2026-08-03.1: เพิ่มระยะเก็บความจำแม่หมอ 12 เดือน (retention อัตโนมัติ) ใน /privacy §3
+export const PDPA_VERSION = "2026-08-03.1";
 
 /** ผู้ควบคุมข้อมูล — ⚠️ PLACEHOLDER รอผู้ใช้ยืนยันชื่อนิติบุคคล/บุคคล + อีเมลติดต่อจริง */
 export const DATA_CONTROLLER = "ทีมงาน LaLa Lucky Chat (KRUTH APEX)";

@@ -64,6 +64,60 @@ export default function AffiliateAdmin({ links }: { links: LinkStats[] }) {
     }
   }
 
+  async function editCommission(l: LinkStats) {
+    const raw = window.prompt(`คอมมิชชันของ "${l.partner_name}" (% ของรายรับ 0-100):`, String(l.commission_pct));
+    if (raw === null) return;
+    const pct = Number(raw);
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+      setMsg("⚠️ คอมมิชชันต้องเป็นตัวเลข 0-100");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/affiliate", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: l.id, commissionPct: pct }),
+      });
+      const d = await res.json();
+      if (d.error) setMsg(`⚠️ ${d.error}`);
+      else {
+        setMsg(`✅ ตั้งคอมมิชชัน "${l.partner_name}" เป็น ${pct}%`);
+        router.refresh();
+      }
+    } catch (err) {
+      setMsg(`⚠️ ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  async function recordPayout(l: LinkStats) {
+    const raw = window.prompt(
+      `บันทึกยอดที่จ่ายจริงให้ "${l.partner_name}" (บาท)\nค้างจ่ายตอนนี้: ฿${l.owedThb.toFixed(2)}`,
+      l.owedThb > 0 ? l.owedThb.toFixed(2) : ""
+    );
+    if (raw === null) return;
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setMsg("⚠️ ยอดจ่ายต้องเป็นตัวเลขมากกว่า 0");
+      return;
+    }
+    const note = window.prompt("โน้ต (ช่องทาง/เลขอ้างอิงโอน — เว้นว่างได้):") ?? "";
+    try {
+      const res = await fetch("/api/admin/affiliate/payout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ linkId: l.id, amountThb: amount, note: note.trim() || undefined }),
+      });
+      const d = await res.json();
+      if (d.error) setMsg(`⚠️ ${d.error}`);
+      else {
+        setMsg(`✅ บันทึกจ่าย ฿${amount.toFixed(2)} ให้ "${l.partner_name}" แล้ว`);
+        router.refresh();
+      }
+    } catch (err) {
+      setMsg(`⚠️ ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   async function copy(c: string) {
     try {
       await navigator.clipboard.writeText(urlFor(c));
@@ -98,7 +152,7 @@ export default function AffiliateAdmin({ links }: { links: LinkStats[] }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.83rem" }}>
             <thead>
               <tr>
-                {["ผู้รับลิงก์", "ลิงก์", "เปิดดู", "สมัคร", "คนเติมเงิน", "เครดิตขายได้", "รายรับ", ""].map((h, i) => (
+                {["ผู้รับลิงก์", "ลิงก์", "เปิดดู", "สมัคร", "คนเติมเงิน", "เครดิตขายได้", "รายรับ", "คอม %", "ค่าคอม", "จ่ายแล้ว", "ค้างจ่าย", ""].map((h, i) => (
                   <th key={i} style={{ ...S.th, textAlign: i <= 1 ? "left" : "right" }}>{h}</th>
                 ))}
               </tr>
@@ -125,6 +179,20 @@ export default function AffiliateAdmin({ links }: { links: LinkStats[] }) {
                     {l.revenueUncertain && <span title="มีรายการเติมที่เทียบแพ็กปัจจุบันไม่ได้ — ยอดบาทต่ำกว่าจริง"> ⚠️</span>}
                   </td>
                   <td style={S.tdR}>
+                    <button type="button" onClick={() => editCommission(l)} style={S.mini}
+                      title="แก้ % คอมมิชชันของลิงก์นี้">
+                      {l.commission_pct}%
+                    </button>
+                  </td>
+                  <td style={S.tdR}>{baht(l.commissionThb)}</td>
+                  <td style={S.tdR}>{baht(l.paidThb)}</td>
+                  <td style={{ ...S.tdR, color: l.owedThb > 0 ? "var(--gold)" : undefined, fontWeight: l.owedThb > 0 ? 700 : undefined }}>
+                    {baht(l.owedThb)}
+                  </td>
+                  <td style={{ ...S.tdR, whiteSpace: "nowrap" }}>
+                    <button type="button" onClick={() => recordPayout(l)} style={S.mini} title="บันทึกยอดที่โอนจ่ายให้พันธมิตรแล้ว">
+                      บันทึกจ่าย
+                    </button>{" "}
                     <button type="button" onClick={() => toggleActive(l.id, !l.active)} style={S.mini}>
                       {l.active ? "ปิด" : "เปิด"}
                     </button>
@@ -138,7 +206,9 @@ export default function AffiliateAdmin({ links }: { links: LinkStats[] }) {
       <p style={S.note}>
         นับผู้ใช้แบบ first-touch: ลิงก์แรกที่คนคลิกก่อนสมัครชนะ (ผูกภายใน 24 ชม. หลังสร้างบัญชี) ·
         รายรับ = ยอดเติมเครดิตจริงของคนที่มาจากลิงก์นั้น (ตาม §12: จ่ายพันธมิตรตามรายได้จริง ไม่ใช่ยอดสมัคร) ·
-        ลิงก์ที่ปิดจะหยุดรับคนใหม่ แต่รายรับของคนเดิมยังนับต่อ
+        ลิงก์ที่ปิดจะหยุดรับคนใหม่ แต่รายรับของคนเดิมยังนับต่อ ·
+        ค่าคอม = รายรับ × % ของลิงก์ (เริ่มต้น 15% กดที่ตัวเลข % เพื่อแก้) · ปุ่มบันทึกจ่าย = จดยอดที่โอนแล้ว
+        ระบบคำนวณค้างจ่ายให้เอง (ไม่มีการโอนอัตโนมัติ)
       </p>
     </section>
   );

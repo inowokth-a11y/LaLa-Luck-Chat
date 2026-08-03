@@ -10,7 +10,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmails, isAdminEmail } from "@/lib/admin/access";
 import { computeUsageStats, type UsageRow, type UsageStats } from "@/lib/admin/usage-stats";
 import { summarizeQuestions, type QuestionRow } from "@/lib/admin/question-stats";
-import { computeAffiliateStats, type AffLinkRow, type AttributionRow, type TopupRow } from "@/lib/affiliate/stats";
+import { computeAffiliateStats, type AffLinkRow, type AttributionRow, type TopupRow, type PayoutRow } from "@/lib/affiliate/stats";
 import AdminAssistant from "./AdminAssistant";
 import FeedbackAdmin from "./FeedbackAdmin";
 import AffiliateAdmin from "./AffiliateAdmin";
@@ -45,18 +45,20 @@ export default async function AdminPage() {
   const q = summarizeQuestions((qRows as QuestionRow[] | null) ?? []);
 
   // แอฟฟิลิเอต: ลิงก์ + attribution + ledger การเติมเงิน → สถิติต่อลิงก์ (คำนวณด้วย pure fn)
-  const [{ data: affLinks }, { data: affAttrs }, { data: affTopups }] = await Promise.all([
+  const [{ data: affLinks }, { data: affAttrs }, { data: affTopups }, { data: affPayouts }] = await Promise.all([
     svc
       .from("affiliate_links_e")
-      .select("id,code,partner_name,note,active,visit_count,created_at")
+      .select("id,code,partner_name,note,active,visit_count,commission_pct,created_at")
       .order("created_at", { ascending: false }),
     svc.from("affiliate_attributions_e").select("auth_uid,link_id"),
     svc.from("credit_ledger_e").select("auth_uid,delta").like("action", "topup:%").gt("delta", 0),
+    svc.from("affiliate_payouts_e").select("link_id,amount_thb"),
   ]);
   const affStats = computeAffiliateStats(
     (affLinks as AffLinkRow[] | null) ?? [],
     (affAttrs as AttributionRow[] | null) ?? [],
-    (affTopups as TopupRow[] | null) ?? []
+    (affTopups as TopupRow[] | null) ?? [],
+    (affPayouts as PayoutRow[] | null) ?? []
   );
 
   // ความเห็นผู้ใช้ (feedback) — อ่านด้วย service role

@@ -3,6 +3,7 @@
 // POST  { partnerName, code?, note? } → สร้างลิงก์ (ไม่ส่ง code = สุ่มให้)
 // PATCH { id, active }               → เปิด/ปิดลิงก์ (ปิดแล้วหยุดนับ visit + หยุดผูกผู้ใช้ใหม่ทันที
 //                                      แต่ผู้ใช้ที่ผูกไว้แล้วยังนับรายรับต่อ — ข้อตกลงกับพันธมิตรเดิมไม่หาย)
+// PATCH { id, commissionPct }        → ตั้ง % คอมมิชชันรายลิงก์ (0-100 — ผู้ใช้ตัดสิน 3 ส.ค. 2569: เริ่ม 15 ปรับได้)
 // (รายการ+สถิติอ่านใน Server Component หน้า /admin โดยตรง — ไม่มี GET ที่นี่)
 
 import { NextResponse } from "next/server";
@@ -79,16 +80,30 @@ export async function PATCH(req: Request) {
   const body = await req.json().catch(() => ({}));
   const id = String(body?.id ?? "");
   const active = body?.active;
-  if (!/^[0-9a-f-]{36}$/i.test(id) || typeof active !== "boolean") {
-    return NextResponse.json({ error: "ต้องระบุ id (uuid) และ active (boolean)" }, { status: 400 });
+  const commissionPct = body?.commissionPct;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+    return NextResponse.json({ error: "ต้องระบุ id (uuid)" }, { status: 400 });
+  }
+
+  const patch: { active?: boolean; commission_pct?: number } = {};
+  if (typeof active === "boolean") patch.active = active;
+  if (commissionPct !== undefined) {
+    const pct = Number(commissionPct);
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+      return NextResponse.json({ error: "คอมมิชชันต้องเป็นตัวเลข 0-100 (%)" }, { status: 400 });
+    }
+    patch.commission_pct = Math.round(pct * 100) / 100; // เก็บละเอียดสุดทศนิยม 2 ตำแหน่งตาม schema
+  }
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "ต้องส่ง active หรือ commissionPct อย่างน้อยหนึ่งอย่าง" }, { status: 400 });
   }
 
   const svc = createServiceClient();
   const { data, error } = await svc
     .from("affiliate_links_e")
-    .update({ active })
+    .update(patch)
     .eq("id", id)
-    .select("id,active")
+    .select("id,active,commission_pct")
     .maybeSingle();
   if (error) return NextResponse.json({ error: "อัปเดตไม่สำเร็จ" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "ไม่พบลิงก์" }, { status: 404 });
