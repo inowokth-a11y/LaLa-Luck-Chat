@@ -1301,6 +1301,23 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ คะแนนเลข 5 ด้าน 0-10 — แก้คำตอบสายเลขสั้นเกินไป (3-4 ส.ค. 2569 ผู้ใช้สั่งพร้อมสเปกละเอียด):**
+- **`lib/engine/number-aspects.ts`** (5 เทสต์): คะแนน การเงิน/ความรัก/สุขภาพกายใจ/โชค/อำนาจบารมี
+  ต่อเลขหนึ่งชุด — ⚠️ **สูตรเสริมออกแบบเอง** (แบบเดียวกับสูตรเบอร์โทร/คะแนน compatibility) 3 ชั้น
+  deterministic: อุปนิสัยรายหลัก 0-9 ตามเลขศาสตร์กระแสหลัก (DIGIT_ASPECTS) + เลขท้ายคู่ถ่วงน้ำหนัก
+  + ธาตุของเลข (ตาราง §5.4) เทียบธาตุผู้ใช้ด้วย wuXingScore · จุดเด่น/ข้อควรระวังเป็นเทมเพลต ฿0 ·
+  NUMBER_ASPECTS_CAVEAT บังคับแสดง (มีเทสต์) · Productive Clash ยกทั้งภาพ (มีเทสต์)
+- **fn ที่ 16 `myNumberAspects`** (chartable 0-10, needsProfile) — planner ตั้งเป็น**ตัวหลักของ
+  คำถามสายเลข** "ดีไหม/เป็นยังไง" (myNumberScore เหลือไว้สำหรับความเข้ากันธาตุแบบสั้น) ·
+  narrator **กฎ 10**: คำตอบสายเลขห้ามสั้น — หัวข้อต่อเลข → คะแนน 5 ด้าน+ภาพรวม (ห้ามปัด/แต่ง) →
+  จุดเด่น/ระวัง → เทียบหลายเลข → คำแนะนำรวม → **ปิดท้ายชวนถามต่อ 2-3 ข้อที่ระบบตอบได้จริง** ·
+  narrator maxTokens 1100→1600
+- **verify AI จริง**: "ทะเบียน จง 6266 กับบ้านเลขที่ 444 ดีไหม" → โครงครบทุกส่วนตามสเปกผู้ใช้ ·
+  **ตัวเลขทุกตัวตรง engine เป๊ะ** (เทียบมือแล้ว) · Gemini 503 ชั่วคราวระหว่างทดสอบ → fallback chain
+  ทำงานเองถูกต้อง · เทสต์ 429
+- 💡 สูตร DIGIT_ASPECTS ควรเพิ่มเข้าเอกสารคำถามเจ้าของตำรา (รอบหน้า) — ถ้าตำรามีตารางอุปนิสัย
+  รายหลักของจริง ควรเทียบ/แทนที่
+
 **✅ SEO ชุดพื้นฐาน (3 ส.ค. 2569 — ผู้ใช้สั่ง "อยากทำ SEO"):**
 - `app/robots.ts` (เปิดหน้า content · ปิด /api /admin /account /auth /onboarding /login /consent
   /welcome **และ /card/**) + `app/sitemap.ts` (14 หน้า content) + JSON-LD WebSite ใน root layout

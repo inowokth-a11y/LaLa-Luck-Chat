@@ -23,6 +23,7 @@ import { getWellnessForMissing, getWellnessPair, FRAMING_CAVEAT } from "../engin
 import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../engine/mind-care";
 import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work-toxic";
 import { DAY_ELEMENT } from "../engine/element";
+import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
 import { ELEMENT_TO_COLORS, DIRECTION_TO_ELEMENT, ALL_DIRECTIONS } from "../engine/fengshui";
 import {
   lookup2digit,
@@ -66,6 +67,7 @@ export const PLAN_FN_NAMES = [
   "myElementSeed",
   "myWuXingVsElement",
   "myNumberScore",
+  "myNumberAspects",
   "myPersonalYear",
   "myWellnessAdvice",
   "myLuckyColors",
@@ -353,6 +355,25 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       const score = wuXingScore(ctx!.dominant, el, ctx!.missing);
       return { เลข: a.num, ธาตุของเลข: THAI_LABEL_5[el], ...score };
     },
+    defaultLabel: (a) => `เลข ${a.num}`,
+  },
+
+  myNumberAspects: {
+    logic: 2,
+    description:
+      "คะแนนเลข 5 ด้าน 0-10 (การเงิน/ความรัก/สุขภาพกายใจ/โชค/อำนาจบารมี) + จุดเด่น/ข้อควรระวัง — " +
+      "**ตัวหลักสำหรับคำถามทะเบียนรถ บ้านเลขที่ เบอร์โทร เลขใดๆ ว่า 'ดีไหม/เป็นยังไง'** " +
+      "หลายเลขให้เรียกทีละเลข (chart bar เทียบภาพรวมได้)",
+    argsHint: "{ num: 0-9999999999 } (เอาเฉพาะหลักตัวเลข เช่น ทะเบียน 'จง 6266' → 6266)",
+    caveat: NUMBER_ASPECTS_CAVEAT,
+    chartable: { scale: [0, 10], pick: (o) => (o as { ภาพรวม: number }).ภาพรวม },
+    needsProfile: true,
+    check: (a) => {
+      const r = intInRange(a.num, 0, 9_999_999_999, "num", "รองรับสูงสุด 10 หลัก");
+      return r.ok ? { ok: true, args: { num: a.num } } : r;
+    },
+    // สูตรเสริม 3 ชั้น deterministic (ดู lib/engine/number-aspects.ts) — ไม่มี AI แต่งตัวเลข
+    run: (a, ctx) => numberAspects(a.num as number, ctx?.dominant, ctx?.missing ?? []),
     defaultLabel: (a) => `เลข ${a.num}`,
   },
 
