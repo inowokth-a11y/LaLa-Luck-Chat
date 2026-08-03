@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 13, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 7 ตัว (seed/vsElement/numberScore/personalYear/wellness/luckyColors/matchProfile)");
+  assert.equal(PLAN_FN_NAMES.length, 14, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 8 ตัว (seed/vsElement/numberScore/personalYear/wellness/luckyColors/matchProfile/mindCare)");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -486,4 +486,19 @@ test("myMatchProfile — จัดอันดับธาตุคู่ด้�
   assert.equal((o.อันดับทั้งหมด as unknown[]).length, 5, "ต้องจัดอันดับครบ 5 ธาตุ");
   assert.ok((o.ทิศที่ธาตุตรงกับคู่เกื้อหนุน as string[]).length > 0, "ต้องมีทิศจาก DIRECTION_TO_ELEMENT");
   assert.ok(ex.caveats[0]?.includes("ระบุตัวบุคคล"), "caveat ต้องกันความคาดหวังเรื่องระบุตัวตน/สถานที่");
+});
+
+test("myMindCare — state ถูก normalize (ไทย→enum) · ค่านอกเหนือถูกปฏิเสธ · เลือกเทคนิคตามธาตุขาด", () => {
+  const plan = mustPass({ calls: [{ fn: "myMindCare", args: { state: "เครียดมาก" } }] });
+  assert.deepEqual(plan.calls[0].args, { state: "stressed" });
+  mustFail({ calls: [{ fn: "myMindCare", args: { state: "อยากรวย" } }] });
+  mustFail({ calls: [{ fn: "myMindCare", args: {} }] });
+
+  const ex = executePlan(plan, { ...MOCK_PROFILE, missing: ["Water"] } as never);
+  const o = ex.results[0].output as Record<string, never>;
+  assert.equal(o.สภาวะ, "เครียดเฉียบพลัน");
+  const หลัก = o.เทคนิคหลัก as { ชื่อ: string; วิธีทำ: string };
+  assert.ok(หลัก.ชื่อ.includes("หายใจกล่อง"), "ขาดน้ำ+เครียด → หายใจกล่อง (น้ำ+ดิน) เป็นหลัก");
+  assert.ok(o.สัญญาณที่ควรพบผู้เชี่ยวชาญ);
+  assert.ok(ex.caveats[0]?.includes("ไม่ใช่การรักษา"));
 });

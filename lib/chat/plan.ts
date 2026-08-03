@@ -20,6 +20,7 @@ import {
   type ElementSeedResult,
 } from "../engine/element";
 import { getWellnessForMissing, getWellnessPair, FRAMING_CAVEAT } from "../engine/wellness";
+import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../engine/mind-care";
 import { DAY_ELEMENT } from "../engine/element";
 import { ELEMENT_TO_COLORS, DIRECTION_TO_ELEMENT, ALL_DIRECTIONS } from "../engine/fengshui";
 import {
@@ -68,6 +69,7 @@ export const PLAN_FN_NAMES = [
   "myWellnessAdvice",
   "myLuckyColors",
   "myMatchProfile",
+  "myMindCare",
 ] as const;
 
 export type PlanFnName = (typeof PLAN_FN_NAMES)[number];
@@ -445,6 +447,49 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       };
     },
     defaultLabel: () => "ธาตุคู่ที่เกื้อหนุนฉัน",
+  },
+
+  myMindCare: {
+    logic: 16,
+    description:
+      "เทคนิคดูแลใจเฉพาะสภาวะ (เครียดเฉียบพลัน/กังวลคิดวน/สงสัยตัวเอง/หมดพลัง) เลือกให้เข้ากับธาตุผู้ใช้ — " +
+      "ใช้กับอารมณ์เฉียบพลันตอนนี้ เช่น 'เครียดมากตอนนี้' 'คิดวนไม่หยุด' 'เพิ่งโดนต่อว่ามา ใจสั่น'",
+    argsHint: '{ state: "stressed|anxious|self_doubt|drained" (หรือภาษาไทย เช่น เครียด/กังวล/สงสัยตัวเอง/หมดพลัง) }',
+    caveat: MIND_CARE_CAVEAT,
+    chartable: null,
+    needsProfile: true,
+    check: (a) => {
+      const st = toMindState(a.state);
+      if (!st) {
+        return {
+          ok: false,
+          error: `state "${String(a.state)}" ไม่อยู่ในสภาวะที่ระบบรู้จัก (${Object.values(MIND_STATE_TH).join("/")})`,
+        };
+      }
+      return { ok: true, args: { state: st } };
+    },
+    run: (a, ctx) => {
+      const r = getMindCare(a.state as never, ctx!.missing);
+      return {
+        สภาวะ: r.stateTh,
+        เทคนิคหลัก: {
+          ชื่อ: `${r.primary.nameTh} (${r.primary.name})`,
+          วิธีทำ: r.primary.steps,
+          ใช้เวลา_นาที: r.primary.durationMin,
+          เสริมธาตุ: r.primary.elementNote,
+          ...(r.primary.caution ? { ข้อควรระวัง: r.primary.caution } : {}),
+        },
+        เทคนิคสำรอง: {
+          ชื่อ: `${r.alternative.nameTh} (${r.alternative.name})`,
+          วิธีทำ: r.alternative.steps,
+          ใช้เวลา_นาที: r.alternative.durationMin,
+          เสริมธาตุ: r.alternative.elementNote,
+        },
+        เทคนิคหลักเสริมธาตุที่ขาดพอดี: r.primaryBoostsMissing,
+        สัญญาณที่ควรพบผู้เชี่ยวชาญ: r.redFlag,
+      };
+    },
+    defaultLabel: () => "เทคนิคดูแลใจ",
   },
 };
 
