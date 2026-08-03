@@ -52,9 +52,9 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
   try {
     return await renderOg(params);
   } catch (e) {
-    // ชั่วคราว (debug 500 บน Vercel 3 ส.ค. 2569): คาย error จริงเป็น text — ลบออกเมื่อพบสาเหตุ
+    // สาเหตุที่เคยเจอ: ฟอนต์ไม่ถูก trace เข้า lambda (แก้ด้วย outputFileTracingIncludes แล้ว)
     console.error("[card-og]", e);
-    return new Response(`card-og error: ${e instanceof Error ? `${e.message}\n${e.stack}` : String(e)}`, { status: 500 });
+    return new Response(null, { status: 500 });
   }
 }
 
