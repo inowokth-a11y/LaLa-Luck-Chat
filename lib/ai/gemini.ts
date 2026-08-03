@@ -15,6 +15,20 @@ interface GeminiResponse {
   usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
 }
 
+/** ดึงข้อความ + กันคำตอบว่าง/ขาด — ว่าง = throw ให้ fallback chain (บทเรียนเดียวกับ gpt-5.5) */
+function geminiText(json: {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>;
+}): string {
+  const text = (json.candidates?.[0]?.content?.parts ?? [])
+    .map((p) => p.text ?? "")
+    .join("")
+    .trim();
+  if (!text) {
+    throw new Error(`Gemini คืนคำตอบว่าง (finishReason=${json.candidates?.[0]?.finishReason ?? "?"})`);
+  }
+  return text;
+}
+
 export const geminiProvider: AiProvider = {
   name: "gemini",
 
@@ -36,7 +50,13 @@ export const geminiProvider: AiProvider = {
         // Gemini แยก system prompt ออกมาเป็น system_instruction (ไม่ใช่ message แรก)
         system_instruction: { parts: [{ text: req.system }] },
         contents: [{ role: "user", parts: [{ text: req.input }] }],
-        generationConfig: { maxOutputTokens: req.maxTokens ?? 4096 },
+        generationConfig: {
+          maxOutputTokens: req.maxTokens ?? 4096,
+          // Flash เป็นโมเดล thinking — ความคิดภายในกิน maxOutputTokens จนคำตอบขาดกลางประโยค
+          // (เจอจริง 3 ส.ค. 2569 ตอนสลับ ai2 เป็น Gemini หลัก: ได้ 133 ตัวอักษรแล้วขาด)
+          // ปิด thinking: งาน narrator ไม่ต้องคิดลึก ข้อเท็จจริงถูกล็อกจาก engine แล้ว
+          thinkingConfig: { thinkingBudget: 0 },
+        },
         // ให้ค้นเว็บได้เมื่อ AI-1 ต้องการ (google_search เป็น built-in tool ของ Gemini)
         ...(req.webSearch ? { tools: [{ google_search: {} }] } : {}),
       }),
@@ -58,10 +78,7 @@ export const geminiProvider: AiProvider = {
     }
 
     return {
-      text: (json.candidates?.[0]?.content?.parts ?? [])
-        .map((p) => p.text ?? "")
-        .join("")
-        .trim(),
+      text: geminiText(json),
       usage: {
         input_tokens: json.usageMetadata?.promptTokenCount ?? 0,
         output_tokens: json.usageMetadata?.candidatesTokenCount ?? 0,

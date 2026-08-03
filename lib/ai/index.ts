@@ -39,8 +39,13 @@ const CANDIDATES: Record<AiRole, Candidate[]> = {
     { provider: claudeProvider, model: "claude-opus-4-8" },
   ],
   ai2: [
-    { provider: openaiProvider, model: "gpt-5.5" }, // primary ตามที่ผู้ใช้เลือก
-    { provider: geminiProvider, model: "gemini-3.5-flash" }, // สำรองกลาง
+    // 🔴 สลับเป็น Gemini Flash หลัก (ผู้ใช้เลือก "ทาง ค" 3 ส.ค. 2569 — เหตุผลต้นทุน:
+    //    gpt-5.5 วัดจริง ฿0.62/คำตอบหลัง prompt ยาวขึ้น ทำแชทหลุดกฎกำไร 500% ·
+    //    Gemini Flash ฿0.04 → กำไรกลับมา ~14×) · gpt-5.5 เป็นสำรองแรก (คุณภาพใกล้เคียง)
+    // ⚠️ เงื่อนไขผูกพัน: ต้องเปิด billing บนคีย์ Gemini (paid tier) เพื่อให้คำมั่นใน /consent
+    //    ว่า "ไม่ถูกใช้เทรนโมเดล" เป็นจริง — free tier ของ Google ใช้ข้อมูล improve ได้
+    { provider: geminiProvider, model: "gemini-3.5-flash" },
+    { provider: openaiProvider, model: "gpt-5.5" },
     { provider: claudeProvider, model: "claude-opus-4-8" }, // สำรองสุดท้ายก่อน template
   ],
   // 🔴 vision = Claude เท่านั้น (ผู้ใช้ตัดสิน 30 ก.ค. 2569 เรื่อง privacy ภาพนำเข้า):

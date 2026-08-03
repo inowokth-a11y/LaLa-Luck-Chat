@@ -35,7 +35,8 @@ export const ACTION_RATES: ActionRate[] = [
   { key: "naming_text", label: "ตั้งชื่อ/คำ prompt โลโก้ (ข้อความ)", costThb: 0, credits: 0, category: "free", note: "engine ล้วน ไม่ใช้ AI" },
 
   // ---- แชท: หักต่อคำถาม ----
-  { key: "chat_question", label: "ถามแชท 1 คำถาม (ทุกฟังก์ชัน)", costThb: 0.35, credits: 1, category: "chat" },
+  { key: "chat_question", label: "ถามแชท 1 คำถาม (ทุกฟังก์ชัน)", costThb: 0.18, credits: 1, category: "chat",
+    note: "วัดใหม่ 3 ส.ค. 2569 หลังสลับผู้เล่าเรื่องเป็น Gemini Flash (ทาง ค): planner Haiku ฿0.14 + Flash ฿0.04 · เดิม gpt-5.5 รวม ฿0.76 หลุดกฎ 500%" },
 
   // ---- Oracle: หมวดแยก ----
   { key: "oracle", label: "เสี่ยงทายวงแหวนคู่", costThb: 0.76, credits: 2, category: "oracle" },
