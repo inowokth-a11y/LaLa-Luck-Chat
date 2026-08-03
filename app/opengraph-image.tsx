@@ -60,11 +60,26 @@ export default async function OgImage() {
                 display: "flex",
                 alignSelf: "flex-start",
                 fontSize: 28,
+                color: "#8a5a00",
+                fontWeight: 700,
+                background: "rgba(184,134,11,0.14)",
+                borderRadius: 12,
+                padding: "10px 20px",
+                marginTop: 26,
+              }}
+            >
+              👉 กดเพื่อดู — คุณเหมือนใครในตำนาน/ประวัติศาสตร์?
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignSelf: "flex-start",
+                fontSize: 25,
                 color: "#f6f1e7",
                 background: "#b8860b",
                 borderRadius: 999,
-                padding: "12px 32px",
-                marginTop: 30,
+                padding: "10px 26px",
+                marginTop: 14,
               }}
             >
               🐾 เปิดการ์ดพลังงานประจำตัวของคุณ — ฟรี
