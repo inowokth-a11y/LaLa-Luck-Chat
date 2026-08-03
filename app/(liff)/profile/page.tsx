@@ -247,7 +247,8 @@ export default function ProfilePage() {
         logicId={1}
         context={card && seed ? { การ์ด: card, ธาตุ: seed, เลขการ์ด: cardId } : null}
         placeholder="เช่น ธาตุที่ขาดควรทำยังไงดี"
-        invite={autoInvite ? "ลาลา~ ได้การ์ดประจำตัวของคุณแล้ว! ถามแม่หมอเกี่ยวกับการ์ด/ธาตุของคุณได้ 1 คำถามฟรีเลยค่ะ" : undefined}
+        invite={autoInvite ? "ลาลา~ ได้การ์ดประจำตัวของคุณแล้ว! ถามแม่หมอเกี่ยวกับการ์ด/ธาตุของคุณได้ 3 คำถามฟรีเลยค่ะ" : undefined}
+        firstReading={autoInvite}
       />
 
     </main>

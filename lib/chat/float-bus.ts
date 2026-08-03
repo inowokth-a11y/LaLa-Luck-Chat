@@ -10,6 +10,8 @@ export interface ChatContextPayload {
   placeholder?: string;
   /** ข้อความชวนจากแม่หมอ (ใช้ตอน onboarding) — ถ้ามีจะข้าม nudge อัตโนมัติ (ไม่เด้งซ้อน) */
   invite?: string;
+  /** true = เพิ่งเปิดการ์ดครั้งแรก → LalaFloat เด้ง "คำทำนายแรกพบ" อัตโนมัติ (ครั้งเดียว/เซสชัน) */
+  firstReading?: boolean;
 }
 
 const EVT = "lala:chat-context";

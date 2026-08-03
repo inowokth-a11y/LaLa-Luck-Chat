@@ -11,7 +11,7 @@
 //    นับที่ chat_usage_e bucket "questions" (+ bonus จากรางวัลแชร์/คอมเมนต์ ผ่าน add_chat_bonus)
 
 /** คำถามฟรีเริ่มต้นต่อบัญชี — ผูกกับโมเมนต์เปิดการ์ด Logic 1 ครั้งแรก */
-export const FREE_QUESTIONS_TOTAL = 1;
+export const FREE_QUESTIONS_TOTAL = 3; // ผู้ใช้ตัดสิน 4 ส.ค. 2569: 1→3 (สิทธิ์ฟรีส่วนอื่นคงเดิม)
 
 /** bucket เดียวของคำถามแชททุกหน้า (แทน "plan" และ "logic:<id>" เดิมสำหรับแชท) */
 export const QUESTIONS_BUCKET = "questions";

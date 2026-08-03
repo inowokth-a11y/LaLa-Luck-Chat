@@ -125,6 +125,32 @@ export default function LalaFloat() {
     return () => clearTimeout(t);
   }, [ctx]);
 
+  // คำทำนายแรกพบ (4 ส.ค. 2569): เพิ่งเปิดการ์ดครั้งแรก → เด้งแชทเปิดเอง + แม่หมออ่านพื้นดวงให้
+  // ครั้งเดียวต่อเซสชัน (sessionStorage) · ไม่หักสิทธิ์ (route โหมด first_reading) · พังเงียบ = เหลือ invite เดิม
+  const firstReadingRan = useRef(false);
+  useEffect(() => {
+    if (!ctx?.firstReading || needsLogin || firstReadingRan.current) return;
+    try {
+      if (sessionStorage.getItem("kruth_first_reading")) return;
+      sessionStorage.setItem("kruth_first_reading", "1");
+    } catch {}
+    firstReadingRan.current = true;
+    setOpen(true);
+    setBusy(true);
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mode: "first_reading", context: ctx.context }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.reply) setMsgs((m) => [...m, { role: "ai", text: d.reply }]);
+      })
+      .catch(() => {})
+      .finally(() => setBusy(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ctx?.firstReading, needsLogin]);
+
   // เลื่อนเธรดลงล่างสุดเมื่อมีข้อความใหม่
   useEffect(() => {
     const el = threadRef.current;

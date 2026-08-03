@@ -19,6 +19,7 @@ import {
   questionNeedsLoginMessage,
 } from "@/lib/chat/questions";
 import { runPlanChat, buildProfileContext } from "@/lib/chat/plan-run";
+import { FIRST_READING_SYSTEM, buildFirstReadingInput } from "@/lib/chat/first-reading-prompt";
 import {
   questionSuggestsComputation,
   CONSULT_TOPIC_KEY,
@@ -63,7 +64,7 @@ ${FIGURE_TONE_PROMPT}`;
 
 interface ChatBody {
   /** "context" (ค่าเริ่มต้น) = ถามต่อจากผลบนหน้าจอ · "plan" = วิเคราะห์อิสระ (§16) */
-  mode?: "context" | "plan";
+  mode?: "context" | "plan" | "first_reading";
   logicId?: number;
   question?: string;
   /** ผลที่หน้าจอคำนวณได้ — ส่งมาเพื่อให้ AI ตอบโดยอิงของจริง ไม่ใช่เดา */
@@ -127,6 +128,48 @@ const deniedResponse = (p: PoolState) =>
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as ChatBody;
+    // ---- โหมด "คำทำนายแรกพบ" (4 ส.ค. 2569) — ระบบเรียกเองหลังเปิดการ์ดครั้งแรก ไม่ใช่คำถามผู้ใช้
+    // จึงไม่มี question · ไม่หักสิทธิ์/เครดิต · ต้องล็อกอิน+มีโปรไฟล์ (พื้นดวงคำนวณจากวันเกิด)
+    if (body.mode === "first_reading") {
+      let uid: string | null = null;
+      let birthDate: string | null = null;
+      try {
+        const supabase = await createSupabaseServer();
+        uid = (await supabase.auth.getUser()).data.user?.id ?? null;
+        if (uid) {
+          const { data } = await supabase
+            .from("user_profiles_e")
+            .select("birth_date")
+            .eq("auth_uid", uid)
+            .maybeSingle();
+          birthDate = data?.birth_date ?? null;
+        }
+      } catch {
+        uid = null;
+      }
+      const profileCtx = buildProfileContext(birthDate);
+      if (!uid || !profileCtx) {
+        return NextResponse.json({ error: "ต้องเข้าสู่ระบบและมีวันเกิดในโปรไฟล์ก่อนค่ะ" }, { status: 401 });
+      }
+      const ai = await generate({
+        role: "ai2",
+        logicId: 1,
+        channel: "web",
+        userId: uid,
+        system: FIRST_READING_SYSTEM,
+        input: buildFirstReadingInput({
+          dominant: profileCtx.dominant,
+          missing: profileCtx.missing,
+          birthDay: profileCtx.birthDay,
+          birthMonth: profileCtx.birthMonth,
+          cardContext: body.context ?? undefined,
+        }),
+        maxTokens: 1600,
+      });
+      void rememberEvent(uid, "chat", { q: "(คำทำนายแรกพบ)", a: ai.text.slice(0, 300), tag: "first_reading" });
+      return NextResponse.json({ reply: ai.text, via: `${ai.provider}/${ai.model}` });
+    }
+
     const question = (body.question ?? "").trim();
 
     if (!question) {

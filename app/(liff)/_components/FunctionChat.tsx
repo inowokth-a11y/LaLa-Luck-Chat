@@ -16,19 +16,22 @@ interface Props {
   placeholder?: string;
   /** ข้อความชวนจากแม่หมอตอน onboarding */
   invite?: string;
+  /** เพิ่งเปิดการ์ดครั้งแรก → แชทลอยเด้งคำทำนายแรกพบ */
+  firstReading?: boolean;
 }
 
-export default function FunctionChat({ logicId, context, placeholder, invite }: Props) {
+export default function FunctionChat({ logicId, context, placeholder, invite, firstReading }: Props) {
   // หน้าส่ง context เป็น object literal สร้างใหม่ทุก render → เทียบด้วย JSON กัน publish รัว
   const lastJson = useRef<string | null>(null);
 
   useEffect(() => {
-    const payload = context === null || context === undefined ? null : { logicId, context, placeholder, invite };
+    const payload =
+      context === null || context === undefined ? null : { logicId, context, placeholder, invite, firstReading };
     const json = JSON.stringify(payload);
     if (json === lastJson.current) return;
     lastJson.current = json;
     publishChatContext(payload);
-  }, [logicId, context, placeholder, invite]);
+  }, [logicId, context, placeholder, invite, firstReading]);
 
   // ออกจากหน้า → ล้าง context (แชทลอยกลับเป็นโหมด plan)
   // ต้องรีเซ็ต guard ด้วย — StrictMode (dev) จำลอง unmount แล้ว mount ใหม่ ถ้า guard ค้างค่าเดิม
