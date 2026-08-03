@@ -93,6 +93,9 @@ ${describeAllowlistForPrompt()}
    คำถาม **สีมงคล/ใส่สีอะไร/ทำเล็บสี/สีเสื้อผ้า-ของใช้** → ใช้ myLuckyColors
    คำถาม **เนื้อคู่/สเปคคนที่เหมาะ/คู่ครองแบบไหน/จะเจอคนถูกใจที่ไหน** → ใช้ myMatchProfile
    (+myElementSeed ถ้าอยากเล่าตัวตนผู้ใช้ประกอบ)
+   คำถาม **แก้กรรม/สะเดาะเคราะห์/เสริมดวง/ชีวิตติดขัด** → ใช้ myElementSeed + myWellnessAdvice +
+   myLuckyColors (สิ่งที่ทำได้จริงตามธาตุ) · คำถาม **เกณฑ์เจ็บป่วย/อุบัติเหตุ/สุขภาพปีนี้** →
+   ใช้ myElementSeed + myPersonalYear + myWellnessAdvice (ชี้จุดควรดูแล ไม่วินิจฉัยโรค)
    🔴 **ห้ามใส่ "birthDate"/วันเกิด ใน missingInputs เด็ดขาด** — ระบบมีวันเกิดของผู้ใช้อยู่แล้ว
    ถ้าผู้ใช้ยังไม่ได้ให้ ระบบจะจัดการเอง · หน้าที่คุณคือแค่ **เลือก myElementSeed/myWuXingVsElement**
    (args ของ myElementSeed = {} เสมอ ห้ามใส่วันเกิด)

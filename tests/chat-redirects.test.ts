@@ -40,3 +40,26 @@ test("คำถามปกติต้องไม่ถูกดัก — ป
     assert.equal(chatRedirectIntercept(q), null, `"${q}" ไม่ควรถูกดัก`);
   }
 });
+
+test("คำถามต้องห้ามตามจรรยาบรรณ (จากรายงานวิจัย 2 ส.ค. 2569) → ปฏิเสธอ่อนโยนพร้อมเหตุผล", () => {
+  const death = chatRedirectIntercept("ฉันจะตายเมื่อไหร่");
+  assert.equal(death?.kind, "taboo_death");
+  assert.ok(death!.message.includes("จรรยาบรรณ"));
+
+  const baby = chatRedirectIntercept("ลูกในท้องโตขึ้นจะเป็นยังไง ดวงดีไหม");
+  assert.equal(baby?.kind, "taboo_baby");
+  assert.ok(baby!.message.includes("อวยพร"), "ต้องปิดด้วยการอวยพร ไม่ใช่ปฏิเสธห้วนๆ");
+
+  const brk = chatRedirectIntercept("ทำยังไงให้เขาเลิกกับแฟนแล้วมาคบกับฉัน");
+  assert.equal(brk?.kind, "taboo_love_break");
+  assert.ok(brk!.message.includes("ไม่รับดู"));
+  assert.equal(chatRedirectIntercept("อยากทำเสน่ห์ให้เขารัก")?.kind, "taboo_love_break");
+});
+
+test("MEDICAL_RE ฉบับขยาย — จับ 'โรคที่เป็นอยู่จะรักษาหายไหม' (เคสที่เคยรอด)", () => {
+  assert.equal(chatRedirectIntercept("โรคที่เป็นอยู่จะรักษาหายไหม")?.kind, "medical");
+  assert.equal(chatRedirectIntercept("อาการที่เป็นจะหายมั้ย")?.kind, "medical");
+  // คำถามสุขภาพเชิงดูแล/เกณฑ์ ยังต้องผ่านไปสาย wellness (ไม่โดนดัก)
+  assert.equal(chatRedirectIntercept("สุขภาพโดยรวมปีนี้เป็นอย่างไร"), null);
+  assert.equal(chatRedirectIntercept("มีเกณฑ์เจ็บป่วยหรืออุบัติเหตุไหม"), null);
+});
