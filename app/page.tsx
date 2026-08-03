@@ -20,6 +20,7 @@ const TOOLS: { href: string; label: string }[] = [
   { href: "/dream", label: "🌙 ทำนายฝัน" },
   { href: "/oracle", label: "🎴 เสี่ยงทาย" },
   { href: "/wellness", label: "🥗 อาหาร & กิจกรรมตามธาตุ" },
+  { href: "/wellbeing", label: "💙 เช็คสุขภาวะ" },
 ];
 
 const S = {

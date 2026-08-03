@@ -31,7 +31,15 @@ export default function FunctionChat({ logicId, context, placeholder, invite }: 
   }, [logicId, context, placeholder, invite]);
 
   // ออกจากหน้า → ล้าง context (แชทลอยกลับเป็นโหมด plan)
-  useEffect(() => () => publishChatContext(null), []);
+  // ต้องรีเซ็ต guard ด้วย — StrictMode (dev) จำลอง unmount แล้ว mount ใหม่ ถ้า guard ค้างค่าเดิม
+  // effect รอบสองจะข้ามการ publish ทั้งที่ bus เพิ่งถูกล้างเป็น null → แชทลอยไม่เห็นผลบนหน้า
+  useEffect(
+    () => () => {
+      lastJson.current = null;
+      publishChatContext(null);
+    },
+    []
+  );
 
   return null;
 }

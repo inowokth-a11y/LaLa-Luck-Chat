@@ -8,14 +8,15 @@
 /** จำนวนครั้งทดลองฟรีต่อ 1 พิธี (ฝัน/เสี่ยงทาย) ต่อบัญชี */
 export const FREE_QUESTIONS_PER_LOGIC = 2;
 
-/** Logic ที่เปิดให้ถามได้ — ต้องตรงกับหน้าที่มีจริง (LIFF 6 หน้า) */
-export const CHAT_ENABLED_LOGICS: readonly number[] = [1, 4, 7, 8, 20, 21];
+/** Logic ที่เปิดให้ถามได้ — ต้องตรงกับหน้าที่มีจริง */
+export const CHAT_ENABLED_LOGICS: readonly number[] = [1, 4, 7, 8, 16, 20, 21];
 
 export const CHAT_LOGIC_NAMES: Record<number, string> = {
   1: "โปรไฟล์พลังงาน",
   4: "ทำนายฝัน",
   7: "ฮวงจุ้ย",
   8: "ดวงของฉัน",
+  16: "ดูแลสุขภาวะ",
   20: "ข่ายความสัมพันธ์",
   21: "เสี่ยงทาย",
 };

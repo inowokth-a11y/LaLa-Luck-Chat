@@ -1234,14 +1234,14 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ### คำสั่งเปิดงาน (คัดลอกไปวางในเซสชันใหม่ได้เลย)
 
 ```
-อ่าน CLAUDE.md §15 แล้วรัน health check (tsc + test + build) · รายงานสถานะ · แล้วทำต่อจากบล็อก 🚧 สไลซ์ C (แบบประเมินสุขภาวะ — เหลือ migration 035/API/หน้า /wellbeing ตามขั้นตอนที่เขียนไว้)
+อ่าน CLAUDE.md §15 แล้วรัน health check (tsc + test + build) · รายงานสถานะ · แล้วทำต่อจาก "🗺️ แผนเก็บงานที่เหลือ" เฟส A (งานโค้ด: captcha guest Turnstile · retention ความจำแม่หมอ — ข้อหลังต้องถามผู้ใช้เรื่องระยะเก็บก่อน)
 ```
 
 ### สภาพแวดล้อม (ต้องทำก่อนรันคำสั่งใดๆ)
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 359/359
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
@@ -1249,8 +1249,8 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 359/359
 
 | ส่วน | สถานะ |
 |---|---|
-| Engine + ทุกฟีเจอร์ | ✅ **359 tests** · tsc + build ผ่าน |
-| Supabase | ✅ **migration 000-033** รันจริง (ล่าสุด: 027 credit wallet · 029 vision cache · 030 topup idempotency · 031 share reward · 032 user memory · 033 pdpa consent) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
+| Engine + ทุกฟีเจอร์ | ✅ **413 tests** · tsc + build ผ่าน (3 ส.ค. 2569) |
+| Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
 **✅ สรุปเซสชัน 30 ก.ค.–1 ส.ค. 2569 (ทั้งหมด commit+push แล้ว — รายละเอียดในบล็อก ✅ ด้านบน):**
@@ -1391,7 +1391,7 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
 - allowlist รวมเป็น 13 fn · เทสต์ 394 · verify AI จริง 4 คำถาม: เนื้อคู่ได้อันดับธาตุ+นิสัย+ทิศ+
   ความซื่อสัตย์เรื่องระบุไม่ได้ · สีได้จากตารางจริง+ธาตุวัน ไม่มีเลขมั่ว
 
-**🚧 สไลซ์ C: แบบประเมินสุขภาวะ "LaLa Wellbeing Check" — ทำครึ่งทาง ส่งต่อเซสชันใหม่ (2 ส.ค. 2569):**
+**✅ สไลซ์ C: แบบประเมินสุขภาวะ "LaLa Wellbeing Check" — เสร็จครบทั้งเส้น (3 ส.ค. 2569):**
 
 🔴 **การตัดสินใจของผู้ใช้ (ครบแล้ว ห้ามถามซ้ำ):** ① ทำเลยไม่รอ launch ② แบรนด์ = LaLa Lucky Chat
 เอง โดยให้ความหมาย **"LaLa = สุขภาพใจที่มีความสุข · Lucky = โหราศาสตร์"** (ใส่เรื่องราวนี้ในหน้า
@@ -1409,29 +1409,32 @@ intro) ③ ราคา: ให้คำนวณต้นทุนตามแ�
   "ค่ะ/คะ" แล้ว — มีเทสต์ล็อกทั้ง persona และคำคลินิก**
 - `tests/wellbeing.test.ts` 5 เทสต์ (รวมทั้งชุด 413 ผ่าน)
 
-**⬜ เหลือทำ (เซสชันใหม่ทำตามลำดับนี้):**
-1. **migration 035_wellbeing_kwi.sql**: ตาราง `kwi_responses_e` (id bigint identity pk ·
-   auth_uid uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE · responses jsonb ·
-   vitality/meaning/connection/mastery/resilience numeric · kwi_total numeric · pattern text ·
-   consent_version text · taken_at timestamptz default now()) + index (auth_uid, taken_at desc) ·
-   RLS: own-row SELECT เท่านั้น ไม่มี policy เขียน (เขียนผ่าน service role ใน API) —
-   รันด้วย `node --env-file=.env.local scripts/db-migrate.mjs 035_...` + verify anon ตามธรรมเนียม
-2. **API `/api/wellbeing`**: POST {answers, consent:true} → ต้องล็อกอิน (guest ได้ — cascade ครอบ)
-   → validateKwiAnswers → scoreKwi → insert (service role) → คืนผล · GET → ผลล่าสุดของตัวเอง
-   (อ่านด้วย session client ผ่าน RLS own-row) · ไม่คิดเงิน ไม่มี AI ในเส้นนี้
-3. **หน้า `/wellbeing`** (โทนสว่าง .tone-marble): intro + เรื่องแบรนด์ LaLa/Lucky + **consent
-   แยกเฉพาะ** (checkbox ก่อนเริ่ม — ระบุว่าเก็บอะไร/ลบพร้อมบัญชี/ไม่ใช่เครื่องมือวินิจฉัย) →
-   ฟอร์ม 25 ข้อแบ่ง 5 หมวด (KWI_QUESTIONS จาก engine — radio ต่อข้อ) → ผล: badge + **radar ใช้
-   ChartPanel {type:"radar", scale:[1,5], points 5 มิติ}** (component เดิม §16.2) + การ์ด pattern
-   (opening/strength/challenge/shortTermAction) + WELLBEING_CAVEAT + ถ้า showReferral โชว์ 1323
-   เด่น · จบด้วย publish ผลเข้าแชทลอยผ่าน `<FunctionChat logicId={16} context={ผล}/>`
-4. **wiring เล็ก 2 จุด**: เพิ่ม 16 เข้า `CHAT_ENABLED_LOGICS` + ชื่อ "ดูแลสุขภาวะ" ใน
-   `CHAT_LOGIC_NAMES` (lib/chat/quota.ts) · เพิ่ม `{ href: "/wellbeing", label: "💙 เช็คสุขภาวะ" }`
-   ใน TOOLS หน้าแรก (app/page.tsx บรรทัด ~15)
-5. เทสต์+build+browser verify (ฟอร์มครบ 25 ข้อ/ปุ่ม submit disabled จนตอบครบ/anon เห็นชวนล็อกอิน)
-   · commit · อัปเดตบล็อกนี้เป็น ✅
-⚠️ ระวัง: ห้ามคำคลินิกทุกข้อความ · คะแนนดิบไม่โชว์ (แสดง % / badge) · Safety Gate ของแชทมีอยู่แล้ว
-ไม่ต้องทำเพิ่ม · อย่ารัน `npm run build` ขณะ dev server เปิด (บทเรียน §15)
+**✅ เสร็จเพิ่มทั้งหมด (3 ส.ค. 2569 — เซสชันต่อ):**
+1. **migration 035_wellbeing_kwi.sql** — ตาราง `kwi_responses_e` ตามสเปกเป๊ะ (FK cascade ·
+   RLS own-row SELECT เท่านั้น ไม่มี policy เขียน) **รันบน prod แล้วผ่าน pooler IPv4** (เน็ตวงนี้
+   IPv6 ตรงไม่ได้ — ตามบทเรียน §12) · verify anon: SELECT 0 แถว · INSERT ปฏิเสธ 42501
+2. **`/api/wellbeing`** — POST: consent ไม่ติ๊ก=400 → ต้องล็อกอิน (guest ได้) 401 needsLogin →
+   validateKwiAnswers → scoreKwi → insert service role (เก็บ `consent_version=PDPA_VERSION`) ·
+   GET: ผลล่าสุดผ่าน RLS own-row — **คำนวณผลสดจากคำตอบดิบ** (คะแนนตายตัวในแถวมีไว้วิเคราะห์ย้อนหลัง)
+3. **หน้า `/wellbeing`** (.tone-marble) — intro เรื่องแบรนด์ LaLa/Lucky + consent แยกเฉพาะ (ปุ่มติดล็อก
+   จนติ๊ก) → ฟอร์ม 25 ข้อ 5 หมวด (submit disabled จนตอบครบ + progress sticky) → ผล: badge + radar
+   ChartPanel + % ต่อมิติ (⭐จุดแข็ง/💛น่าดูแลเพิ่ม — ไม่มีคะแนนดิบ) + การ์ด pattern + caveat +
+   referral 1323 เฉพาะ showReferral + ปุ่ม "ดูผลครั้งล่าสุด" จาก GET + FunctionChat logicId 16
+4. wiring: CHAT_ENABLED_LOGICS/CHAT_LOGIC_NAMES เพิ่ม 16 "ดูแลสุขภาวะ" · TOOLS หน้าแรก "💙 เช็คสุขภาวะ"
+- **verify ครบ:** เทสต์ 413 · tsc+build ผ่าน · **API E2E กับ test user จริงบน dev server**: no-consent
+  400 · คำตอบไม่ครบ 400 (บอกข้อที่ขาด) · submit เต็ม 200 (คำตอบต่ำ → P005 + showReferral จริง) ·
+  แถวลง DB พร้อม consent_version · GET ผ่าน RLS · ลบ user → cascade เกลี้ยง · **browser จริง**
+  (ฝัง session test user ใน cookie): ฟอร์ม 25 ข้อ/5 หมวด · ปุ่ม disabled จนติ๊ก+ตอบครบ · anon
+  submit → 401 + CTA `/login?next=/wellbeing` · ผลดี → P001 ไม่มี referral block · reload →
+  ปุ่มดูผลล่าสุด (วันที่ พ.ศ.) · **ยิง AI จริงผ่านแชทลอย 1 คำถาม**: ตอบอิงตัวเลขจริง (ความสัมพันธ์
+  71% ต่ำสุด + ก้าวเล็กจาก pattern) persona ลาลาครบ + หักถังคำถาม + share teaser · ลบ test user แล้ว
+- 🐛 **บั๊กแฝงที่เจอพ่วงแล้วแก้ (FunctionChat.tsx — กระทบทุกหน้าเฉพาะ dev):** React StrictMode
+  จำลอง unmount→mount ตอน dev · cleanup publish `null` เข้า float-bus แต่ effect รอบสองโดน guard
+  JSON เดิมข้ามการ publish → แชทลอยไม่เห็น context บนเครื่อง dev (prod ไม่โดน — ไม่มี double-invoke)
+  แก้โดยรีเซ็ต `lastJson.current = null` ใน cleanup · อธิบายด้วยว่าทำไม "nudge เด้ง" ในการทดสอบเก่า
+  ยังทำงานทั้งที่ context หาย (timer จับ payload ก่อนถูกล้าง)
+⚠️ กติกาที่คงไว้: ห้ามคำคลินิก (เทสต์ล็อกใน engine) · คะแนนดิบไม่โชว์ (radar ไม่มีตัวเลข + แสดง %) ·
+Safety Gate ของแชทใช้ของเดิม · ฟรีไม่จำกัดตามข้อเสนอ ③ — **ยังต้องแจ้งผู้ใช้ตอนเดโมว่าตัดสินราคาตามนี้**
 
 **✅ เฟส 2 สไลซ์ B: โมดูลรับมือที่ทำงานเป็นพิษ + ตากระพริบ avatar (2 ส.ค. 2569):**
 - **`lib/engine/work-toxic.ts`** — Toxic_Pattern_Library TP001-TP008 จาก KB ผู้ใช้ (สัญญาณ/กลยุทธ์/
