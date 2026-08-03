@@ -105,6 +105,9 @@ export default function Home() {
 
           {loggedIn === true && (
             <div style={{ marginTop: "1.1rem" }}>
+              <p style={{ fontFamily: "var(--font-sans-thai)", fontSize: "0.95rem", fontWeight: 600, margin: "0 0 0.6rem" }}>
+                ✨ คุณเหมือนใครในตำนาน/ประวัติศาสตร์?
+              </p>
               <button style={S.gold} onClick={() => router.push("/profile?auto=1")}>
                 🔮 ใส่ข้อมูลเพื่อรับคำทำนาย
               </button>
@@ -114,6 +117,8 @@ export default function Home() {
           {loggedIn === false && (
             <form onSubmit={onSubmit} style={{ marginTop: "0.9rem" }}>
               <p style={{ fontFamily: "var(--font-sans-thai)", fontSize: "0.95rem", lineHeight: 1.6 }}>
+                ✨ <b>คุณเหมือนใครในตำนาน/ประวัติศาสตร์?</b>
+                <br />
                 🐾 บอกแม่หมอหน่อย แล้วมาเปิด<b>การ์ดพลังงานประจำตัว</b>ของคุณกัน (ฟรี)
               </p>
               <label style={S.label}>ชื่อ *</label>
