@@ -1301,6 +1301,19 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ SEO ชุดพื้นฐาน (3 ส.ค. 2569 — ผู้ใช้สั่ง "อยากทำ SEO"):**
+- `app/robots.ts` (เปิดหน้า content · ปิด /api /admin /account /auth /onboarding /login /consent
+  /welcome **และ /card/**) + `app/sitemap.ts` (14 หน้า content) + JSON-LD WebSite ใน root layout
+- **title/description รายหน้า 12 หน้า** ด้วยคีย์เวิร์ดไทย (ดูดวง/ทำนายฝัน/ฤกษ์ดี/ฮวงจุ้ย/เลขมงคล ฯลฯ)
+  — หน้า (liff) เป็น client component จึงประกาศผ่าน `layout.tsx` ของแต่ละ segment + root title
+  template "%s | LaLa Lucky Chat"
+- 🔴 **/card ตั้ง noindex โดยเจตนา** — หน้านั้น redirect คนจริง (เสิร์ฟเฉพาะ social crawler เพื่อ OG)
+  ถ้าให้ Google index = cloaking เสี่ยงโทษทั้งโดเมน · **ถ้าอยากใช้การ์ด 100 ใบ (มี figure_bio
+  verified แล้ว 47) เป็นหน้า SEO ต้องเลิก redirect คนจริงก่อน — ถามผู้ใช้ก่อนเปลี่ยน**
+- verify ผ่าน next start จริง: robots/sitemap/title template/noindex ครบ
+- 🔴 **ผู้ใช้ต้องทำเอง: Google Search Console** — ยืนยันโดเมน lalaluckychat.com แล้ว submit
+  sitemap (https://lalaluckychat.com/sitemap.xml) ไม่ submit ก็ index ได้แต่ช้ากว่ามาก
+
 **✅ โหมดเปิดตัวไม่หักเครดิต — FREE_LAUNCH_MODE (3 ส.ค. 2569 ผู้ใช้ตัดสิน):**
 - เหตุ: ยังเชื่อม Omise แบบบริษัทไม่ได้ = ผู้ใช้เติมเงินจริงไม่ได้ → กำแพง "เครดิตไม่พอ" คือทางตัน
 - **สวิตช์ env เดียว:** ตั้ง `FREE_LAUNCH_MODE=1` (Vercel + .env.local) = โควตาฟรีหมดแล้ว**ไม่หัก

@@ -50,6 +50,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title,
     description,
+    // 🔴 noindex โดยเจตนา (SEO 3 ส.ค. 2569): หน้านี้ redirect คนจริงไปหน้าแรก เสิร์ฟเนื้อหา
+    // เฉพาะ social crawler — ถ้าให้ Google index จะเป็น cloaking (bot เห็นเนื้อหา คนเห็น redirect)
+    // เสี่ยงโทษทั้งโดเมน · ถ้าจะใช้การ์ด 100 ใบเป็นหน้า SEO ต้องเลิก redirect ก่อน (ถามผู้ใช้)
+    robots: { index: false, follow: false },
     openGraph: { title, description },
     twitter: { card: "summary_large_image", title, description },
   };
