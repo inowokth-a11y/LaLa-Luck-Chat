@@ -1301,6 +1301,18 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ โหมดเปิดตัวไม่หักเครดิต — FREE_LAUNCH_MODE (3 ส.ค. 2569 ผู้ใช้ตัดสิน):**
+- เหตุ: ยังเชื่อม Omise แบบบริษัทไม่ได้ = ผู้ใช้เติมเงินจริงไม่ได้ → กำแพง "เครดิตไม่พอ" คือทางตัน
+- **สวิตช์ env เดียว:** ตั้ง `FREE_LAUNCH_MODE=1` (Vercel + .env.local) = โควตาฟรีหมดแล้ว**ไม่หัก
+  เครดิต ไม่ปฏิเสธ** · **ยังบังคับล็อกอินเหมือนเดิมทุกจุด** (กัน anon spam ของแพง — dream/oracle/
+  คำถามแชท ต้องมีบัญชี) · ลบ env ออก = ระบบเครดิตกลับมาทำงานเดิมทันที ไม่ต้องแก้โค้ด
+- จุดเดียวในโค้ด: `decideCharge({..., freeLaunch})` (lib/credits/charge.ts) + `freeLaunchMode()`
+  อ่าน env — wire ครบทั้ง 6 route (chat/oracle/dream/logo/label-artwork/label-vision) · เทสต์ 424
+- ⚠️ **ระหว่างเปิดโหมดนี้ ต้นทุน AI ไม่มีเพดานต่อผู้ใช้** (จำกัดแค่ต้องล็อกอิน) — ดูต้นทุนจริงใน
+  /admin เป็นระยะ ถ้าโดน spam ให้ลบ env ปิดโหมดได้ทันที
+- 🔴 **ผู้ใช้ต้องตั้งเอง: `FREE_LAUNCH_MODE=1` ใน Vercel env + redeploy** (โค้ด default = ปิด
+  ระบบเครดิตเดิมยังทำงานจนกว่าจะตั้ง) · ตอน Omise บริษัทพร้อม: ลบ env นี้ + สลับคีย์ live
+
 **✅ แก้ OG การ์ด 500 บน prod + สโลแกนใหม่ทุกจุด (3 ส.ค. 2569 — ผู้ใช้รายงานรูปไม่ขึ้นตอนแชร์):**
 - ผู้ใช้แชร์ลิงก์หน้าแรกใน Messenger รูปไม่ขึ้น → ตรวจพบ 2 เรื่องซ้อน: (1) แคป FB (แก้ด้วย Sharing
   Debugger "Scrape Again" — ฝั่งเราปกติ) (2) **OG การ์ด /card/[id]/opengraph-image ตอบ 500 บน

@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage } from "@/lib/chat/usage-db";
-import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { isFalAvailable, falLabelArtwork, type LabelOrientation } from "@/lib/image/fal";
 import { storeLogoImage } from "@/lib/image/store";
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
     const cost = creditCost("label_artwork");
     const balance = await getCreditBalance(user.id);
     const charge = decideCharge({
+    freeLaunch: freeLaunchMode(),
       freeRemaining: Math.max(0, FREE_LABEL_TRIAL - used),
       loggedIn: true, // ผ่าน gate ล็อกอินมาแล้ว
       balance,

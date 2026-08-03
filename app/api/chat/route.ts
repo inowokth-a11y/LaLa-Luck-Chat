@@ -28,7 +28,7 @@ import {
 } from "@/lib/chat/plan";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsageBonus, bumpDbUsage } from "@/lib/chat/usage-db";
-import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { FIGURE_TONE_PROMPT } from "@/lib/share";
@@ -80,6 +80,7 @@ async function resolvePool(userId: string): Promise<PoolState> {
   const pool = checkQuestionPool(used, bonus);
   const balance = await getCreditBalance(userId);
   const charge = decideCharge({
+    freeLaunch: freeLaunchMode(),
     freeRemaining: pool.remaining,
     loggedIn: true,
     balance,

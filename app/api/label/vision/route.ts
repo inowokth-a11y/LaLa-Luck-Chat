@@ -10,7 +10,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage } from "@/lib/chat/usage-db";
-import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { generate, extractJson } from "@/lib/ai";
 import { decodeImageBase64, sniffImageType } from "@/lib/vision/image";
@@ -59,6 +59,7 @@ export async function POST(req: Request) {
     const cost = creditCost("vision_motif");
     const balance = await getCreditBalance(user.id);
     const charge = decideCharge({
+    freeLaunch: freeLaunchMode(),
       freeRemaining: Math.max(0, FREE_VISION_TRIAL - used),
       loggedIn: true,
       balance,

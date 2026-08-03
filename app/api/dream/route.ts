@@ -14,7 +14,7 @@ import { lookupCachedDiscovery, saveDiscovery, type Discovery } from "@/lib/drea
 import { checkQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
-import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { getMemoryBlock, rememberEvent } from "@/lib/memory";
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     const quota = checkQuota({ [String(DREAM_LOGIC_ID)]: used }, DREAM_LOGIC_ID);
     const cost = creditCost("dream");
     const balance = await getCreditBalance(userId);
-    const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost });
+    const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost, freeLaunch: freeLaunchMode() });
     if (charge.mode === "denied") {
       return NextResponse.json(
         {

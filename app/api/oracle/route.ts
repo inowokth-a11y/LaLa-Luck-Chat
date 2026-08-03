@@ -14,7 +14,7 @@ import { generate } from "@/lib/ai";
 import { checkQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
-import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
+import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { FIGURE_TONE_PROMPT } from "@/lib/share";
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     const quota = checkQuota({ [String(ORACLE_LOGIC_ID)]: used }, ORACLE_LOGIC_ID);
     const cost = creditCost("oracle");
     const balance = await getCreditBalance(userId);
-    const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost });
+    const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost, freeLaunch: freeLaunchMode() });
     if (charge.mode === "denied") {
       return NextResponse.json(
         {

@@ -26,11 +26,20 @@ export function decideCharge(opts: {
   balance: number;
   /** เครดิตที่ action นี้ต้องใช้ (>0 — action ฟรีไม่ต้องเรียกตัวนี้) */
   cost: number;
+  /** ช่วงเปิดตัว (ยังเชื่อม Omise แบบบริษัทไม่ได้ — ผู้ใช้ตัดสิน 3 ส.ค. 2569): ไม่หักเครดิต
+   *  แต่**ยังบังคับล็อกอินเหมือนเดิม** (กัน anon spam ของแพง) — ปิดโหมดเมื่อไหร่กลับมาหักตามเดิม */
+  freeLaunch?: boolean;
 }): ChargeDecision {
   if (opts.freeRemaining > 0) return { mode: "free" };
   if (!opts.loggedIn) return { mode: "denied", reason: "need_login", cost: opts.cost, balance: 0 };
+  if (opts.freeLaunch) return { mode: "free" };
   if (opts.balance >= opts.cost) return { mode: "credits", cost: opts.cost };
   return { mode: "denied", reason: "insufficient_credits", cost: opts.cost, balance: opts.balance };
+}
+
+/** อ่านสวิตช์จาก env — ตั้ง FREE_LAUNCH_MODE=1 ใน Vercel = เปิดฟรี · ลบออก = ระบบเครดิตเดิม */
+export function freeLaunchMode(): boolean {
+  return process.env.FREE_LAUNCH_MODE === "1";
 }
 
 /** ข้อความบอกผู้ใช้เมื่อถูกปฏิเสธ — ตรงไปตรงมา บอกทางไปต่อจริง ไม่หลอกว่าจะได้ฟรีเพิ่ม */

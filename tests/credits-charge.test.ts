@@ -50,3 +50,21 @@ test("ข้อความปฏิเสธ: บอกจำนวนที่
   const login = chargeDeniedMessage({ mode: "denied", reason: "need_login", cost: 1, balance: 0 });
   assert.ok(login.includes("เข้าสู่ระบบ"));
 });
+
+// โหมดเปิดตัว (FREE_LAUNCH_MODE — ผู้ใช้ตัดสิน 3 ส.ค. 2569: ยังเชื่อม Omise บริษัทไม่ได้ ไม่หักเครดิตชั่วคราว)
+test("freeLaunch: ล็อกอิน+โควตาหมด+เครดิต 0 → ฟรี ไม่ปฏิเสธ (ไม่มีทางตันตอนยังเติมเงินไม่ได้)", () => {
+  const d = decideCharge({ freeRemaining: 0, loggedIn: true, balance: 0, cost: 2, freeLaunch: true });
+  assert.deepEqual(d, { mode: "free" });
+});
+
+test("freeLaunch: ไม่ล็อกอิน → ยังบังคับล็อกอินเหมือนเดิม (กัน anon spam ของแพง)", () => {
+  const d = decideCharge({ freeRemaining: 0, loggedIn: false, balance: 0, cost: 2, freeLaunch: true });
+  assert.equal(d.mode, "denied");
+  if (d.mode === "denied") assert.equal(d.reason, "need_login");
+});
+
+test("freeLaunch ปิด (ค่าเริ่มต้น) → พฤติกรรมเครดิตเดิมทุกอย่าง", () => {
+  const d = decideCharge({ freeRemaining: 0, loggedIn: true, balance: 0, cost: 2 });
+  assert.equal(d.mode, "denied");
+  if (d.mode === "denied") assert.equal(d.reason, "insufficient_credits");
+});
