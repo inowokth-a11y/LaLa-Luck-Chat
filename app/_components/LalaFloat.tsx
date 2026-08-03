@@ -72,6 +72,8 @@ export default function LalaFloat() {
   const [shareTeaser, setShareTeaser] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // ชิปคำตอบจากการ "ถามกลับ" ของแม่หมอ (เฟส 1 จิตวิทยา — เทมเพลต ฿0 จาก server)
+  const [replySuggest, setReplySuggest] = useState<string[] | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
   const openRef = useRef(false);
@@ -140,6 +142,7 @@ export default function LalaFloat() {
     setError(null);
     setNotice(null);
     setTopup(false);
+    setReplySuggest(null);
     setMsgs((m) => [...m, { role: "user", text: question }]);
     setInput("");
 
@@ -159,7 +162,9 @@ export default function LalaFloat() {
       } else if (d.needsLogin) {
         setNeedsLogin(true);
       } else if (d.declined || d.needsInput || d.unclear) {
-        setNotice(d.message);
+        // ถามกลับของแม่หมอแสดงเป็น bubble ฝั่ง AI (ไม่ใช่กล่องเตือน) — เป็นบทสนทนา ไม่ใช่ error
+        setMsgs((m) => [...m, { role: "ai", text: d.message }]);
+        if (Array.isArray(d.suggest) && d.suggest.length > 0) setReplySuggest(d.suggest);
       } else if (d.quotaExceeded) {
         setNotice(d.message);
         setQuestions({ remaining: 0, limit: questions?.limit ?? 1 });
@@ -260,6 +265,15 @@ export default function LalaFloat() {
                 </div>
               ))}
               {busy && <div className={styles.ai}>กำลังคิด…</div>}
+              {replySuggest && !busy && (
+                <div className={styles.chips}>
+                  {replySuggest.map((q) => (
+                    <button key={q} type="button" className={styles.chip} onClick={() => void ask(q)}>
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
               {notice && <p className={styles.notice}>{notice}</p>}
               {shareTeaser && (
                 <p className={styles.notice}>

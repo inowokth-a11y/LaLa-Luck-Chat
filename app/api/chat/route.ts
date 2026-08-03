@@ -19,7 +19,7 @@ import {
   questionNeedsLoginMessage,
 } from "@/lib/chat/questions";
 import { runPlanChat, buildProfileContext } from "@/lib/chat/plan-run";
-import { questionSuggestsComputation } from "@/lib/chat/plan";
+import { questionSuggestsComputation, CONSULT_TOPIC_KEY, CONSULT_TOPIC_SUGGESTIONS } from "@/lib/chat/plan";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { getDbUsageBonus, bumpDbUsage } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage } from "@/lib/credits/charge";
@@ -275,7 +275,13 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
   // ถามข้อมูลเพิ่ม / นอกขอบเขต → ไม่หัก (ยังไม่ได้คำตอบจริง)
   if (result.status === "needs_input") {
     logQuestion({ question, status: "needs_input", userId: pool.userId });
-    return NextResponse.json({ needsInput: true, message: result.message, missingInputs: result.missingInputs });
+    return NextResponse.json({
+      needsInput: true,
+      message: result.message,
+      missingInputs: result.missingInputs,
+      // ถามกลับเรื่องใจ (เฟส 1 จิตวิทยา) → แนบชิปคำตอบสำเร็จรูป ฿0 — จิ้มแล้วเป็นคำถามเต็มทันที
+      ...(result.missingInputs.includes(CONSULT_TOPIC_KEY) ? { suggest: CONSULT_TOPIC_SUGGESTIONS } : {}),
+    });
   }
   if (result.status === "unclear") {
     logQuestion({ question, status: "unclear", userId: pool.userId });

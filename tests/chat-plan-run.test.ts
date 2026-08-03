@@ -171,3 +171,32 @@ test("แผนที่ calls ผิดเอง (ไม่ใช่แค่�
   const r = interpretPlannerOutput(raw);
   assert.equal(r.status, "unclear");
 });
+
+// ---- เฟส 1 จิตวิทยาในแชท (2 ส.ค. 2569) ----
+import { CONSULT_TOPIC_KEY, CONSULT_TOPIC_SUGGESTIONS, missingInputPrompt } from "../lib/chat/plan";
+
+test("ถามกลับเรื่องใจ (consultTopic) — โทนเห็นใจ + บอกชัดว่าไม่นับสิทธิ์", () => {
+  const msg = missingInputPrompt([CONSULT_TOPIC_KEY]);
+  assert.ok(msg.includes("หนักใจ"), "ต้องถามด้านที่หนักใจ");
+  assert.ok(msg.includes("ไม่นับสิทธิ์"), "ต้องบอกว่าการถามกลับไม่หักโควตา");
+  assert.ok(!msg.includes("ขอข้อมูลเพิ่ม"), "ต้องไม่ใช่โทนฟอร์มขอข้อมูล");
+});
+
+test("ชิปคำตอบ consultTopic — เป็นคำถามเต็มที่ planner เลือกสูตรได้ (มีคำบอกด้าน)", () => {
+  assert.ok(CONSULT_TOPIC_SUGGESTIONS.length >= 3);
+  for (const s of CONSULT_TOPIC_SUGGESTIONS) {
+    assert.ok([...s].length <= 40, `"${s}" ยาวเกินชิป`);
+    assert.ok(/งาน|เงิน|ความรัก|เครียด|ดูแลใจ/.test(s), `"${s}" ต้องระบุด้านชัด`);
+    assert.ok(!/[Ѐ-ӿ]/.test(s), "ห้ามมีอักขระ Cyrillic");
+  }
+});
+
+test("prompt เฟส 1: planner รู้จัก consultTopic · narrator มีกฎจิตวิทยา (normalize/reframe/ก้าวเล็ก)", () => {
+  const planner = buildPlannerSystem();
+  assert.ok(planner.includes("consultTopic"), "planner ต้องรู้วิธีถามกลับ");
+  assert.ok(planner.includes("ห้ามเดาด้านเอง"));
+  const narrator = buildNarratorSystem();
+  assert.ok(narrator.includes("normalize"), "ต้องมีกฎ normalize ความรู้สึก");
+  assert.ok(narrator.includes("ก้าวเล็กๆ 1 อย่าง"), "ต้องปิดด้วยก้าวที่ทำได้จริง");
+  assert.ok(narrator.includes("self-efficacy"));
+});
