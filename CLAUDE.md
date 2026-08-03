@@ -1234,7 +1234,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ### คำสั่งเปิดงาน (คัดลอกไปวางในเซสชันใหม่ได้เลย)
 
 ```
-อ่าน CLAUDE.md §15 แล้วรัน health check (tsc + test + build) · รายงานสถานะ · แล้วทำงานถัดไปตามคิว
+อ่าน CLAUDE.md §15 แล้วรัน health check (tsc + test + build) · รายงานสถานะ · แล้วทำต่อจากบล็อก 🚧 สไลซ์ C (แบบประเมินสุขภาวะ — เหลือ migration 035/API/หน้า /wellbeing ตามขั้นตอนที่เขียนไว้)
 ```
 
 ### สภาพแวดล้อม (ต้องทำก่อนรันคำสั่งใดๆ)
@@ -1390,6 +1390,48 @@ topup ตอบ 401 (เดิม 503) · ⚠️ บน Vercel มีโปร�
   แน่นอนไม่ได้" (มีเทสต์ล็อก — กันระบบเคลมเกินหลักธาตุ)
 - allowlist รวมเป็น 13 fn · เทสต์ 394 · verify AI จริง 4 คำถาม: เนื้อคู่ได้อันดับธาตุ+นิสัย+ทิศ+
   ความซื่อสัตย์เรื่องระบุไม่ได้ · สีได้จากตารางจริง+ธาตุวัน ไม่มีเลขมั่ว
+
+**🚧 สไลซ์ C: แบบประเมินสุขภาวะ "LaLa Wellbeing Check" — ทำครึ่งทาง ส่งต่อเซสชันใหม่ (2 ส.ค. 2569):**
+
+🔴 **การตัดสินใจของผู้ใช้ (ครบแล้ว ห้ามถามซ้ำ):** ① ทำเลยไม่รอ launch ② แบรนด์ = LaLa Lucky Chat
+เอง โดยให้ความหมาย **"LaLa = สุขภาพใจที่มีความสุข · Lucky = โหราศาสตร์"** (ใส่เรื่องราวนี้ในหน้า
+intro) ③ ราคา: ให้คำนวณต้นทุนตามแนวทาง §12 แล้วเสนอ — **ผลคำนวณ: ต้นทุน ฿0 ทั้งเส้น**
+(แบบประเมิน+คะแนน+pattern+radar = pure ทั้งหมด · บทเปิด per pattern = เทมเพลตจาก KB ฿0 ·
+มีต้นทุนเฉพาะแชทถามต่อ ~฿0.35/คำถาม ซึ่งใช้ถังคำถาม/เครดิตเดิมอยู่แล้ว) → **ข้อเสนอ: ฟรีไม่จำกัด
+ตามกฎ §12 "ของ ฿0 = แม่เหล็ก" รายได้มาจากแชทต่อยอด — แจ้งผู้ใช้ตอนเดโมอีกครั้ง**
+④ retention: **ลบพร้อมบัญชีเท่านั้น** (ใช้ FK auth.users ON DELETE CASCADE — แบบเดียวกับความจำแม่หมอ)
+
+**✅ เสร็จแล้ว (commit นี้):**
+- `lib/engine/wellbeing.ts` — คำถาม 25 ข้อ 5 มิติ + สูตรคะแนนถ่วงน้ำหนัก (จาก Satiya_KWI_KB.xlsx +
+  Scoring_Rules.json ของผู้ใช้ ตรงต้นฉบับ) · V3 เก็บข้อมูลเวลาไม่คิดคะแนน · จำแนก 6 pattern ตาม
+  priority P005→P001 (ไม่เข้าเกณฑ์ = P006 ปลอดภัยกว่า default P001 ของต้นฉบับ) · badge 4 ระดับ ·
+  showReferral เมื่อ total<2.0 หรือ REBUILDER · **เสียงบทพูดแปลงจาก "ครับ/ผม" (Satiya) เป็นลาลา
+  "ค่ะ/คะ" แล้ว — มีเทสต์ล็อกทั้ง persona และคำคลินิก**
+- `tests/wellbeing.test.ts` 5 เทสต์ (รวมทั้งชุด 413 ผ่าน)
+
+**⬜ เหลือทำ (เซสชันใหม่ทำตามลำดับนี้):**
+1. **migration 035_wellbeing_kwi.sql**: ตาราง `kwi_responses_e` (id bigint identity pk ·
+   auth_uid uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE · responses jsonb ·
+   vitality/meaning/connection/mastery/resilience numeric · kwi_total numeric · pattern text ·
+   consent_version text · taken_at timestamptz default now()) + index (auth_uid, taken_at desc) ·
+   RLS: own-row SELECT เท่านั้น ไม่มี policy เขียน (เขียนผ่าน service role ใน API) —
+   รันด้วย `node --env-file=.env.local scripts/db-migrate.mjs 035_...` + verify anon ตามธรรมเนียม
+2. **API `/api/wellbeing`**: POST {answers, consent:true} → ต้องล็อกอิน (guest ได้ — cascade ครอบ)
+   → validateKwiAnswers → scoreKwi → insert (service role) → คืนผล · GET → ผลล่าสุดของตัวเอง
+   (อ่านด้วย session client ผ่าน RLS own-row) · ไม่คิดเงิน ไม่มี AI ในเส้นนี้
+3. **หน้า `/wellbeing`** (โทนสว่าง .tone-marble): intro + เรื่องแบรนด์ LaLa/Lucky + **consent
+   แยกเฉพาะ** (checkbox ก่อนเริ่ม — ระบุว่าเก็บอะไร/ลบพร้อมบัญชี/ไม่ใช่เครื่องมือวินิจฉัย) →
+   ฟอร์ม 25 ข้อแบ่ง 5 หมวด (KWI_QUESTIONS จาก engine — radio ต่อข้อ) → ผล: badge + **radar ใช้
+   ChartPanel {type:"radar", scale:[1,5], points 5 มิติ}** (component เดิม §16.2) + การ์ด pattern
+   (opening/strength/challenge/shortTermAction) + WELLBEING_CAVEAT + ถ้า showReferral โชว์ 1323
+   เด่น · จบด้วย publish ผลเข้าแชทลอยผ่าน `<FunctionChat logicId={16} context={ผล}/>`
+4. **wiring เล็ก 2 จุด**: เพิ่ม 16 เข้า `CHAT_ENABLED_LOGICS` + ชื่อ "ดูแลสุขภาวะ" ใน
+   `CHAT_LOGIC_NAMES` (lib/chat/quota.ts) · เพิ่ม `{ href: "/wellbeing", label: "💙 เช็คสุขภาวะ" }`
+   ใน TOOLS หน้าแรก (app/page.tsx บรรทัด ~15)
+5. เทสต์+build+browser verify (ฟอร์มครบ 25 ข้อ/ปุ่ม submit disabled จนตอบครบ/anon เห็นชวนล็อกอิน)
+   · commit · อัปเดตบล็อกนี้เป็น ✅
+⚠️ ระวัง: ห้ามคำคลินิกทุกข้อความ · คะแนนดิบไม่โชว์ (แสดง % / badge) · Safety Gate ของแชทมีอยู่แล้ว
+ไม่ต้องทำเพิ่ม · อย่ารัน `npm run build` ขณะ dev server เปิด (บทเรียน §15)
 
 **✅ เฟส 2 สไลซ์ B: โมดูลรับมือที่ทำงานเป็นพิษ + ตากระพริบ avatar (2 ส.ค. 2569):**
 - **`lib/engine/work-toxic.ts`** — Toxic_Pattern_Library TP001-TP008 จาก KB ผู้ใช้ (สัญญาณ/กลยุทธ์/
