@@ -49,6 +49,16 @@ async function fetchCard(id: string) {
 }
 
 export default async function OgImage({ params }: { params: Promise<{ id: string }> }) {
+  try {
+    return await renderOg(params);
+  } catch (e) {
+    // ชั่วคราว (debug 500 บน Vercel 3 ส.ค. 2569): คาย error จริงเป็น text — ลบออกเมื่อพบสาเหตุ
+    console.error("[card-og]", e);
+    return new Response(`card-og error: ${e instanceof Error ? `${e.message}\n${e.stack}` : String(e)}`, { status: 500 });
+  }
+}
+
+async function renderOg(params: Promise<{ id: string }>) {
   const { id } = await params;
   const card = isValidCardId(id) ? await fetchCard(id) : null;
 
