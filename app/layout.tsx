@@ -26,10 +26,10 @@ export const metadata: Metadata = {
   // 🔴 metadataBase จำเป็น — ไม่ตั้งแล้ว Next ใช้ VERCEL_URL (โดเมน vercel.app เก่า) ประกอบ URL รูป OG
   metadataBase: new URL("https://lalaluckychat.com"),
   title: "LaLa Lucky Chat",
-  description: "ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน ให้คำทำนายได้กว้างที่สุด เชื่อมโยงกันอย่างเป็นระบบมากที่สุด",
+  description: "คำนวณทุกมิติที่ส่งผลต่อกัน แพลตฟอร์มดูดวงที่ครอบคลุมที่สุด เชื่อมโยงมากที่สุด",
   openGraph: {
-    title: "LaLa Lucky Chat — ทำนายจากการคำนวณทุกพลังงาน",
-    description: "ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน เชื่อมโยงกันอย่างเป็นระบบ — เปิดการ์ดพลังงานประจำตัวฟรีกับอาจารย์ลาลา ลักกี้",
+    title: "LaLa Lucky Chat — คำนวณทุกมิติที่ส่งผลต่อกัน",
+    description: "คำนวณทุกมิติที่ส่งผลต่อกัน แพลตฟอร์มดูดวงที่ครอบคลุมที่สุด เชื่อมโยงมากที่สุด — เปิดการ์ดพลังงานประจำตัวฟรีกับอาจารย์ลาลา ลักกี้",
     siteName: "LaLa Lucky Chat",
     locale: "th_TH",
     type: "website",

@@ -8,7 +8,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 export const runtime = "nodejs";
-export const alt = "LaLa Lucky Chat — ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน";
+export const alt = "LaLa Lucky Chat — คำนวณทุกมิติที่ส่งผลต่อกัน";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -50,10 +50,10 @@ export default async function OgImage() {
               LaLa Lucky Chat
             </div>
             <div style={{ display: "flex", fontSize: 33, color: "#2b2620", marginTop: 20, lineHeight: 1.45 }}>
-              {thaiSoftWrap("ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน")}
+              {thaiSoftWrap("คำนวณทุกมิติที่ส่งผลต่อกัน")}
             </div>
             <div style={{ display: "flex", fontSize: 26, color: "#6b6255", marginTop: 10, lineHeight: 1.5 }}>
-              {thaiSoftWrap("ให้คำทำนายได้กว้างที่สุด เชื่อมโยงกันอย่างเป็นระบบมากที่สุด")}
+              {thaiSoftWrap("แพลตฟอร์มดูดวงที่ครอบคลุมที่สุด เชื่อมโยงมากที่สุด")}
             </div>
             <div
               style={{

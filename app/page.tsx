@@ -100,7 +100,7 @@ export default function Home() {
             LaLa Lucky Chat
           </h1>
           <p style={{ fontFamily: "var(--font-sans-thai)", color: "var(--ink-dim)", marginTop: "0.35rem", fontSize: "0.9rem" }}>
-            ทำนายจากการคำนวณทุกพลังงานที่ส่งผลต่อกัน ให้คำทำนายได้กว้างที่สุด เชื่อมโยงกันอย่างเป็นระบบมากที่สุด
+            คำนวณทุกมิติที่ส่งผลต่อกัน แพลตฟอร์มดูดวงที่ครอบคลุมที่สุด เชื่อมโยงมากที่สุด
           </p>
 
           {loggedIn === true && (
