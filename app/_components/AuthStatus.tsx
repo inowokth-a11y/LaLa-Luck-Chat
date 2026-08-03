@@ -115,9 +115,10 @@ export default function AuthStatus() {
     padding: "0.35rem 0.8rem",
     borderRadius: 999,
     textDecoration: "none",
-    color: "var(--gold, #b8860b)",
-    background: "color-mix(in srgb, var(--gold, #b8860b) 12%, transparent)",
-    border: "1px solid color-mix(in srgb, var(--gold, #b8860b) 45%, transparent)",
+    // คอนทราสต์เข้ม (ผู้ใช้รายงาน 4 ส.ค. 2569: สีเดิมกลืนพื้นหินอ่อนจนมองไม่เห็น)
+    color: "#faf7f0",
+    background: "var(--gold, #b8860b)",
+    border: "1px solid color-mix(in srgb, var(--gold, #b8860b) 70%, black)",
     backdropFilter: "blur(6px)",
     maxWidth: "72vw",
     overflow: "hidden",
@@ -134,7 +135,7 @@ export default function AuthStatus() {
       )}
       {status ? (
         <Link href="/account" style={pill} title="บัญชี / เติมเครดิต">
-          <span aria-hidden>🐾</span>
+          <span aria-hidden>👤</span>
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "9rem" }}>{status.name}</span>
           <span style={sep}>·</span>
           <span title="เครดิตคงเหลือ">⭐ {status.credits}</span>

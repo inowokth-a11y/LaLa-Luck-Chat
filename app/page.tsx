@@ -12,6 +12,13 @@ import MascotLogo from "./_components/MascotLogo";
 import { createSupabaseBrowser } from "@/lib/supabase/auth-browser";
 import { saveIntake } from "./_components/intake";
 
+const GENDER_OPTIONS = [
+  { value: "", label: "ไม่ระบุ" },
+  { value: "female", label: "หญิง" },
+  { value: "male", label: "ชาย" },
+  { value: "other", label: "อื่นๆ / LGBTQ+" },
+];
+
 const TOOLS: { href: string; label: string }[] = [
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา ลักกี้ (วิเคราะห์อิสระ)" },
   { href: "/fortune", label: "✨ ดวงของฉัน" },
@@ -55,6 +62,7 @@ export default function Home() {
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
+  const [gender, setGender] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,7 +82,7 @@ export default function Home() {
     const nowYear = new Date().getUTCFullYear();
     if (year < 1900 || year > nowYear) return setError(`ปีเกิด ${year} อยู่นอกช่วงที่รองรับ`);
 
-    saveIntake({ firstName: firstName.trim(), lastName: lastName.trim(), birthDate, birthTime });
+    saveIntake({ firstName: firstName.trim(), lastName: lastName.trim(), birthDate, birthTime, gender });
     router.push("/consent");
   }
 
@@ -135,6 +143,12 @@ export default function Home() {
                   <input style={S.input} type="time" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
                 </div>
               </div>
+              <label style={S.label}>เพศ (ไม่บังคับ)</label>
+              <select style={S.input} value={gender} onChange={(e) => setGender(e.target.value)}>
+                {GENDER_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>{g.label}</option>
+                ))}
+              </select>
               {error && <p style={{ color: "var(--bad, #a83a1e)", fontSize: "0.85rem", marginTop: "0.6rem" }}>⚠️ {error}</p>}
               <button type="submit" style={{ ...S.gold, marginTop: "1rem" }}>
                 🔮 ค้นหาการ์ดของฉัน

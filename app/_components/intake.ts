@@ -13,6 +13,8 @@ export interface Intake {
   birthTime: string; // "" = ไม่ทราบ
   consentVersion?: string;
   consentAt?: string;
+  /** เพศ (ไม่บังคับ — ผู้ใช้สั่งเก็บ 4 ส.ค. 2569): male|female|other|"" = ไม่ระบุ */
+  gender?: string;
 }
 
 export function saveIntake(v: Intake): void {

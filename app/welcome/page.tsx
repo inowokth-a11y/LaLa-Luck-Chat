@@ -46,6 +46,7 @@ export default function WelcomePage() {
             last_name: intake.lastName || null,
             birth_date: intake.birthDate,
             birth_time: intake.birthTime || null,
+            gender: intake.gender || null,
             pdpa_version: intake.consentVersion ?? null,
             pdpa_accepted_at: intake.consentAt ?? null,
             updated_at: new Date().toISOString(),

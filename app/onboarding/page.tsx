@@ -36,6 +36,7 @@ function OnboardingForm() {
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
+  const [gender, setGender] = useState("");
   const [province, setProvince] = useState("bangkok");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +52,7 @@ function OnboardingForm() {
       // prefill ถ้าเคยกรอกไว้แล้ว (แก้ไขได้)
       const { data: prof } = await supabase
         .from("user_profiles_e")
-        .select("first_name,last_name,birth_date,birth_time,birth_province")
+        .select("first_name,last_name,birth_date,birth_time,birth_province,gender")
         .eq("auth_uid", data.user.id)
         .maybeSingle();
       if (prof) {
@@ -60,6 +61,7 @@ function OnboardingForm() {
         setBirthDate(prof.birth_date ?? "");
         setBirthTime(prof.birth_time ?? "");
         setProvince(prof.birth_province ?? "bangkok");
+        setGender(prof.gender ?? "");
       }
       setReady(true);
     })();
@@ -84,6 +86,7 @@ function OnboardingForm() {
         birth_date: birthDate,
         birth_time: birthTime || null,
         birth_province: province,
+        gender: gender || null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "auth_uid" }
@@ -139,6 +142,14 @@ function OnboardingForm() {
 
         <label style={{ fontSize: "0.85rem", opacity: 0.85 }}>เวลาเกิด (ถ้าทราบ — เว้นว่างได้)</label>
         <input style={field} type="time" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} />
+
+        <label style={{ fontSize: "0.85rem", opacity: 0.85 }}>เพศ (ไม่บังคับ)</label>
+        <select style={field} value={gender} onChange={(e) => setGender(e.target.value)}>
+          <option value="">ไม่ระบุ</option>
+          <option value="female">หญิง</option>
+          <option value="male">ชาย</option>
+          <option value="other">อื่นๆ / LGBTQ+</option>
+        </select>
 
         <label style={{ fontSize: "0.85rem", opacity: 0.85 }}>จังหวัดที่เกิด</label>
         <select style={field} value={province} onChange={(e) => setProvince(e.target.value)}>

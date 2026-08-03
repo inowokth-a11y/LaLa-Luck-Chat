@@ -1301,6 +1301,19 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ ชิปสถานะเด่นขึ้น + เก็บเพศ + แดชบอร์ดเพศ×ช่วงอายุ×แนวคำถาม (4 ส.ค. 2569 — ผู้ใช้สั่ง 3 ข้อ):**
+1. **AuthStatus มุมขวาบน**: พื้นทองทึบ+ตัวครีม (เดิมทองจางกลืนพื้นหินอ่อน) · ไอคอน 🐾 → 👤 —
+   ตรวจ preview แล้วเด่นชัด
+2. **เก็บเพศ (ไม่บังคับ)**: คอลัมน์ `gender` มีอยู่แล้วใน user_profiles_e ตั้งแต่ 021 (ไม่ต้อง
+   migration) — เพิ่ม select ในฟอร์มหน้าแรก (intake → /welcome บันทึก) + /onboarding (prefill+แก้ได้)
+   · ค่า male/female/other/null · ตรวจ preview: ตัวเลือกครบ
+3. **แดชบอร์ด /admin ส่วน "👥 ผู้ถามตามเพศ × ช่วงอายุ"**: `lib/admin/demographics.ts` (pure, 3 เทสต์)
+   — join chat_question_log(user_id)×user_profiles_e(birth_date,gender) · ageBucket กันปีเพี้ยน
+   (พ.ศ. หลุดมา = "ไม่ทราบ" ไม่เดา) · แนวคำถามจัดด้วย keyword ฿0 (เลขมงคล/ชื่อ/ฤกษ์/ความรัก/
+   งาน-เงิน/ใจ/ฮวงจุ้ย/ดวงรวม/อื่นๆ) · คนไม่ล็อกอิน = unattributed ไม่เดาเพศ/อายุ · แสดง
+   จำนวนต่อกลุ่ม + top 3 แนวคำถามต่อเพศและต่อช่วงอายุ · เทสต์ 439
+   ⚠️ ข้อมูลเพศจะเริ่มมีหลังผู้ใช้ใหม่กรอก/ผู้ใช้เก่าแก้ใน onboarding — แถวเก่า gender=null
+
 **✅ คำถามฟรี 1→3 + "คำทำนายแรกพบ" เด้งอัตโนมัติหลังเปิดการ์ด (4 ส.ค. 2569 — ผู้ใช้สั่ง):**
 - `FREE_QUESTIONS_TOTAL` 1→3 (สิทธิ์ฟรีส่วนอื่นคงเดิม — เทสต์ปรับตาม)
 - **คำทำนายแรกพบ (พื้นดวงแบบโหร):** เปิดการ์ดครั้งแรก (/profile?auto=1) → แชทลอยเด้งเปิดเอง +

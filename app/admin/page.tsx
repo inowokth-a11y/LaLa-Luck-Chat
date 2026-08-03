@@ -14,6 +14,7 @@ import { computeAffiliateStats, type AffLinkRow, type AttributionRow, type Topup
 import AdminAssistant from "./AdminAssistant";
 import FeedbackAdmin from "./FeedbackAdmin";
 import AffiliateAdmin from "./AffiliateAdmin";
+import { summarizeDemographics, GENDER_LABELS, type ProfileRow, type DemoQuestionRow } from "@/lib/admin/demographics";
 
 export const dynamic = "force-dynamic"; // อ่าน session + DB ทุกครั้ง
 
@@ -39,10 +40,19 @@ export default async function AdminPage() {
   // ประวัติคำถาม (เน้น unclear = สิ่งที่ยังตอบไม่ได้ → จัดลำดับฟีเจอร์)
   const { data: qRows } = await svc
     .from("chat_question_log")
-    .select("question,status,fns,created_at")
+    .select("question,status,fns,created_at,user_id")
     .order("created_at", { ascending: false })
     .limit(2000);
   const q = summarizeQuestions((qRows as QuestionRow[] | null) ?? []);
+
+  // เพศ×ช่วงอายุ×แนวคำถาม (4 ส.ค. 2569) — โปรไฟล์อ่านเฉพาะฟิลด์ที่ใช้ ไม่ลากข้อมูลอ่อนไหวอื่น
+  const { data: demoProfiles } = await svc
+    .from("user_profiles_e")
+    .select("auth_uid,birth_date,gender");
+  const demo = summarizeDemographics(
+    (demoProfiles as ProfileRow[] | null) ?? [],
+    ((qRows ?? []) as unknown as DemoQuestionRow[]).map((r) => ({ user_id: r.user_id, question: r.question }))
+  );
 
   // แอฟฟิลิเอต: ลิงก์ + attribution + ledger การเติมเงิน → สถิติต่อลิงก์ (คำนวณด้วย pure fn)
   const [{ data: affLinks }, { data: affAttrs }, { data: affTopups }, { data: affPayouts }] = await Promise.all([
@@ -89,6 +99,51 @@ export default async function AdminPage() {
       </section>
 
       <AdminAssistant />
+
+      <section style={{ padding: "1rem 1.2rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)" }}>
+        <h2 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.05rem", color: "var(--gold)", margin: "0 0 0.7rem" }}>
+          👥 ผู้ถามตามเพศ × ช่วงอายุ ({demo.totalQuestions - demo.unattributed} คำถามที่ระบุตัวได้ · ไม่ระบุ {demo.unattributed})
+        </h2>
+        {demo.byAgeGender.length === 0 ? (
+          <p style={{ fontSize: "0.8rem", opacity: 0.7 }}>ยังไม่มีคำถามจากผู้ใช้ที่มีโปรไฟล์</p>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.4rem", fontSize: "0.82rem" }}>
+            <div>
+              <b>จำนวนคำถามต่อกลุ่ม</b>
+              <ul style={{ margin: "0.4rem 0 0", paddingLeft: "1.1rem" }}>
+                {demo.byAgeGender.slice(0, 10).map((g, i) => (
+                  <li key={i}>
+                    {g.age} · {GENDER_LABELS[g.gender] ?? g.gender}: {g.count}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <b>แนวคำถามยอดนิยมต่อเพศ</b>
+              <ul style={{ margin: "0.4rem 0 0", paddingLeft: "1.1rem" }}>
+                {demo.topTopicsByGender.map((g, i) => (
+                  <li key={i}>
+                    {GENDER_LABELS[g.gender] ?? g.gender}: {g.topics.map((t) => `${t.topic} (${t.count})`).join(" · ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <b>แนวคำถามยอดนิยมต่อช่วงอายุ</b>
+              <ul style={{ margin: "0.4rem 0 0", paddingLeft: "1.1rem" }}>
+                {demo.topTopicsByAge.map((g, i) => (
+                  <li key={i}>
+                    {g.age}: {g.topics.map((t) => `${t.topic} (${t.count})`).join(" · ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        <p style={{ fontSize: "0.72rem", opacity: 0.6, marginTop: "0.6rem" }}>
+          แนวคำถามจัดด้วย keyword อัตโนมัติ (หยาบ — ใช้ดูเทรนด์) · คนไม่ล็อกอิน/ไม่มีโปรไฟล์นับเป็น &quot;ไม่ระบุ&quot; ไม่เดาเพศหรืออายุ
+        </p>
+      </section>
 
       <AffiliateAdmin links={affStats} />
 
