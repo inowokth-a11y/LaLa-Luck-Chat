@@ -24,7 +24,7 @@ import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../en
 import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work-toxic";
 import { DAY_ELEMENT } from "../engine/element";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
-import { scoreCandidateName } from "../engine/naming";
+import { scoreCandidateName, nameComposition } from "../engine/naming";
 import { rankAuspiciousDays, ACTIVITIES, TIMING_CAVEAT, type Emphasis } from "../engine/timing";
 import { analyzeFengShui, type Direction, type Purpose } from "../engine/fengshui";
 import { namePower } from "../engine/card-id";
@@ -394,7 +394,7 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     caveat:
       "การเทียบธาตุของชื่อใช้หลักกลุ่มอักษรซึ่งยังรอการยืนยันจากเจ้าของสูตร " +
       "ใช้เป็นแนวทางประกอบ ไม่ใช่คำตัดสิน",
-    chartable: { scale: [-2, 2], pick: (o) => (o as { final_score?: number }).final_score ?? 0 },
+    chartable: { scale: [-2, 2], pick: (o) => (o as { คะแนนรวมถ่วงน้ำหนัก?: number }).คะแนนรวมถ่วงน้ำหนัก ?? 0 },
     needsProfile: true,
     check: (a) => {
       const raw = typeof a.name === "string" ? a.name.trim() : "";
@@ -406,14 +406,32 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       }
       return { ok: true, args: { name: raw } };
     },
-    // ธาตุชื่อจากตารางกลุ่มอักษร (engine Logic 19) + wuXingScore ตัวจริง — AI ไม่มีสิทธิ์กำหนดธาตุ
+    // ธาตุชื่อจากหลักกลุ่มอักษร (engine Logic 19) + wuXingScore ตัวจริง — AI ไม่มีสิทธิ์กำหนดธาตุ
+    // แสดง "องค์ประกอบธาตุ" รายสัดส่วนให้ผู้ใช้เห็น + คะแนนถ่วงน้ำหนักตามสัดส่วนจริง (4 ส.ค. 2569)
     run: (a, ctx) => {
       const name = a.name as string;
-      const scored = scoreCandidateName(name, ctx!.dominant, ctx!.missing);
-      if ("error" in scored && scored.element === null) {
-        return { ชื่อ: name, error: scored.error };
+      const comp = nameComposition(name);
+      if (comp.scoredChars === 0 || !comp.dominant) {
+        return { ชื่อ: name, error: "ไม่พบตัวอักษรที่จับคู่ธาตุได้" };
       }
-      return { ...scored, ผลรวมเลขศาสตร์: namePower(name) };
+      const scored = scoreCandidateName(name, ctx!.dominant, ctx!.missing);
+      // คะแนนต่อธาตุ × สัดส่วน → คะแนนรวมถ่วงน้ำหนัก (ทุกตัวจาก engine — ไม่มีเลขจาก AI)
+      const องค์ประกอบ: Record<string, string> = {};
+      let weighted = 0;
+      const คะแนนต่อธาตุ: Record<string, number> = {};
+      for (const [el, share] of Object.entries(comp.shares) as [Element5, number][]) {
+        องค์ประกอบ[THAI_LABEL_5[el]] = `${Math.round(share * 100)}%`;
+        const sc = wuXingScore(ctx!.dominant, el, ctx!.missing).final_score;
+        คะแนนต่อธาตุ[THAI_LABEL_5[el]] = sc;
+        weighted += share * sc;
+      }
+      return {
+        ...("error" in scored ? {} : scored),
+        องค์ประกอบธาตุ: องค์ประกอบ,
+        คะแนนต่อธาตุ,
+        คะแนนรวมถ่วงน้ำหนัก: Math.round(weighted * 100) / 100,
+        ผลรวมเลขศาสตร์: namePower(name),
+      };
     },
     defaultLabel: (a) => `ชื่อ ${a.name}`,
   },

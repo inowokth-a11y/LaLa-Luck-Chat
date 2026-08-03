@@ -510,8 +510,17 @@ test("myNameMatch — ธาตุชื่อจาก engine จริง (ส
   const ok = spec.check({ name: " สมชาย " });
   assert.ok(ok.ok && ok.args.name === "สมชาย", "trim ให้");
   const out = spec.run({ name: "สมชาย" }, ctx) as Record<string, unknown>;
-  assert.equal(out.name_element, "Metal"); // ตารางกลุ่มอักษรจริง — จับรูรั่วที่ AI เคยเดาผิดเป็น Fire
+  assert.equal(out.name_element, "Metal"); // หลักกลุ่มอักษรจริง — จับรูรั่วที่ AI เคยเดาผิดเป็น Fire
   assert.equal(typeof out.ผลรวมเลขศาสตร์, "number");
+  // องค์ประกอบธาตุรายสัดส่วน (4 ส.ค. 2569): สมชาย = ส(ทอง) ม(ดิน) ช(ไม้) ย(ทอง) → ทอง 50/ดิน 25/ไม้ 25
+  const comp = out.องค์ประกอบธาตุ as Record<string, string>;
+  assert.equal(comp["ทอง"], "50%");
+  assert.equal(comp["ดิน"], "25%");
+  assert.equal(comp["ไม้"], "25%");
+  assert.equal(typeof out.คะแนนรวมถ่วงน้ำหนัก, "number");
+  // ถ่วงน้ำหนักต้องตรงคณิต: 0.5×score(ทอง) + 0.25×score(ดิน) + 0.25×score(ไม้) — ผู้ใช้ไฟขาดน้ำ
+  // ไฟพิฆาตทอง=-2 · ไฟให้กำเนิดดิน(เราให้เขา)=+1 · ไม้ให้กำเนิดไฟ(เขาให้เรา)=+2 → -1+0.25+0.5 = -0.25
+  assert.equal(out.คะแนนรวมถ่วงน้ำหนัก, -0.25);
   assert.ok(!spec.check({ name: "" }).ok);
   assert.ok(!spec.check({ name: "123-456" }).ok, "ไม่มีตัวอักษร = ปฏิเสธ");
   assert.ok(!spec.check({ name: "ก".repeat(61) }).ok);

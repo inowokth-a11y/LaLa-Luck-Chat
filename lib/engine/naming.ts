@@ -54,6 +54,35 @@ export function nameElement(name: string): Element5 | null {
   return GROUP_TO_ELEMENT[dominantGroup];
 }
 
+/**
+ * องค์ประกอบธาตุของชื่อ/คำ — นับรายตัวอักษรแล้วคิดเป็นสัดส่วน (ผู้ใช้สั่ง 4 ส.ค. 2569:
+ * โชว์ให้ผู้ใช้เห็นว่าชื่อประกอบด้วยธาตุอะไรอย่างละเท่าไหร่ ไม่ใช่บอกแค่ธาตุเด่นตัวเดียว)
+ * ใช้ตารางเดียวกับ nameElement — ตัวอักษรที่จับคู่ไม่ได้ (สระ/วรรณยุกต์) ถูกข้ามแบบเดียวกัน
+ * ⚠️ TS-only (ไม่มีคู่ Python — ฟังก์ชันใหม่ ไม่ได้แก้สูตรเดิม nameElement ยังพฤติกรรมเดิมเป๊ะ)
+ */
+export interface NameComposition {
+  /** จำนวนตัวอักษรที่จับคู่ธาตุได้ */
+  scoredChars: number;
+  /** สัดส่วนต่อธาตุ 0-1 (รวม = 1 เมื่อ scoredChars > 0) */
+  shares: Partial<Record<Element5, number>>;
+  dominant: Element5 | null;
+}
+
+export function nameComposition(name: string): NameComposition {
+  const counts = new Map<Element5, number>();
+  let total = 0;
+  for (const ch of name.toUpperCase()) {
+    if (ch in CHAR_TO_GROUP) {
+      const el = GROUP_TO_ELEMENT[CHAR_TO_GROUP[ch]];
+      counts.set(el, (counts.get(el) ?? 0) + 1);
+      total++;
+    }
+  }
+  const shares: Partial<Record<Element5, number>> = {};
+  for (const [el, c] of counts) shares[el] = Math.round((c / total) * 1000) / 1000;
+  return { scoredChars: total, shares, dominant: total > 0 ? nameElement(name) : null };
+}
+
 export function aggregateElement(founderElement: Element5, memberElements?: Element5[] | null): Element5 {
   if (!memberElements || memberElements.length === 0) return founderElement;
   const weighted: Element5[] = [
