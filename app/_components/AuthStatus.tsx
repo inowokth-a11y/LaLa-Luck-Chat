@@ -115,10 +115,10 @@ export default function AuthStatus() {
     padding: "0.35rem 0.8rem",
     borderRadius: 999,
     textDecoration: "none",
-    // คอนทราสต์เข้ม (ผู้ใช้รายงาน 4 ส.ค. 2569: สีเดิมกลืนพื้นหินอ่อนจนมองไม่เห็น)
-    color: "#faf7f0",
-    background: "var(--gold, #b8860b)",
-    border: "1px solid color-mix(in srgb, var(--gold, #b8860b) 70%, black)",
+    // พื้นเข้ม+ตัวทอง (ผู้ใช้ตัดสิน 4 ส.ค. 2569 — พื้นทองยังกลืนหินอ่อน · แบบเดียวกับปุ่มแมวลอยที่อ่านชัด)
+    color: "var(--gold, #e7c96a)",
+    background: "#221c14",
+    border: "1px solid color-mix(in srgb, var(--gold, #b8860b) 55%, transparent)",
     backdropFilter: "blur(6px)",
     maxWidth: "72vw",
     overflow: "hidden",
