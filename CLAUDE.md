@@ -1301,6 +1301,22 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ benchmark 50 คำถามรอบ 2 (4 ส.ค. 2569 — ผู้ใช้สั่งทดสอบซ้ำหลังเพิ่มฟีเจอร์ชุดใหญ่):**
+- **รอบแรกของวันนี้: ตอบได้ 26/50 · needs_input 22 (44% — สูงผิดปกติ)** · guardrail ยึดครบ
+  (หวย/โรครักษาหาย โดนดักถูก) · เครื่องมือใหม่ถูกใช้จริง: ฤกษ์ออกรถตอบวันจริงในแชท ·
+  ซื้อบ้าน/ขยายร้านพ่วง myAuspiciousDays · เนื้อคู่ myMatchProfile · สี myLuckyColors
+- **จุดจูน: planner ตัดสินไม่สม่ำเสมอ** — "เลื่อนตำแหน่งไหม" ตอบจากพื้นดวงได้ แต่ "สอบติดไหม/
+  หนี้หมดเมื่อไหร่" ตก needs_input ทั้งที่ชั้นเดียวกัน → เพิ่มกฎ planner: **คำถามแนวโน้ม/เกณฑ์
+  ห้ามตก missingInputs** ตอบด้วย myElementSeed+myPersonalYear (+wellness/timing ตามโทน) ·
+  missingInputs เฉพาะขาดข้อมูลรูปธรรมจริง (วันเกิดคู่/เลข/ชื่อ)
+- **หลังแก้ (retry 13 ข้อ): 8/12 ที่เคยตกตอบได้แล้ว** (สมัครงาน/หนี้/เงินยืม/ครอบครัว/มีลูก/สอบ/
+  เปิดร้าน/ดีลงาน) · ที่ยังถาม = สมเหตุสมผล (แฟนเก่า→ขอข้อมูลอีกฝ่าย · ร่วมหุ้น→วันเกิดหุ้นส่วน ✓ควบคุม)
+  → ประมาณการรวม ~34-36/50 ตอบทันที + ที่เหลือถามกลับแบบมีเหตุผล
+- ⚠️ **พบระหว่างรัน: Gemini free tier ชนโควตารายวัน (429)** ตอน benchmark ยาว → narrator ตกไป
+  gpt-5.5 (฿1.9/คำตอบ) หลายครั้ง — **ย้ำ action ผู้ใช้: เปิด billing Gemini ก่อนรับ traffic จริง**
+  (ทั้งเรื่องต้นทุนและ PDPA) · log มีเตือน "gemini ไม่คืน usage" ในแถวที่ fail — เป็นแถวบันทึก
+  ความล้มเหลว ไม่ใช่บั๊กคิดเงิน
+
 **✅ แก้ Messenger ไม่โชว์รูป OG (4 ส.ค. 2569 — FB feed ขึ้นแต่ Messenger ไม่ขึ้น):**
 - ตัวการ: รูป OG เรนเดอร์สดทุกครั้ง (การ์ด ~3.4s — ดึง Supabase+รูป+ฟอนต์ใหม่ตลอด) · crawler ของ
   Messenger ใจร้อนกว่า feed → รูปช้า = ตัดทิ้ง (meta ครบทุกแท็กอยู่แล้ว width/height/type)
