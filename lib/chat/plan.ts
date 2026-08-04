@@ -371,16 +371,25 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       "คะแนนเลข 5 ด้าน 0-10 (การเงิน/ความรัก/สุขภาพกายใจ/โชค/อำนาจบารมี) + จุดเด่น/ข้อควรระวัง — " +
       "**ตัวหลักสำหรับคำถามทะเบียนรถ บ้านเลขที่ เบอร์โทร เลขใดๆ ว่า 'ดีไหม/เป็นยังไง'** " +
       "หลายเลขให้เรียกทีละเลข (chart bar เทียบภาพรวมได้)",
-    argsHint: "{ num: 0-9999999999 } (เอาเฉพาะหลักตัวเลข เช่น ทะเบียน 'จง 6266' → 6266)",
+    argsHint:
+      '{ num: 0-9999999999 หรือสตริงหลักล้วน } (ทะเบียน "จง 6266" → 6266 · **เบอร์โทรส่งเป็นสตริง ' +
+      'คงเลข 0 นำหน้า เช่น "0812345678"**)',
     caveat: NUMBER_ASPECTS_CAVEAT,
     chartable: { scale: [0, 10], pick: (o) => (o as { ภาพรวม: number }).ภาพรวม },
     needsProfile: true,
     check: (a) => {
+      // รับ 2 แบบ: int (เลขทั่วไป) หรือสตริงหลักล้วน ≤10 ตัว (เบอร์โทร — คง 0 นำหน้า)
+      if (typeof a.num === "string") {
+        if (!/^\d{1,10}$/.test(a.num)) {
+          return { ok: false, error: "num แบบสตริงต้องเป็นตัวเลขล้วน 1-10 หลัก" };
+        }
+        return { ok: true, args: { num: a.num } };
+      }
       const r = intInRange(a.num, 0, 9_999_999_999, "num", "รองรับสูงสุด 10 หลัก");
       return r.ok ? { ok: true, args: { num: a.num } } : r;
     },
     // สูตรเสริม 3 ชั้น deterministic (ดู lib/engine/number-aspects.ts) — ไม่มี AI แต่งตัวเลข
-    run: (a, ctx) => numberAspects(a.num as number, ctx?.dominant, ctx?.missing ?? []),
+    run: (a, ctx) => numberAspects(a.num as number | string, ctx?.dominant, ctx?.missing ?? []),
     defaultLabel: (a) => `เลข ${a.num}`,
   },
 

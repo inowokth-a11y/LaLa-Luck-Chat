@@ -41,3 +41,11 @@ test("caveat ต้องประกาศว่าเป็นแนวทา�
   assert.ok(NUMBER_ASPECTS_CAVEAT.includes("ไม่ใช่คำตัดสิน"));
   for (const w of ["โรค", "วินิจฉัย", "รักษา"]) assert.ok(!NUMBER_ASPECTS_CAVEAT.includes(w));
 });
+
+test("เบอร์โทรแบบสตริง — คงเลข 0 นำหน้า และคะแนนเท่ากับหลักชุดเดียวกัน", () => {
+  const r = numberAspects("0812345678", "Fire", ["Water"]);
+  assert.equal(r.เลข, "0812345678"); // Number() จะตัด 0 ทิ้ง — สตริงต้องคงไว้
+  assert.equal(Object.keys(r.คะแนน).length, 5);
+  // สตริงคั่นขีดถูกล้างเหลือหลักล้วน
+  assert.equal(numberAspects("081-234-5678").เลข, "0812345678");
+});

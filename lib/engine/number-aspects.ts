@@ -90,11 +90,12 @@ export interface NumberAspectsResult {
  * @param userDominant/userMissing ธาตุผู้ใช้ (มี = คิดความเข้ากันของธาตุด้วย · ไม่มี = คะแนนจากตัวเลขล้วน)
  */
 export function numberAspects(
-  num: number,
+  num: number | string, // string = คงเลข 0 นำหน้าได้ (เบอร์โทร 08x — Number() จะตัด 0 ทิ้ง)
   userDominant?: Element5,
   userMissing: Element5[] = []
 ): NumberAspectsResult {
-  const digitsStr = String(Math.abs(Math.round(num)));
+  const digitsStr =
+    typeof num === "string" ? num.replace(/\D/g, "") : String(Math.abs(Math.round(num)));
   const digits = digitsStr.split("").map(Number);
 
   // ชั้น 1: ค่าเฉลี่ยอุปนิสัยรายหลัก (×3 → สวิง ±3 รอบฐาน 5)
@@ -107,7 +108,7 @@ export function numberAspects(
   });
 
   // ชั้น 3: ธาตุของเลขเทียบธาตุผู้ใช้ — ยก/กดทั้งภาพ (−1.5 ถึง +1.5)
-  const elRaw = artifactElement(num);
+  const elRaw = artifactElement(Number(digitsStr)); // 0 นำหน้าไม่กระทบธาตุ (คิดจากผลรวมหลัก)
   const el = (["Fire", "Earth", "Metal", "Water", "Wood"].includes(elRaw) ? elRaw : null) as Element5 | null;
   let elementNote: string | null = null;
   if (el && userDominant) {

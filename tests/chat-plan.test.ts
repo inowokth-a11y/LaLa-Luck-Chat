@@ -549,3 +549,14 @@ test("myFengshuiCheck — ทิศนอก enum ถูกปฏิเสธ ·
   const out = spec.run(ok.ok ? ok.args : {}, ctx) as Record<string, unknown>;
   assert.ok(JSON.stringify(out).length > 50, "ได้ผลวิเคราะห์จริงจาก engine");
 });
+
+test("myNumberAspects รับเบอร์โทรเป็นสตริง (คง 0 นำหน้า) · สตริงปนตัวอักษรถูกปฏิเสธ", () => {
+  const spec = PLAN_ALLOWLIST.myNumberAspects;
+  const ok = spec.check({ num: "0812345678" });
+  assert.ok(ok.ok && ok.args.num === "0812345678");
+  assert.ok(!spec.check({ num: "081-234-5678" }).ok, "planner ต้องส่งหลักล้วน — ขีดคั่นให้ตัดเอง");
+  assert.ok(!spec.check({ num: "abc123" }).ok);
+  const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
+  const out = spec.run({ num: "0812345678" }, ctx) as { เลข: string; คะแนน: Record<string, number> };
+  assert.equal(out.เลข, "0812345678");
+});

@@ -1301,6 +1301,13 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ เบอร์โทรได้คะแนน 5 ด้านแล้ว (4 ส.ค. 2569 — ผู้ใช้ทดลองจริงแล้วขอ):**
+- planner: เบอร์โทร → เรียก **myNumberAspects คู่กับ analyzePhoneNumber** (คะแนน 5 ด้าน + ความหมาย
+  เลขท้าย) · **บั๊กแฝงที่แก้พ่วง: เลข 0 นำหน้าเบอร์** — ส่งเป็น int จะโดน Number() ตัด 0 ทิ้ง →
+  myNumberAspects/numberAspects รับสตริงหลักล้วน ≤10 ตัวได้แล้ว (มีเทสต์ล็อก "0812345678")
+- verify AI จริง: "เบอร์ 081-234-5678 ดีไหม" → planner ส่ง num:"0812345678" (คง 0) + คะแนนครบ 5 ด้าน
+  ตรง engine เป๊ะ · เทสต์ 444
+
 **✅ TTS v1 — แชทบอทอ่านออกเสียงด้วย Web Speech API ฿0 (4 ส.ค. 2569 ผู้ใช้เลือกทางฟรี):**
 - `SpeakButton` (app/_components) — ปุ่ม 🔊/⏹ ใช้ speechSynthesis ของเครื่องผู้ใช้ (เสียงไทยติดมากับ
   iOS/Android/Chrome) **ไม่มีต้นทุนเซิร์ฟเวอร์** · เบราว์เซอร์ไม่รองรับ = ซ่อนปุ่ม · อ่านทีละข้อความ
