@@ -1301,6 +1301,15 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ แก้ Messenger ไม่โชว์รูป OG (4 ส.ค. 2569 — FB feed ขึ้นแต่ Messenger ไม่ขึ้น):**
+- ตัวการ: รูป OG เรนเดอร์สดทุกครั้ง (การ์ด ~3.4s — ดึง Supabase+รูป+ฟอนต์ใหม่ตลอด) · crawler ของ
+  Messenger ใจร้อนกว่า feed → รูปช้า = ตัดทิ้ง (meta ครบทุกแท็กอยู่แล้ว width/height/type)
+- แก้: `export const revalidate = 86400` ทั้ง opengraph-image ของหน้าแรก+การ์ด → verify จาก prod:
+  `x-vercel-cache: HIT` + `cache-control: immutable max-age=31536000` (URL มี hash ต่อ deploy —
+  deploy ใหม่ล้างแคชเอง)
+- ⚠️ Messenger แคชพรีวิว "ต่อ URL ต่อห้องแชท" — ลิงก์เดิมที่เคยส่งแล้วไม่ขึ้นรูป จะยังไม่ขึ้นในห้องเดิม
+  ต้องส่งเป็น URL ใหม่ (?v=x) หรือห้องใหม่ + Scrape Again ใน Sharing Debugger
+
 **✅ เบอร์โทรได้คะแนน 5 ด้านแล้ว (4 ส.ค. 2569 — ผู้ใช้ทดลองจริงแล้วขอ):**
 - planner: เบอร์โทร → เรียก **myNumberAspects คู่กับ analyzePhoneNumber** (คะแนน 5 ด้าน + ความหมาย
   เลขท้าย) · **บั๊กแฝงที่แก้พ่วง: เลข 0 นำหน้าเบอร์** — ส่งเป็น int จะโดน Number() ตัด 0 ทิ้ง →
