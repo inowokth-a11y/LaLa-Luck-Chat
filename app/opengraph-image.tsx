@@ -8,6 +8,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 export const runtime = "nodejs";
+// 🔴 cache 1 วัน — เดิมเรนเดอร์สดทุกครั้ง (การ์ด ~3.4s) ช้าจน **Messenger ตัดรูปทิ้ง** ทั้งที่
+// FB feed ขึ้น (crawler คนละความอดทน — เจอจริง 4 ส.ค. 2569) · เนื้อหาคงที่ต่อ deploy
+export const revalidate = 86400;
 export const alt = "LaLa Lucky Chat — คำนวณทุกมิติที่ส่งผลต่อกัน";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

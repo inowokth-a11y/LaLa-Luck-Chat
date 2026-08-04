@@ -10,6 +10,9 @@ import { isValidCardId, thaiSoftWrap } from "@/lib/share";
 import { cardImageUrl } from "@/lib/cards";
 
 export const runtime = "nodejs";
+// 🔴 cache 1 วัน — เดิมเรนเดอร์สดทุกครั้ง (การ์ด ~3.4s) ช้าจน **Messenger ตัดรูปทิ้ง** ทั้งที่
+// FB feed ขึ้น (crawler คนละความอดทน — เจอจริง 4 ส.ค. 2569) · ข้อมูลการ์ดเปลี่ยนเฉพาะตอนเรา migrate (verify bio ฯลฯ) — deploy ใหม่ล้างแคชให้เอง
+export const revalidate = 86400;
 export const alt = "การ์ดพลังงาน — LaLa Lucky Chat";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
