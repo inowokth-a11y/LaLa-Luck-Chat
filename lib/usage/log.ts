@@ -35,7 +35,14 @@ export async function logAiUsage(rec: UsageRecord): Promise<void> {
       console.warn(`[usage] ${rec.provider}/${rec.model} ไม่คืน usage — ต้นทุนจะถูกบันทึกเป็น 0`);
     }
 
-    const cost = calcCost(rec.model, u?.input_tokens ?? 0, u?.output_tokens ?? 0, u?.web_searches ?? 0);
+    const cost = calcCost(
+      rec.model,
+      u?.input_tokens ?? 0,
+      u?.output_tokens ?? 0,
+      u?.web_searches ?? 0,
+      u?.cache_read_tokens ?? 0,
+      u?.cache_creation_tokens ?? 0
+    );
     if (cost.unknownModel) {
       console.warn(`[usage] ไม่มีราคาของโมเดล "${rec.model}" ใน lib/ai/pricing.ts — ต้นทุนจะต่ำกว่าจริง`);
     }

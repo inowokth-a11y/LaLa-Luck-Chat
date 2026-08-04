@@ -343,7 +343,9 @@ export async function runPlanChat(
 ): Promise<PlanChatResult> {
   // ---- จังหวะ 1: planner ----
   const planner = await generate({
-    role: "router", // Claude Haiku — ถูกและพอสำหรับงานวางแผน JSON
+    role: "router",
+    // prompt ~6k token คงที่ → เข้าเกณฑ์แคช Haiku (4,096) แล้ว — อ่านแคชถูกกว่า 10× (4 ส.ค. 2569)
+    cacheSystem: true, // Claude Haiku — ถูกและพอสำหรับงานวางแผน JSON
     channel: "web",
     logicId: 0,
     system: buildPlannerSystem(),

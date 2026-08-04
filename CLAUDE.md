@@ -1301,6 +1301,21 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ คำนวณต้นทุนใหม่รอบ 3 + เปิด prompt caching ของ planner (4 ส.ค. 2569 — ผู้ใช้สั่งวัดใหม่):**
+- **ที่วัดได้หลังสลับ Gemini (28 แถว — ตัวอย่างเอียงไปทางคำถามหนัก):** planner Haiku ฿0.25
+  (prompt โต ~6k token จาก allowlist 19 fn) + narrator Flash ฿0.28 (คำตอบโครงเต็ม) →
+  แชทสายคำนวณ ~฿0.53 = กำไร 4.8× **หลุดกฎ 500% ชั่วคราว**
+- **ทางแก้ที่ทำเลย: prompt caching ของ planner ใช้ได้แล้ว** — ธง §10 เดิม ("อย่าลอง") หมดอายุ
+  เพราะ prompt ข้ามเกณฑ์ 4,096 token ของ Haiku แล้ว · เพิ่ม `cacheSystem` ใน GenerateRequest
+  (claude.ts ห่อ system เป็น block + cache_control) · `calcCost` คิด cache read 0.1×/write 1.25× ·
+  usage log เก็บ cache tokens · planner เปิดใช้
+- **วัดจริง:** เขียนแคช ฿0.333 (ครั้งแรก) → **อ่านแคช ฿0.039** (ถูกลง 6×) — แคชแชร์ทุกผู้ใช้
+  (system เดียวกันทั้งระบบ TTL 5 นาที) traffic ปกติ = อุ่นเกือบตลอด
+- **สรุปแชท/คำถาม: ~฿0.32 (อุ่น) – ฿0.6 (เย็น) → ตั้ง costThb 0.35** = กำไร 7.2× ที่ floor ✅
+- oracle/dream ใช้ Flash แล้วต้นทุนจริงต่ำกว่าตัวเลขเดิม (0.76/0.69) — คง costThb เดิมเป็นเพดาน
+  ปลอดภัย รอวัดจาก traffic จริง · ⚠️ narrator ยังไม่ได้เปิดแคช (system 500-1.6k token ต่ำกว่าเกณฑ์
+  Flash ไม่มี explicit cache ต้องรอ implicit ของ Gemini เอง)
+
 **✅ ชิปสถานะเด่นขึ้น + เก็บเพศ + แดชบอร์ดเพศ×ช่วงอายุ×แนวคำถาม (4 ส.ค. 2569 — ผู้ใช้สั่ง 3 ข้อ):**
 1. **AuthStatus มุมขวาบน**: พื้นทองทึบ+ตัวครีม (เดิมทองจางกลืนพื้นหินอ่อน) · ไอคอน 🐾 → 👤 —
    ตรวจ preview แล้วเด่นชัด

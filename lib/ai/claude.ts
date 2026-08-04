@@ -53,7 +53,10 @@ export const claudeProvider: AiProvider = {
     const res = await getClient().messages.create({
       model,
       max_tokens: maxTokens,
-      system: req.system,
+      // cacheSystem: ห่อ system เป็น block พร้อม cache_control — ต่ำกว่าเกณฑ์โมเดลจะไม่แคชเงียบๆ (ไม่ error)
+      system: req.cacheSystem
+        ? [{ type: "text" as const, text: req.system, cache_control: { type: "ephemeral" as const } }]
+        : req.system,
       messages: [{ role: "user", content }],
       // adaptive thinking ช่วยงานที่ต้องใช้เหตุผล (AI-1 ตัดสินธาตุ) — Haiku ไม่รองรับ จึงเปิดเฉพาะรุ่นใหม่
       ...(model.startsWith("claude-haiku") ? {} : { thinking: { type: "adaptive" as const } }),
@@ -79,6 +82,8 @@ export const claudeProvider: AiProvider = {
         input_tokens: res.usage.input_tokens,
         output_tokens: res.usage.output_tokens,
         web_searches: webSearches,
+        cache_read_tokens: res.usage.cache_read_input_tokens ?? 0,
+        cache_creation_tokens: res.usage.cache_creation_input_tokens ?? 0,
       },
     };
   },

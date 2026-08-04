@@ -17,6 +17,9 @@ export interface GenerateRequest {
   maxTokens?: number;
   /** ให้ provider เปิดเครื่องมือค้นเว็บ (ใช้กับ AI-1) */
   webSearch?: boolean;
+  /** ขอแคช system prompt (Anthropic prompt caching — ต้อง ≥4,096 token บน Haiku ไม่งั้นเงียบเฉยๆ)
+   *  เปิดเฉพาะ prompt ใหญ่คงที่ เช่น planner (4 ส.ค. 2569: ~6k token — เดิมเล็กเกินเกณฑ์ ดู §10) */
+  cacheSystem?: boolean;
 
   // ---- ภาพ (role "vision" เท่านั้น) ----
   // 🔴 provider ที่ไม่รองรับภาพต้อง throw ทันทีถ้าเจอ field นี้ — ห้ามเงียบๆ ส่งแค่ข้อความ
@@ -54,6 +57,9 @@ export interface AiUsage {
   output_tokens: number;
   /** จำนวนครั้งที่ค้นเว็บ (คิดเงินแยกจาก token) */
   web_searches: number;
+  /** prompt caching (Anthropic): token ที่อ่านจากแคช (คิด 0.1×) / เขียนแคช (คิด 1.25×) */
+  cache_read_tokens?: number;
+  cache_creation_tokens?: number;
 }
 
 export interface ProviderOutput {

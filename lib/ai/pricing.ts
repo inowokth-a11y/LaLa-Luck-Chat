@@ -48,14 +48,20 @@ export function calcCost(
   model: string,
   inputTokens: number,
   outputTokens: number,
-  webSearches = 0
+  webSearches = 0,
+  cacheReadTokens = 0,
+  cacheCreationTokens = 0
 ): CostBreakdown {
   const p = PRICES[model];
   if (!p) {
     return { usd: webSearches * WEB_SEARCH_USD_EACH, thb: 0, unknownModel: true };
   }
+  // prompt caching (Anthropic): อ่านจากแคช = 0.1× ราคา input · เขียนแคช = 1.25×
+  // (input_tokens ของ API ไม่รวมส่วนแคชอยู่แล้ว — บวกแยกตรงนี้เพื่อบันทึกต้นทุนตามจริง)
   const usd =
     (inputTokens / 1_000_000) * p.input +
+    (cacheReadTokens / 1_000_000) * p.input * 0.1 +
+    (cacheCreationTokens / 1_000_000) * p.input * 1.25 +
     (outputTokens / 1_000_000) * p.output +
     webSearches * WEB_SEARCH_USD_EACH;
   return { usd, thb: usd * usdThbRate(), unknownModel: false };
