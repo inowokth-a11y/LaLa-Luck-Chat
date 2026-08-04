@@ -4,6 +4,7 @@
 // เรียก /api/dream ซึ่งรัน Safety Gate → engine → AI-1 → AI-2 ฝั่ง server
 
 import { useRef, useState } from "react";
+import SpeakButton from "@/app/_components/SpeakButton";
 import styles from "./dream.module.css";
 import { MascotAvatar, MascotPerch } from "@/app/_components/MascotLogo";
 
@@ -114,6 +115,7 @@ export default function DreamPage() {
             )}
             <div className={`${m.who === "user" ? styles.bubbleUser : styles.bubbleBot} ${m.intercepted ? styles.crisis : ""}`}>
               <p className={styles.text}>{m.text}</p>
+              {m.who === "lala" && !m.intercepted && <SpeakButton text={m.text} />}
 
               {m.symbols && m.symbols.length > 0 && (
                 <div className={styles.chips}>

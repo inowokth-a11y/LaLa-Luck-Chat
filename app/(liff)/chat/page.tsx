@@ -8,6 +8,7 @@
 //    (ห้ามพ่วงปุ่ม/การตลาดตอนแสดงข้อความวิกฤต — ตรงกับกฎ LINE webhook/FunctionChat)
 
 import { useEffect, useMemo, useState } from "react";
+import SpeakButton from "@/app/_components/SpeakButton";
 import { useSyncStatus } from "@/app/_components/AuthStatus";
 import Link from "next/link";
 import ChartPanel, { type ChartData } from "../_components/ChartPanel";
@@ -260,7 +261,10 @@ export default function FlexibleChatPage() {
                       <ChartPanel chart={entry.chart} />
                     </div>
                   )}
-                  <div className={styles.ai}>{renderReply(entry.reply)}</div>
+                  <div className={styles.ai}>
+                    {renderReply(entry.reply)}
+                    <SpeakButton text={entry.reply} />
+                  </div>
                   {entry.caveats.length > 0 && (
                     <div className={styles.caveats}>
                       {entry.caveats.map((c, j) => (

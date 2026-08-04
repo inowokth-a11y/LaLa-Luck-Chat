@@ -1301,6 +1301,19 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
 | Supabase | ✅ **migration 000-035** รันจริง (ล่าสุด: 034 affiliate · 035 wellbeing kwi) — รันผ่าน **pooler IPv4** ถ้าเน็ตไป IPv6 ตรงไม่ได้ (ดู §12) |
 | Vercel / GitHub | ✅ prod = **`lalaluckychat.com`** (โดเมนจริง ซื้อ+ผูก 2 ส.ค. 2569 — apex เป็นหลัก ไม่ใช้ www) · `lala-lucky-chat.vercel.app` ยังชี้ deployment เดิม ⚠️ รอผู้ใช้ตั้ง redirect → โดเมนใหม่ (Domains → Edit) · repo `inowokth-a11y/LaLa-Luck-Chat` · deploy อัตโนมัติจาก main · **env ครบแล้ว** (FAL/ADMIN/OMISE test) · ⚠️ มีโปรเจ็กต์ซ้ำ 2 ตัวรอผู้ใช้ลบ · verify โดเมนใหม่แล้ว: หน้าแรก/แชร์/OG 200 · Omise webhook 200 · LINE webhook 401 · router ai_available:true — โค้ดไม่มีจุด hardcode โดเมน (อิง origin ทั้งหมด) |
 
+**✅ TTS v1 — แชทบอทอ่านออกเสียงด้วย Web Speech API ฿0 (4 ส.ค. 2569 ผู้ใช้เลือกทางฟรี):**
+- `SpeakButton` (app/_components) — ปุ่ม 🔊/⏹ ใช้ speechSynthesis ของเครื่องผู้ใช้ (เสียงไทยติดมากับ
+  iOS/Android/Chrome) **ไม่มีต้นทุนเซิร์ฟเวอร์** · เบราว์เซอร์ไม่รองรับ = ซ่อนปุ่ม · อ่านทีละข้อความ
+  (กดใหม่หยุดเก่า) · cleanup ตอน unmount
+- `lib/chat/speech-text.ts` (pure, 3 เทสต์) — ตัด markdown/อีโมจิ/ZWSP/URL ก่อนอ่าน (กันเครื่องอ่าน
+  "ดอกจัน" / ชื่ออีโมจิ)
+- ติด 3 จุด: LalaFloat (ทุก bubble AI) · /chat · /dream — **เว้นข้อความ Safety Gate โดยเจตนา**
+  (โทนวิกฤตไม่ใส่ของเล่น — หลักเดียวกับไม่ใส่อวตารแมว)
+- verify preview: ปุ่มขึ้นบน /dream · คลิกไม่ crash ไม่มี console error (headless ไม่มี voice ไทย
+  จึงไม่เปล่งเสียง — เครื่องจริงมี) · เทสต์ 442
+- ⚠️ อัปเกรดเป็นเสียง cloud (Azure ~฿0.58/ครั้ง) เมื่อไหร่ต้องผ่านการตัดสินราคา §12 ก่อน —
+  ตัวเลขเทียบราคาอยู่ในบทสนทนา 4 ส.ค. 2569
+
 **✅ คำนวณต้นทุนใหม่รอบ 3 + เปิด prompt caching ของ planner (4 ส.ค. 2569 — ผู้ใช้สั่งวัดใหม่):**
 - **ที่วัดได้หลังสลับ Gemini (28 แถว — ตัวอย่างเอียงไปทางคำถามหนัก):** planner Haiku ฿0.25
   (prompt โต ~6k token จาก allowlist 19 fn) + narrator Flash ฿0.28 (คำตอบโครงเต็ม) →

@@ -13,6 +13,7 @@
 // ไม่แสดงบน: /dream /chat (แชทเต็มหน้าอยู่แล้ว — ห้ามซ้อน §13) · auth/consent/แอดมิน/หน้าแชร์
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import SpeakButton from "./SpeakButton";
 import { usePathname } from "next/navigation";
 import { useSyncStatus } from "@/app/_components/AuthStatus";
 import { MascotAvatar } from "@/app/_components/MascotLogo";
@@ -287,6 +288,7 @@ export default function LalaFloat() {
               {msgs.map((m, i) => (
                 <div key={i} className={m.role === "user" ? styles.user : styles.ai}>
                   {m.text}
+                  {m.role === "ai" && <SpeakButton text={m.text} />}
                   {m.chart && <ChartPanel chart={m.chart} />}
                 </div>
               ))}
