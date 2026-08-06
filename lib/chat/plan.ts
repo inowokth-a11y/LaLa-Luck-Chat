@@ -72,6 +72,7 @@ export const PLAN_FN_NAMES = [
   "myWuXingVsElement",
   "myNumberScore",
   "myNumberAspects",
+  "myNumberSuggest",
   "myNameMatch",
   "myAuspiciousDays",
   "myFengshuiCheck",
@@ -372,25 +373,71 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       "**ตัวหลักสำหรับคำถามทะเบียนรถ บ้านเลขที่ เบอร์โทร เลขใดๆ ว่า 'ดีไหม/เป็นยังไง'** " +
       "หลายเลขให้เรียกทีละเลข (chart bar เทียบภาพรวมได้)",
     argsHint:
-      '{ num: 0-9999999999 หรือสตริงหลักล้วน } (ทะเบียน "จง 6266" → 6266 · **เบอร์โทรส่งเป็นสตริง ' +
-      'คงเลข 0 นำหน้า เช่น "0812345678"**)',
+      '{ num: 0-9999999999 หรือสตริงหลักล้วน, letters?: "อักษรบนป้าย" } (ทะเบียน "จง 6266" → ' +
+      '{num:6266, letters:"จง"} · **เบอร์โทรส่งเป็นสตริงคงเลข 0 นำหน้า เช่น "0812345678"**)',
     caveat: NUMBER_ASPECTS_CAVEAT,
     chartable: { scale: [0, 10], pick: (o) => (o as { ภาพรวม: number }).ภาพรวม },
     needsProfile: true,
     check: (a) => {
       // รับ 2 แบบ: int (เลขทั่วไป) หรือสตริงหลักล้วน ≤10 ตัว (เบอร์โทร — คง 0 นำหน้า)
+      const letters =
+        typeof a.letters === "string" && /^[ก-ฮ]{1,3}$/.test(a.letters.trim()) ? a.letters.trim() : undefined;
       if (typeof a.num === "string") {
         if (!/^\d{1,10}$/.test(a.num)) {
           return { ok: false, error: "num แบบสตริงต้องเป็นตัวเลขล้วน 1-10 หลัก" };
         }
-        return { ok: true, args: { num: a.num } };
+        return { ok: true, args: { num: a.num, ...(letters ? { letters } : {}) } };
       }
       const r = intInRange(a.num, 0, 9_999_999_999, "num", "รองรับสูงสุด 10 หลัก");
-      return r.ok ? { ok: true, args: { num: a.num } } : r;
+      return r.ok ? { ok: true, args: { num: a.num, ...(letters ? { letters } : {}) } } : r;
     },
     // สูตรเสริม 3 ชั้น deterministic (ดู lib/engine/number-aspects.ts) — ไม่มี AI แต่งตัวเลข
-    run: (a, ctx) => numberAspects(a.num as number | string, ctx?.dominant, ctx?.missing ?? []),
+    run: (a, ctx) =>
+      numberAspects(a.num as number | string, ctx?.dominant, ctx?.missing ?? [], a.letters as string | undefined),
     defaultLabel: (a) => `เลข ${a.num}`,
+  },
+
+  myNumberSuggest: {
+    logic: 2,
+    description:
+      "แนะนำเลขมงคลที่ดีที่สุดตามโจทย์ — **ใช้เมื่อผู้ใช้กำลังจะขอ/เลือกเลขใหม่** (ทะเบียนรถ เบอร์ " +
+      "บ้านเลขที่) เช่น 'จะไปขอทะเบียนขึ้นต้น 60 เลขไหนดี' → สแกนเลขท้าย 00-99 จัดอันดับด้วยคะแนน 5 ด้าน",
+    argsHint:
+      '{ prefix: "เลขขึ้นต้น 0-8 หลัก" (ไม่มีให้ส่ง "" = เลข 2 หลักล้วน), letters?: "อักษรบนป้าย", count?: 3-10 }',
+    caveat: NUMBER_ASPECTS_CAVEAT,
+    chartable: null,
+    needsProfile: true,
+    check: (a) => {
+      const prefix = typeof a.prefix === "string" && /^\d{0,8}$/.test(a.prefix) ? a.prefix : null;
+      if (prefix === null) return { ok: false, error: 'prefix ต้องเป็นตัวเลข 0-8 หลัก (ไม่มีให้ส่ง "")' };
+      const letters =
+        typeof a.letters === "string" && /^[ก-ฮ]{1,3}$/.test(a.letters.trim()) ? a.letters.trim() : undefined;
+      const count =
+        typeof a.count === "number" && Number.isInteger(a.count) && a.count >= 3 && a.count <= 10 ? a.count : 5;
+      return { ok: true, args: { prefix, count, ...(letters ? { letters } : {}) } };
+    },
+    // สแกนเลขท้าย 00-99 ต่อท้าย prefix → จัดอันดับตามภาพรวม (deterministic — engine ล้วนทั้งสาย)
+    run: (a, ctx) => {
+      const prefix = a.prefix as string;
+      const letters = a.letters as string | undefined;
+      const ranked = Array.from({ length: 100 }, (_, xx) => {
+        const candidate = `${prefix}${String(xx).padStart(2, "0")}`;
+        const r = numberAspects(candidate, ctx?.dominant, ctx?.missing ?? [], letters);
+        return r;
+      })
+        .sort((x, y) => y.ภาพรวม - x.ภาพรวม)
+        .slice(0, a.count as number)
+        .map((r) => ({
+          เลข: r.เลข,
+          ภาพรวม: r.ภาพรวม,
+          คะแนน: r.คะแนน,
+          การ์ดผลรวม: r.การ์ดผลรวม,
+          ความหมายเลขท้าย: r.ความหมายเลขท้าย,
+          ...(r.การ์ดรวมทั้งป้าย ? { การ์ดรวมทั้งป้าย: r.การ์ดรวมทั้งป้าย } : {}),
+        }));
+      return { โจทย์: `เลขขึ้นต้น "${prefix}"${letters ? ` อักษร ${letters}` : ""}`, เลขแนะนำ: ranked };
+    },
+    defaultLabel: (a) => `แนะนำเลข ${a.prefix}xx`,
   },
 
   myNameMatch: {

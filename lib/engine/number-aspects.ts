@@ -11,6 +11,7 @@
 // ห้ามคำคลินิก/คำฟันธง — "สุขภาพกายใจ" ในที่นี้คือมิติพลังงานตามความเชื่อ ไม่ใช่คำวินิจฉัย
 
 import { artifactElement, lookup2digit } from "./numerology";
+import { namePower } from "./card-id";
 import { wuXingScore, THAI_LABEL_5, type Element5 } from "./element";
 
 export const ASPECT_KEYS = ["finance", "love", "health", "luck", "power"] as const;
@@ -76,6 +77,13 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 export interface NumberAspectsResult {
   เลข: string;
   ธาตุของเลข: string;
+  /** ผลรวมทุกหลัก → การ์ดความหมายจากตาราง 00-99 (สไตล์คำทำนายเดิมของผู้ใช้ — 6 ส.ค. 2569) */
+  ผลรวมเลข: number;
+  การ์ดผลรวม: string | null;
+  /** ตัวอักษรบนป้าย (ถ้ามี เช่น "จง") — พลังอักษรจากหลักกลุ่มอักษร + การ์ดรวมทั้งป้าย */
+  อักษรบนป้าย?: string;
+  พลังอักษร?: number;
+  การ์ดรวมทั้งป้าย?: string | null;
   ความหมายเลขท้าย: string | null;
   คะแนน: Record<string, number>; // key = ป้ายไทย 5 ด้าน
   ภาพรวม: number;
@@ -92,7 +100,9 @@ export interface NumberAspectsResult {
 export function numberAspects(
   num: number | string, // string = คงเลข 0 นำหน้าได้ (เบอร์โทร 08x — Number() จะตัด 0 ทิ้ง)
   userDominant?: Element5,
-  userMissing: Element5[] = []
+  userMissing: Element5[] = [],
+  /** ตัวอักษรบนป้ายทะเบียน (เช่น "จง") — คิดพลังอักษรด้วยหลักกลุ่มอักษรเดียวกับ NamePower */
+  plateLetters?: string
 ): NumberAspectsResult {
   const digitsStr =
     typeof num === "string" ? num.replace(/\D/g, "") : String(Math.abs(Math.round(num)));
@@ -130,12 +140,29 @@ export function numberAspects(
   const last2 = digits.length >= 2 ? Number(digitsStr.slice(-2)) : Number(digitsStr);
   const meaning = lookup2digit(last2);
 
+  // การ์ดจากผลรวมทุกหลัก (สูงสุด 10 หลัก×9 = 90 อยู่ในตาราง 00-99 เสมอ)
+  const sumAll = digits.reduce((a, b) => a + b, 0);
+  const sumCard = lookup2digit(sumAll);
+  // พลังอักษรบนป้าย (จง = จ6+ง2 = 8) → การ์ดรวมทั้งป้าย (อักษร+ผลรวมเลข)
+  const letters = (plateLetters ?? "").trim();
+  const letterPower = letters ? namePower(letters) : 0;
+  const totalCard = letters && letterPower > 0 ? lookup2digit(Math.min(letterPower + sumAll, 99)) : null;
+
   const คะแนน: Record<string, number> = {};
   ASPECT_KEYS.forEach((k, i) => (คะแนน[ASPECT_LABEL_TH[k]] = cleaned[i]));
 
   return {
     เลข: digitsStr,
     ธาตุของเลข: el ? THAI_LABEL_5[el] : elRaw,
+    ผลรวมเลข: sumAll,
+    การ์ดผลรวม: sumCard.found ? `${sumCard.energy_name} — ${sumCard.essence}` : null,
+    ...(letters && letterPower > 0
+      ? {
+          อักษรบนป้าย: letters,
+          พลังอักษร: letterPower,
+          การ์ดรวมทั้งป้าย: totalCard?.found ? `${totalCard.energy_name} — ${totalCard.essence}` : null,
+        }
+      : {}),
     ความหมายเลขท้าย: meaning.found ? `${meaning.energy_name} — ${meaning.essence}` : null,
     คะแนน,
     ภาพรวม: overall,

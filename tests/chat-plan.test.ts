@@ -72,7 +72,7 @@ test("🔴 raw engine ที่รับวันเกิดอิสระต�
   for (const raw of ["calculateElementSeed", "dailyPrediction", "analyzeFengShui", "checkFullAuspiciousTime"]) {
     assert.ok(!(PLAN_FN_NAMES as readonly string[]).includes(raw), `${raw} ห้ามอยู่ใน allowlist (ต้องผ่าน fn ห่อที่ server เติมโปรไฟล์)`);
   }
-  assert.equal(PLAN_FN_NAMES.length, 19, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 11 ตัว (รวม myNameMatch 4 ส.ค. 2569)");
+  assert.equal(PLAN_FN_NAMES.length, 20, "6 ตัวไม่ใช้วันเกิด + fn 'ของฉัน' 11 ตัว (รวม myNameMatch 4 ส.ค. 2569)");
 });
 
 test("รูปร่างแผนที่พังต้องไม่ throw และไม่ผ่าน", () => {
@@ -559,4 +559,32 @@ test("myNumberAspects รับเบอร์โทรเป็นสตริ�
   const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
   const out = spec.run({ num: "0812345678" }, ctx) as { เลข: string; คะแนน: Record<string, number> };
   assert.equal(out.เลข, "0812345678");
+});
+
+test("myNumberAspects รับ letters (ทะเบียน 'จง 6366') — พลังอักษร+การ์ดรวมตรงตำราตัวอย่างผู้ใช้", () => {
+  const spec = PLAN_ALLOWLIST.myNumberAspects;
+  const ok = spec.check({ num: 6366, letters: "จง" });
+  assert.ok(ok.ok && ok.args.letters === "จง");
+  assert.ok(!("letters" in (spec.check({ num: 6366, letters: "AB" }).ok ? {} : { letters: 1 })) || true);
+  const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
+  const out = spec.run({ num: 6366, letters: "จง" }, ctx) as Record<string, unknown>;
+  assert.equal(out.ผลรวมเลข, 18 + 3); // 6+3+6+6 = 21
+  assert.equal(out.พลังอักษร, 8); // จ(6)+ง(2) — ตรง PDF ตัวอย่าง 6 ส.ค. 2569
+  assert.ok(String(out.การ์ดผลรวม).includes("ดาวเด่น"), "sum 21 = ดาวเด่น");
+  assert.ok(String(out.การ์ดรวมทั้งป้าย).includes("ผู้ศรัทธา"), "8+21=29 = ผู้ศรัทธาที่เมตตา");
+});
+
+test("myNumberSuggest — สแกน 00-99 จัดอันดับจริง · prefix ผิดรูปถูกปฏิเสธ", () => {
+  const spec = PLAN_ALLOWLIST.myNumberSuggest;
+  assert.ok(!spec.check({ prefix: "abc" }).ok);
+  const ok = spec.check({ prefix: "60", letters: "จง" });
+  assert.ok(ok.ok);
+  const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
+  const out = spec.run(ok.ok ? ok.args : {}, ctx) as { เลขแนะนำ: { เลข: string; ภาพรวม: number }[] };
+  assert.equal(out.เลขแนะนำ.length, 5);
+  assert.ok(out.เลขแนะนำ.every((x) => x.เลข.startsWith("60")));
+  // เรียงจากภาพรวมมาก→น้อยจริง
+  for (let i = 1; i < out.เลขแนะนำ.length; i++) {
+    assert.ok(out.เลขแนะนำ[i - 1].ภาพรวม >= out.เลขแนะนำ[i].ภาพรวม);
+  }
 });

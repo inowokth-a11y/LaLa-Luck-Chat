@@ -69,7 +69,7 @@ export default function LuckyNumberPage() {
         {error && <p style={{ color: "var(--bad, #a83a1e)", fontSize: "0.85rem" }}>⚠️ {error}</p>}
 
         {result && (
-          <section aria-live="polite" style={{ border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)", borderRadius: 12, padding: "1rem 1.1rem", marginBottom: "1rem", background: "color-mix(in srgb, var(--gold) 5%, transparent)" }}>
+          <section aria-live="polite" style={{ border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)", borderRadius: 12, padding: "1rem 1.1rem", marginBottom: "1rem", background: "color-mix(in srgb, var(--gold) 5%, transparent)", color: "#1d1812" /* ผู้ใช้รายงาน 6 ส.ค.: สีเดิมจางอ่านยากมาก */ }}>
             <h2 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.05rem", color: "var(--gold)", margin: "0 0 0.5rem" }}>
               เลข {result.เลข} — ธาตุ{result.ธาตุของเลข} · ภาพรวม {result.ภาพรวม}/10
             </h2>
@@ -84,6 +84,11 @@ export default function LuckyNumberPage() {
                 </div>
               </div>
             ))}
+            {result.การ์ดผลรวม && (
+              <p style={{ fontSize: "0.85rem", lineHeight: 1.6, margin: "0.6rem 0 0" }}>
+                🃏 <b>บุคลิกของเลข (ผลรวม {result.ผลรวมเลข}):</b> {result.การ์ดผลรวม}
+              </p>
+            )}
             {result.ความหมายเลขท้าย && (
               <p style={{ fontSize: "0.85rem", lineHeight: 1.6, margin: "0.6rem 0 0" }}>
                 ✨ <b>ความหมายเลขท้าย:</b> {result.ความหมายเลขท้าย}
