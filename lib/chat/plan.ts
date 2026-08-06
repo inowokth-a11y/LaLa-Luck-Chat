@@ -24,6 +24,7 @@ import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../en
 import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work-toxic";
 import { DAY_ELEMENT } from "../engine/element";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
+import { phoneOfficialReading, PHONE_OFFICIAL_NOTE } from "../engine/phone-official";
 import { scoreCandidateName, nameComposition } from "../engine/naming";
 import { rankAuspiciousDays, ACTIVITIES, TIMING_CAVEAT, type Emphasis } from "../engine/timing";
 import { analyzeFengShui, type Direction, type Purpose } from "../engine/fengshui";
@@ -73,6 +74,7 @@ export const PLAN_FN_NAMES = [
   "myNumberScore",
   "myNumberAspects",
   "myNumberSuggest",
+  "myPhoneReading",
   "myNameMatch",
   "myAuspiciousDays",
   "myFengshuiCheck",
@@ -204,7 +206,7 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
     // 🔴 caveat เขียนเป็น "ภาษาผู้ใช้" (ผู้ใช้สั่ง 2 ส.ค. 2569) — ห้ามมีศัพท์ภายใน
     //    (Logic/ตาราง/fallback/verify) เพราะข้อความนี้ไหลถึงหน้าจอผู้ใช้ตรงๆ
     caveat:
-      "เลขสามหลักบางชุดไม่มีคำทำนายตรงตัวในตำรา แม่หมอจึงประเมินจากพลังของเลขแต่ละหลักแทน",
+      "เลข 3 หลักมีความหมายเฉพาะ 14 ชุด — เลขนอกเหนือจากนี้ตีความรายหลักตามปกติ (เจ้าของสูตรยืนยันแนวทางนี้)",
     chartable: null,
     check: (a) => {
       const r = intInRange(a.num, 0, 999, "num", CROSS_CONTEXT_HINT);
@@ -438,6 +440,24 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
       return { โจทย์: `เลขขึ้นต้น "${prefix}"${letters ? ` อักษร ${letters}` : ""}`, เลขแนะนำ: ranked };
     },
     defaultLabel: (a) => `แนะนำเลข ${a.prefix}xx`,
+  },
+
+  myPhoneReading: {
+    logic: 2,
+    description:
+      "วิเคราะห์เบอร์โทร 10 หลักตาม**สูตรทางการของเจ้าของตำรา** (ตัด 2 ตัวหน้า → ดูทีละคู่ + " +
+      "เลขกำลังรวม ถ่วงน้ำหนัก 40/25/15/10) — **ตัวหลักของคำถามเบอร์โทร** ใช้คู่กับ myNumberAspects",
+    argsHint: '{ phone: "เบอร์ 10 หลักคง 0 นำหน้า เช่น 0812345678" }',
+    caveat: PHONE_OFFICIAL_NOTE,
+    chartable: null,
+    needsProfile: true,
+    check: (a) => {
+      const digits = typeof a.phone === "string" ? a.phone.replace(/\D/g, "") : "";
+      if (digits.length !== 10) return { ok: false, error: "phone ต้องเป็นเบอร์ 10 หลัก" };
+      return { ok: true, args: { phone: digits } };
+    },
+    run: (a, ctx) => phoneOfficialReading(a.phone as string, ctx?.dominant, ctx?.missing ?? []) ?? { error: "เบอร์ไม่ครบ 10 หลัก" },
+    defaultLabel: (a) => `เบอร์ ${a.phone}`,
   },
 
   myNameMatch: {
