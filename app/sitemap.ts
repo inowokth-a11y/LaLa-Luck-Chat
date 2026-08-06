@@ -7,6 +7,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const pages: { path: string; priority: number }[] = [
     { path: "/", priority: 1 },
     { path: "/profile", priority: 0.9 },
+    { path: "/lucky-number", priority: 0.9 }, // SEO เฟส 1: ดูดวงทะเบียนรถ (KD 2)
+    { path: "/ai", priority: 0.7 }, // SEO เฟส 1: คลัสเตอร์ "ดูดวง ai"
     { path: "/fortune", priority: 0.9 },
     { path: "/dream", priority: 0.9 },
     { path: "/oracle", priority: 0.8 },

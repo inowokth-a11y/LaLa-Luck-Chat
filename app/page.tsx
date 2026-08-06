@@ -22,6 +22,7 @@ const GENDER_OPTIONS = [
 const TOOLS: { href: string; label: string }[] = [
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา ลักกี้ (วิเคราะห์อิสระ)" },
   { href: "/fortune", label: "✨ ดวงของฉัน" },
+  { href: "/lucky-number", label: "🔢 ดูดวงทะเบียนรถ-เบอร์โทร" },
   { href: "/compatibility", label: "🤝 ข่ายความสัมพันธ์" },
   { href: "/fengshui", label: "🧭 ฮวงจุ้ย" },
   { href: "/dream", label: "🌙 ทำนายฝัน" },
