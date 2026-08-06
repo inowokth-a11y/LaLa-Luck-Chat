@@ -5,8 +5,14 @@
 //   ซึ่งจงใจแยกจากถังคำถามแชท เพราะต้นทุนคนละโลก (ฝันปลุก AI-1 ได้ ฿7.46)
 //   นับที่ DB (chat_usage_e bucket logic:<id>) — routes เป็นคนสร้าง state สังเคราะห์ส่งเข้ามา
 
-/** จำนวนครั้งทดลองฟรีต่อ 1 พิธี (ฝัน/เสี่ยงทาย) ต่อบัญชี */
+/** จำนวนครั้งทดลองฟรีต่อ 1 พิธี ต่อบัญชี — ผู้ใช้ตัดสิน 6 ส.ค. 2569: ฝัน 1 ครั้ง (เดิม 2 —
+ *  ต้นทุนสูงสุดของระบบ ปลุก AI-1 ได้ ฿7.46) · เสี่ยงทาย/อื่นๆ คง 2 */
 export const FREE_QUESTIONS_PER_LOGIC = 2;
+const FREE_OVERRIDES: Record<number, number> = { 4: 1 };
+
+export function freeLimitForLogic(logicId: number): number {
+  return FREE_OVERRIDES[logicId] ?? FREE_QUESTIONS_PER_LOGIC;
+}
 
 /** Logic ที่เปิดให้ถามได้ — ต้องตรงกับหน้าที่มีจริง */
 export const CHAT_ENABLED_LOGICS: readonly number[] = [1, 4, 7, 8, 16, 20, 21];
@@ -34,7 +40,7 @@ export interface QuotaCheck {
 
 /** ตรวจว่าใช้สิทธิ์ทดลองได้อีกไหม — ไม่แก้ state */
 export function checkQuota(state: QuotaState, logicId: number): QuotaCheck {
-  const limit = FREE_QUESTIONS_PER_LOGIC;
+  const limit = freeLimitForLogic(logicId);
   if (!CHAT_ENABLED_LOGICS.includes(logicId)) {
     return { allowed: false, used: 0, remaining: 0, limit, reason: "logic_not_enabled" };
   }
@@ -53,5 +59,5 @@ export function checkQuota(state: QuotaState, logicId: number): QuotaCheck {
  *  creditCost = เครดิตต่อครั้งของฟังก์ชันนั้น (แชท 1 · ฝัน/เสี่ยงทาย 2 — ดู lib/credits/pricing.ts) */
 export function quotaExhaustedMessage(logicId: number, creditCost = 1): string {
   const name = CHAT_LOGIC_NAMES[logicId] ?? "ฟังก์ชันนี้";
-  return `คุณใช้สิทธิ์ฟรีของ "${name}" ครบ ${FREE_QUESTIONS_PER_LOGIC} ครั้งแล้วค่ะ 🙏 ใช้ต่อได้ด้วยเครดิต (ครั้งละ ${creditCost} เครดิต)`;
+  return `คุณใช้สิทธิ์ฟรีของ "${name}" ครบ ${freeLimitForLogic(logicId)} ครั้งแล้วค่ะ 🙏 ใช้ต่อได้ด้วยเครดิต (ครั้งละ ${creditCost} เครดิต)`;
 }

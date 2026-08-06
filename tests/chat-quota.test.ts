@@ -8,15 +8,26 @@ import {
   checkQuota,
   quotaExhaustedMessage,
   FREE_QUESTIONS_PER_LOGIC,
+  freeLimitForLogic,
   CHAT_ENABLED_LOGICS,
   CHAT_LOGIC_NAMES,
 } from "../lib/chat/quota";
 
-test("เริ่มต้นถามได้ 2 คำถามต่อฟังก์ชัน", () => {
-  const q = checkQuota({}, 4);
-  assert.equal(q.allowed, true);
-  assert.equal(q.remaining, 2);
-  assert.equal(q.limit, FREE_QUESTIONS_PER_LOGIC);
+test("ค่าเริ่มต้น 2 ครั้ง · ทำนายฝันเหลือ 1 ครั้ง (ผู้ใช้ตัดสิน 6 ส.ค. 2569 — ต้นทุน AI-1 สูงสุด)", () => {
+  const dream = checkQuota({}, 4);
+  assert.equal(dream.allowed, true);
+  assert.equal(dream.remaining, 1);
+  assert.equal(freeLimitForLogic(4), 1);
+  const oracle = checkQuota({}, 21);
+  assert.equal(oracle.remaining, 2);
+  assert.equal(freeLimitForLogic(21), FREE_QUESTIONS_PER_LOGIC);
+});
+
+test("ฝันใช้ 1 ครั้งแล้วหมดสิทธิ์ · ข้อความบอกจำนวนที่ถูกต้องต่อ logic", () => {
+  const q = checkQuota({ "4": 1 }, 4);
+  assert.equal(q.allowed, false);
+  assert.ok(quotaExhaustedMessage(4).includes("ครบ 1 ครั้ง"));
+  assert.ok(quotaExhaustedMessage(21).includes("ครบ 2 ครั้ง"));
 });
 
 test("Logic ที่ไม่ได้เปิดแชท ถามไม่ได้เลย", () => {
@@ -38,9 +49,9 @@ test("ข้อความตอนโควตาหมดต้องบอ�
   assert.ok(!/ฟรีไม่จำกัด|unlimited/i.test(m), "ห้ามสัญญาว่าฟรีไม่จำกัด");
 });
 
-test("ใช้ครบ 2 แล้วถูกปิด (state สังเคราะห์จาก DB แบบที่ route สร้าง)", () => {
-  assert.equal(checkQuota({ "4": 1 }, 4).allowed, true);
-  const q = checkQuota({ "4": 2 }, 4);
+test("ใช้ครบลิมิตแล้วถูกปิด (state สังเคราะห์จาก DB แบบที่ route สร้าง)", () => {
+  assert.equal(checkQuota({ "21": 1 }, 21).allowed, true); // เสี่ยงทาย limit 2
+  const q = checkQuota({ "21": 2 }, 21);
   assert.equal(q.allowed, false);
   assert.equal(q.reason, "quota_exhausted");
 });

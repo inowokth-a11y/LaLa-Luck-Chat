@@ -100,7 +100,7 @@ export default function DreamPage() {
         <p className={styles.sub}>
           อาจารย์ลาลา ลักกี้ 🐾 · ฐานข้อมูล 457 สัญลักษณ์ + 50 ธีมจิตวิทยา
           <br />
-          {remaining === null ? "ช่วงทดลอง ถามได้ 2 ครั้ง" : `เหลือ ${remaining}/2 ครั้ง`}
+          {remaining === null ? "ช่วงทดลอง ทำนายฟรี 1 ครั้ง" : `เหลือ ${remaining}/1 ครั้ง`}
         </p>
       </header>
 

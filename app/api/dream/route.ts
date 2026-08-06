@@ -18,6 +18,7 @@ import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { getMemoryBlock, rememberEvent } from "@/lib/memory";
+import { dreamEnergyCode } from "@/lib/engine/dream-energy";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,11 @@ const LALA_SYSTEM = `${LALA_PERSONA}
 4. ห้ามให้คำแนะนำทางการแพทย์หรือจิตเวช
 5. ความยาว 3-5 ย่อหน้าสั้น ๆ ไม่ต้องขึ้นต้นด้วย "นี่คือ..." เข้าเรื่องเลย
 
-โครงคำตอบ: ทักทายสั้น ๆ → สัญลักษณ์ที่พบและธาตุของมัน → ความหมายเชิงจิตวิทยา → เชื่อมกับธาตุประจำวันถ้ามี → ปิดท้ายด้วยคำถามชวนคิด 1 ข้อ`;
+6. ส่วน "รหัสพลังงานเชิงสัญลักษณ์" ให้เล่าเป็น **เลขจากการคำนวณ** (ขีดอักษรคังซีของสัญลักษณ์
+   เลขดาวประจำวันฝัน เลขประจำธาตุ) พร้อมสีนำโชคของช่วงเวลา — **ห้ามชวนนำเลขไปเสี่ยงโชค/ซื้อหวย**
+   และต้องคงหมายเหตุที่ให้มาไว้ในคำตอบ
+
+โครงคำตอบ: ทักทายสั้น ๆ → สัญลักษณ์ที่พบและธาตุของมัน → ความหมายเชิงจิตวิทยา → เชื่อมกับธาตุประจำวันถ้ามี → 🔢 รหัสพลังงานเชิงสัญลักษณ์ (ขีดคังซี/เลขดาววัน + สีนำโชคช่วงนี้) → ปิดท้ายด้วยคำถามชวนคิด 1 ข้อ`;
 
 export async function POST(req: Request) {
   try {
@@ -81,7 +86,7 @@ export async function POST(req: Request) {
     // ผู้เยี่ยมชม (anonymous) — ทำนายฝันเป็นสิทธิ์ของบัญชีถาวร (กันฟาร์ม incognito — กติกา 1 ส.ค. 2569)
     if (isGuest) {
       return NextResponse.json(
-        { needsLogin: true, needsUpgrade: true, error: "ทำนายฝันเปิดให้บัญชีถาวรค่ะ 🐾 ผูกบัญชี (ฟรี ไม่กี่วินาที) แล้วใช้สิทธิ์ทดลองฟรี 2 ครั้งได้เลย — ข้อมูลเดิมของคุณไม่หาย" },
+        { needsLogin: true, needsUpgrade: true, error: "ทำนายฝันเปิดให้บัญชีถาวรค่ะ 🐾 ผูกบัญชี (ฟรี ไม่กี่วินาที) แล้วใช้สิทธิ์ทดลองฟรี 1 ครั้งได้เลย — ข้อมูลเดิมของคุณไม่หาย" },
         { status: 401 }
       );
     }
@@ -155,12 +160,17 @@ export async function POST(req: Request) {
     }
 
     // ---- 4. AI-2: เรียบเรียงคำตอบ ----
+    // รหัสพลังงานเชิงสัญลักษณ์ (฿0 — ขีดคังซี/เลขดาววัน/สีนำโชค · ผู้ใช้ตัดสิน 6 ส.ค. 2569:
+    // นำเสนอเป็น "เลขจากการคำนวณ" ไม่ใช่ใบ้หวย — guardrail หวยยังทำงานปกติ)
+    const energyCode = dreamEnergyCode(result.symbol_matches ?? [], body.dayOfWeek);
+
     const context = JSON.stringify(
       {
         ความฝัน: dreamText,
         สัญลักษณ์ที่พบในฐานข้อมูล: result.symbol_matches,
         ธีมจิตวิทยาที่พบ: result.theme_matches,
         การเชื่อมโยงกับธาตุประจำวัน: result.context_synthesis || null,
+        รหัสพลังงานเชิงสัญลักษณ์: energyCode,
         สัญลักษณ์ใหม่จากการค้นคว้า: discovery,
         โหมด: body.wantDeepReading ? "คำทำนายลึก" : "ระดับหลักการ",
       },
