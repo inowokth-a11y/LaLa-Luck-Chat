@@ -15,6 +15,46 @@ CHAR_GROUPS = {
 }
 CHAR_TO_GROUP = {ch: g for g, chars in CHAR_GROUPS.items() for ch in chars}
 
+# ค่าสระ/วรรณยุกต์ตามตารางทางการ Calculation_Constants (Name_Numerology) — ผู้ใช้ตัดสิน
+# 6 ส.ค. 2569 "นับสระทุกจุด" · ตารางไม่มีค่าให้ ี ึ ื ะ ็ ๊ ๋ (ข้าม =0, จดถามเจ้าของตำรารอบสอง)
+# ⚠️ ต้องแก้ตรงกันกับ lib/engine/card-id.ts (officialCharValues) เสมอ — golden parity
+VOWEL_VALUES = {
+    "ุ": 1, "า": 1, "ำ": 1, "้": 1,
+    "ู": 2, "่": 2,
+    "ิ": 3,
+    "โ": 4, "เ": 4, "แ": 4,
+    "ใ": 6, "ั": 6,
+    "ไ": 9, "์": 9,
+}
+CHAR_TO_GROUP.update(VOWEL_VALUES)
+
+_LEADING_VOWELS = set("เแโใไ")
+_DEPENDENT_MARKS = set("ัิีึืุู่้๊๋็์ำ")
+
+
+def _is_thai_char(ch):
+    return "ก" <= ch <= "๛"
+
+
+def official_char_groups(name: str):
+    """กลุ่ม 1-9 รายตัวอักษร (รวมสระ/วรรณยุกต์) — กฎแยกบริบท "อ" ตรงกับ officialCharValues ใน TS:
+    อ ตามหลัง ื = ข้าม (ส่วนของสระอือ/เอือ) · อ ต้นคำ/หลังอักขระไม่ใช่ไทย/หลังสระหน้า/
+    มีรูปสระ-วรรณยุกต์เกาะตามหลัง = พยัญชนะ (6) · นอกนั้น = สระออ (4)"""
+    chars = list(name.upper())
+    out = []
+    for i, ch in enumerate(chars):
+        if ch == "อ":
+            prev = chars[i - 1] if i > 0 else ""
+            nxt = chars[i + 1] if i + 1 < len(chars) else ""
+            if prev == "ื":
+                continue
+            is_consonant = (i == 0 or not _is_thai_char(prev)
+                            or prev in _LEADING_VOWELS or nxt in _DEPENDENT_MARKS)
+            out.append(6 if is_consonant else 4)
+        elif ch in CHAR_TO_GROUP:
+            out.append(CHAR_TO_GROUP[ch])
+    return out
+
 # กลุ่มเลข 1-9 -> ธาตุ 5 ธาตุจีน (แมปตามจังหวะ 9 กลุ่ม / 5 ธาตุ โดยประมาณ — ออกแบบเอง
 # ยังไม่ verify กับตำรา ต้องตรวจสอบก่อนใช้จริงเหมือนกรณี BirthPower/NamePower)
 GROUP_TO_ELEMENT = {1: "Wood", 2: "Wood", 3: "Fire", 4: "Fire", 5: "Earth",
@@ -30,7 +70,7 @@ LOGO_STYLE_BY_ELEMENT = {
 
 
 def name_element(name: str) -> str:
-    groups = [CHAR_TO_GROUP[ch] for ch in name.upper() if ch in CHAR_TO_GROUP]
+    groups = official_char_groups(name)
     if not groups:
         return None
     # ธาตุเด่น = กลุ่มที่ปรากฏบ่อยที่สุด แปลงเป็นธาตุ

@@ -7,6 +7,11 @@
 //   ผู้ใช้ยืนยันเลือกสูตรนี้ (ก.ค. 2569) ตามข้อยกเว้นใน §4.1: ระบบเดิมที่ deploy อยู่ใช้สูตรนี้
 //   และผลออกมาดี จึงคงไว้ให้การ์ดของผู้ใช้เดิมไม่เปลี่ยน
 //
+//   🔴 อัปเดต 6 ส.ค. 2569 (ผู้ใช้ตัดสิน): NamePower นับสระ/วรรณยุกต์ด้วยตามตารางทางการ
+//   Calculation_Constants + สเปก ง.2 "แปลงตัวอักษรทั้งหมด" — จุดนี้ทำให้ค่า namePower
+//   ต่างจาก prototype ใน intake_form.html (ซึ่งนับเฉพาะพยัญชนะ+อังกฤษ) โดยเจตนา
+//   ผู้ใช้รับทราบแล้วว่าการ์ดของผู้ใช้เดิมที่ชื่อมีสระจะเปลี่ยนใบ
+//
 //   (ทางเลือกที่ไม่ได้ใช้: "สูตร B" = BirthPower ล้วน ตามที่ตำราภาคผนวกระบุ —
 //    ให้ผลต่างกันคนละใบ เช่น 1986-10-07 → สูตร A ได้ 84, สูตร B ได้ 32)
 //
@@ -18,18 +23,58 @@ const CHAR_GROUPS: Record<number, string> = {
   5: "ฉณฌนมหฎฮฬENW", 6: "จลวอFOX", 7: "ซศสGPY", 8: "ยผฝพฟHQZ", 9: "ฏฐIR",
 };
 
+// ค่าสระ/วรรณยุกต์ตามตารางทางการ Calculation_Constants (Name_Numerology) — ผู้ใช้ตัดสิน
+// 6 ส.ค. 2569 ให้ "นับสระทุกจุด" ตามสเปก ง.2 ("แปลงตัวอักษรทั้งหมด") — ยอมรับว่าการ์ด
+// ของผู้ใช้เดิมเปลี่ยนใบ เพราะยังช่วงเปิดตัว ผู้ใช้น้อย เปลี่ยนตอนนี้เจ็บน้อยสุด
+// ⚠️ ตารางทางการไม่มีค่าให้: ี ึ ื ะ ็ ๊ ๋ (และสระเอือแบบประสม) — อักขระเหล่านี้ถูกข้าม (=0)
+//    จดถามเจ้าของตำราในเอกสารรอบสองแล้ว ห้ามเดาค่าเอง
+const VOWEL_VALUES: Record<string, number> = {
+  "ุ": 1, "า": 1, "ำ": 1, "้": 1, // สระอุ สระอา สระอำ ไม้โท
+  "ู": 2, "่": 2, // สระอู ไม้เอก
+  "ิ": 3, // สระอิ
+  "โ": 4, "เ": 4, "แ": 4, // สระโอ สระเอ สระแอ
+  "ใ": 6, "ั": 6, // ไม้ม้วน ไม้หันอากาศ
+  "ไ": 9, "์": 9, // ไม้มลาย การันต์
+};
+
 const CHAR_TO_VAL: Record<string, number> = {};
 for (const g of Object.keys(CHAR_GROUPS).map(Number).sort((a, b) => a - b)) {
   for (const ch of CHAR_GROUPS[g]) CHAR_TO_VAL[ch] = g;
 }
+Object.assign(CHAR_TO_VAL, VOWEL_VALUES);
 
-/** ผลรวมค่าประจำตัวอักษร (อักษรที่ไม่อยู่ในตารางถูกข้าม เช่น สระ/วรรณยุกต์) */
+/** สระหน้า (นำหน้าพยัญชนะต้นของพยางค์) */
+const LEADING_VOWELS = new Set(["เ", "แ", "โ", "ใ", "ไ"]);
+/** รูปสระ/วรรณยุกต์ที่เกาะพยัญชนะ (ใช้ตัดสินบริบทของ "อ") */
+const DEPENDENT_MARKS = new Set(["ั", "ิ", "ี", "ึ", "ื", "ุ", "ู", "่", "้", "๊", "๋", "็", "์", "ำ"]);
+const isThaiChar = (ch: string) => ch >= "ก" && ch <= "๛";
+
+/**
+ * ค่าประจำอักขระรายตำแหน่ง (null = ข้าม) — ตารางทางการมี "อ" สองบทบาท:
+ * พยัญชนะอ่าง = 6 · สระออ = 4 · กฎแยกบริบท (deterministic, ประกาศไว้ตรงๆ):
+ *   - อ ตามหลัง "ื" → ข้าม (เป็นส่วนของสระอือ/เอือ ซึ่งตารางไม่มีค่าเดี่ยว)
+ *   - อ ต้นคำ / ตามหลังอักขระที่ไม่ใช่ไทย / ตามหลังสระหน้า (เ แ โ ใ ไ) /
+ *     มีรูปสระ-วรรณยุกต์เกาะตามหลัง → พยัญชนะ (6) เช่น อร เอก อ่าน
+ *   - นอกนั้น (ตามหลังพยัญชนะ) → สระออ (4) เช่น สมอ นอน
+ */
+export function officialCharValues(name: string): { ch: string; value: number | null }[] {
+  const chars = [...name.toUpperCase()];
+  return chars.map((ch, i) => {
+    if (ch === "อ") {
+      const prev = i > 0 ? chars[i - 1] : "";
+      const next = i + 1 < chars.length ? chars[i + 1] : "";
+      if (prev === "ื") return { ch, value: null };
+      const isConsonant =
+        i === 0 || !isThaiChar(prev) || LEADING_VOWELS.has(prev) || DEPENDENT_MARKS.has(next);
+      return { ch, value: isConsonant ? 6 : 4 };
+    }
+    return { ch, value: CHAR_TO_VAL[ch] ?? null };
+  });
+}
+
+/** ผลรวมค่าประจำตัวอักษรตามตารางทางการ (รวมสระ/วรรณยุกต์ — อักขระที่ตารางไม่มีค่าถูกข้าม) */
 export function namePower(name: string): number {
-  let sum = 0;
-  for (const ch of name.toUpperCase()) {
-    if (CHAR_TO_VAL[ch] !== undefined) sum += CHAR_TO_VAL[ch];
-  }
-  return sum;
+  return officialCharValues(name).reduce((s, c) => s + (c.value ?? 0), 0);
 }
 
 export function digitSum(n: number): number {

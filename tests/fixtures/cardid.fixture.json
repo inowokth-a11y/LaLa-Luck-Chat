@@ -7,7 +7,7 @@
         "birthDate": "1986-10-07",
         "birthTime": "09:30"
       },
-      "expected": 84
+      "expected": 3
     },
     {
       "input": {
@@ -16,7 +16,7 @@
         "birthDate": "1988-12-31",
         "birthTime": ""
       },
-      "expected": 88
+      "expected": 1
     },
     {
       "input": {
@@ -25,7 +25,7 @@
         "birthDate": "2003-10-21",
         "birthTime": "14:00"
       },
-      "expected": 43
+      "expected": 65
     },
     {
       "input": {
@@ -43,7 +43,7 @@
         "birthDate": "1988-08-29",
         "birthTime": "23:59"
       },
-      "expected": 92
+      "expected": 91
     },
     {
       "input": {
@@ -56,8 +56,15 @@
     }
   ],
   "name_power": {
-    "วุฒิ์ธิระครุฑขุนทด": 37,
+    "วุฒิ์ธิระครุฑขุนทด": 55,
     "NirawitRidngam": 79,
+    "สมชาย": 23,
+    "อร": 10,
+    "เอก": 11,
+    "อ่าน": 14,
+    "สมอ": 16,
+    "นอน": 14,
+    "มือ": 5,
     "": 0
   },
   "digit_sum": {

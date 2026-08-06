@@ -18,10 +18,21 @@ test("computeCardId ตรงกับ prototype ทุกเคส (สูต�
   }
 });
 
-test("namePower / digitSum / reduceTo99 ตรงกับ prototype", () => {
-  for (const [k, v] of Object.entries(fx.name_power)) assert.equal(namePower(k), v);
+test("namePower ตรงกับ implementation อิสระของตารางทางการ · digitSum/reduceTo99 ตรง prototype", () => {
+  for (const [k, v] of Object.entries(fx.name_power)) assert.equal(namePower(k), v, `namePower(${k})`);
   for (const [k, v] of Object.entries(fx.digit_sum)) assert.equal(digitSum(Number(k)), v);
   for (const [k, v] of Object.entries(fx.reduce_to_99)) assert.equal(reduceTo99(Number(k)), v);
+});
+
+test("🔴 นับสระ/วรรณยุกต์ตามตารางทางการ + กฎแยกบริบท 'อ' (ผู้ใช้ตัดสิน 6 ส.ค. 2569)", () => {
+  assert.equal(namePower("สมชาย"), 23); // ส7+ม5+ช2+า1+ย8 — สระอา=1 ต้องถูกนับ
+  assert.equal(namePower("อร"), 10); // อ ต้นคำ = พยัญชนะ (6)
+  assert.equal(namePower("เอก"), 11); // เ4 + อ หลังสระหน้า = พยัญชนะ (6) + ก1
+  assert.equal(namePower("อ่าน"), 14); // อ มีวรรณยุกต์เกาะ = พยัญชนะ (6) + ่2+า1+น5
+  assert.equal(namePower("สมอ"), 16); // อ หลังพยัญชนะ = สระออ (4)
+  assert.equal(namePower("มือ"), 5); // ื ไม่มีค่าในตาราง + อ หลัง ื = ข้าม (สระอือ)
+  // อักขระที่ตารางทางการไม่มีค่า ต้องถูกข้ามเงียบๆ ไม่ใช่เดาค่า (ี ึ ื ะ ็ ๊ ๋ — รอเจ้าของตำรารอบสอง)
+  assert.equal(namePower("ดี"), namePower("ด"));
 });
 
 test("computeCardIdString คืนสองหลักเสมอ", () => {

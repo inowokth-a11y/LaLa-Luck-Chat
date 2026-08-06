@@ -4,16 +4,22 @@
 // ⚠️ GROUP_TO_ELEMENT (9 กลุ่มอักษร → 5 ธาตุ) ออกแบบเอง ยังไม่ verify กับตำรา (CLAUDE.md §5)
 
 import { wuXingScore, type Element5, type WuXingResult } from "./element";
+import { officialCharValues } from "./card-id";
 
 const CHAR_GROUPS: Record<number, string> = {
   1: "กดถทภฤAJS", 2: "ขชบปงBKT", 3: "ฆตฑฒCLU", 4: "คธรญษDMV",
   5: "ฉณฌนมหฎฮฬENW", 6: "จลวอFOX", 7: "ซศสGPY", 8: "ยผฝพฟHQZ", 9: "ฏฐIR",
 };
+// CHAR_GROUPS (พยัญชนะ+อังกฤษ) คงไว้ใช้กับ reverseGenerateCandidates (จับพยัญชนะต้นพยางค์)
+// การนับกลุ่มรายตัวอักษร (nameElement/nameComposition) เปลี่ยนไปใช้ officialCharValues()
+// จาก card-id.ts ซึ่งรวมสระ/วรรณยุกต์ตามตารางทางการ (ผู้ใช้ตัดสิน 6 ส.ค. 2569 "นับสระทุกจุด")
+// — แก้ตรงกันใน naming_branding_engine.py + regenerate fixtures ตามกติกา golden parity
 
-// สร้าง CHAR_TO_GROUP โดยไล่กลุ่ม 1→9 (ตัวหลังทับตัวหน้าถ้าซ้ำ) เหมือน dict comprehension ของ Python
-const CHAR_TO_GROUP: Record<string, number> = {};
-for (const g of Object.keys(CHAR_GROUPS).map(Number).sort((a, b) => a - b)) {
-  for (const ch of CHAR_GROUPS[g]) CHAR_TO_GROUP[ch] = g;
+/** กลุ่ม 1-9 รายตัวอักษร (รวมสระ/วรรณยุกต์ · อักขระที่ตารางไม่มีค่าถูกข้าม) */
+function nameGroups(name: string): number[] {
+  return officialCharValues(name)
+    .map((c) => c.value)
+    .filter((v): v is number => v !== null);
 }
 
 const GROUP_TO_ELEMENT: Record<number, Element5> = {
@@ -45,10 +51,7 @@ function mostCommon<T>(items: T[]): T | undefined {
 }
 
 export function nameElement(name: string): Element5 | null {
-  const groups: number[] = [];
-  for (const ch of name.toUpperCase()) {
-    if (ch in CHAR_TO_GROUP) groups.push(CHAR_TO_GROUP[ch]);
-  }
+  const groups = nameGroups(name);
   if (groups.length === 0) return null;
   const dominantGroup = mostCommon(groups)!;
   return GROUP_TO_ELEMENT[dominantGroup];
@@ -57,8 +60,8 @@ export function nameElement(name: string): Element5 | null {
 /**
  * องค์ประกอบธาตุของชื่อ/คำ — นับรายตัวอักษรแล้วคิดเป็นสัดส่วน (ผู้ใช้สั่ง 4 ส.ค. 2569:
  * โชว์ให้ผู้ใช้เห็นว่าชื่อประกอบด้วยธาตุอะไรอย่างละเท่าไหร่ ไม่ใช่บอกแค่ธาตุเด่นตัวเดียว)
- * ใช้ตารางเดียวกับ nameElement — ตัวอักษรที่จับคู่ไม่ได้ (สระ/วรรณยุกต์) ถูกข้ามแบบเดียวกัน
- * ⚠️ TS-only (ไม่มีคู่ Python — ฟังก์ชันใหม่ ไม่ได้แก้สูตรเดิม nameElement ยังพฤติกรรมเดิมเป๊ะ)
+ * ใช้ตารางเดียวกับ nameElement (รวมสระ/วรรณยุกต์ตามตารางทางการ — อักขระที่ไม่มีค่าถูกข้าม)
+ * ⚠️ TS-only (ไม่มีคู่ Python)
  */
 export interface NameComposition {
   /** จำนวนตัวอักษรที่จับคู่ธาตุได้ */
@@ -71,12 +74,10 @@ export interface NameComposition {
 export function nameComposition(name: string): NameComposition {
   const counts = new Map<Element5, number>();
   let total = 0;
-  for (const ch of name.toUpperCase()) {
-    if (ch in CHAR_TO_GROUP) {
-      const el = GROUP_TO_ELEMENT[CHAR_TO_GROUP[ch]];
-      counts.set(el, (counts.get(el) ?? 0) + 1);
-      total++;
-    }
+  for (const g of nameGroups(name)) {
+    const el = GROUP_TO_ELEMENT[g];
+    counts.set(el, (counts.get(el) ?? 0) + 1);
+    total++;
   }
   const shares: Partial<Record<Element5, number>> = {};
   for (const [el, c] of counts) shares[el] = Math.round((c / total) * 1000) / 1000;
