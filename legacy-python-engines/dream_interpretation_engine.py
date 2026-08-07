@@ -264,6 +264,25 @@ def context_synthesis(day_of_week_th: str, matched_elements: list) -> str:
         return f"วันที่ฝัน ({day_of_week_th}, ธาตุ{day_el_th}) เป็นคนละธาตุกับสัญลักษณ์ที่ฝันเห็น — อาจสื่อถึงความรู้สึกที่ขัดกับจังหวะชีวิตตอนนี้อยู่บ้าง"
 
 
+def parse_symbol_numbers(raw):
+    """แปลงคอลัมน์ lucky_number ของฐาน v3 ("เด่น 08-80 · วิ่ง 0 8") เป็นตัวเลขล้วน
+
+    🔴 ผู้ใช้ตัดสิน 7 ส.ค. 2569: แสดงเฉพาะตัวเลข ตัดคำว่า "เด่น/วิ่ง" ทิ้ง เพราะเป็นศัพท์ใบ้หวย
+       ซึ่งขัดกับ guardrail ที่ปฏิเสธคำถามเรื่องหวยอยู่แล้ว
+    ⚠️ ต้องแก้พร้อมกับ parseSymbolNumbers ใน lib/engine/dream-energy.ts เสมอ (golden parity)
+    """
+    if not raw:
+        return None
+    parts = raw.split("·")
+    head = parts[0] if parts else ""
+    tail = parts[1] if len(parts) > 1 else ""
+    pairs = re.findall(r"\d{2}", head)
+    digits = re.findall(r"\d", tail)
+    if not pairs and not digits:
+        return None
+    return {"คู่": pairs, "หลักเดี่ยว": digits}
+
+
 def interpret_dream(dream_text: str, day_of_week_th: str = None, want_deep_reading: bool = False) -> dict:
     # Safety gate FIRST — no exceptions, matches Platform D's pattern exactly.
     gate = safety_gate(dream_text)
@@ -281,7 +300,9 @@ def interpret_dream(dream_text: str, day_of_week_th: str = None, want_deep_readi
         "dream_text": dream_text,
         "symbol_matches": [
             {"object": m["dream_object"], "element": m["element"], "meaning": m["meaning_keyword"],
-             "kangxi_strokes": m["kangxi_strokes"], "chinese_char": m["chinese_char"]}
+             "kangxi_strokes": m["kangxi_strokes"], "chinese_char": m["chinese_char"],
+             "numbers": parse_symbol_numbers(m.get("lucky_number")),
+             **({"shape_meaning": m["shape_meaning"]} if m.get("shape_meaning") else {})}
             for m in symbol_matches
         ],
         "theme_matches": [

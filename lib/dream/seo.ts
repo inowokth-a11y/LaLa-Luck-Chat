@@ -11,7 +11,7 @@
 
 import { PRODUCTION_DREAM_DB, type DreamSymbol } from "@/lib/engine/dream";
 import { kaekledFor, type KaekledGuidance } from "@/lib/engine/kaekled";
-import { DAY_STAR_NUMBER } from "@/lib/engine/dream-energy";
+import { DAY_STAR_NUMBER, parseSymbolNumbers } from "@/lib/engine/dream-energy";
 import { bridgingElement } from "@/lib/engine/kaekled";
 import type { Element5 } from "@/lib/engine/element";
 
@@ -28,6 +28,8 @@ export interface DreamSeoEntry {
   meaning: string;
   /** ความหมายจากรูปทรง/ลักษณะ (ฐาน v3 — มีเฉพาะหมวดสัตว์บก) */
   shapeMeaning?: string;
+  /** เลขที่ตำราผูกกับสัญลักษณ์ (ตัวเลขล้วน — ตัดศัพท์ใบ้หวยออกตามที่ผู้ใช้ตัดสิน 7 ส.ค. 2569) */
+  numbers?: { คู่: string[]; หลักเดี่ยว: string[] } | null;
   remedy: KaekledGuidance | null;
 }
 
@@ -64,6 +66,7 @@ export function dreamSeoEntries(): DreamSeoEntry[] {
       kangxiStrokes: row.kangxi_strokes,
       meaning: row.meaning_keyword,
       ...(row.shape_meaning ? { shapeMeaning: row.shape_meaning } : {}),
+      numbers: parseSymbolNumbers(row.lucky_number),
       remedy: kaekledFor(row.dream_object, row.element),
     });
   }
@@ -101,8 +104,8 @@ export function relatedEntries(entry: DreamSeoEntry, limit = 8): DreamSeoEntry[]
  * 🔴 กรอบการนำเสนอเดียวกับในแชท: เป็น "เลขจากการคำนวณ" ห้ามนำเสนอเป็นการใบ้หวย
  */
 export const DREAM_SEO_NUMBER_NOTE =
-  "ตัวเลขนี้คือจำนวนขีดของอักษรจีนตามระบบคังซีที่ผูกกับสัญลักษณ์นี้ในตำรา " +
-  "ใช้เป็นรหัสเชิงสัญลักษณ์เพื่อเชื่อมโยงความหมาย ไม่ใช่คำแนะนำการเสี่ยงโชค";
+  "ตัวเลขทั้งหมดนี้มาจากการนับและตารางในตำรา (จำนวนขีดอักษรคังซี และเลขที่ตำราผูกไว้กับสัญลักษณ์) " +
+  "ใช้เป็นรหัสเชิงสัญลักษณ์เพื่อเชื่อมโยงความหมาย ไม่ใช่คำแนะนำการเสี่ยงโชคหรือการพนัน";
 
 /** วันในสัปดาห์ + เลขดาวประจำวัน (ใช้อธิบายหลักการ "ฝันวันไหนมีผลต่างกัน") */
 export const DAY_STARS = Object.entries(DAY_STAR_NUMBER) as [string, number][];

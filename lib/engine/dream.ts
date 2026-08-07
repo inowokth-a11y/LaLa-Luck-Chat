@@ -10,6 +10,7 @@
 import { DAY_ELEMENT, THAI_LABEL_4, safetyGate, type Element4 } from "./element";
 import { findSymbolMatchesSegmented, findThemeMatchesSegmented } from "./dream-match";
 import { getWellnessPair } from "./wellness";
+import { parseSymbolNumbers } from "./dream-energy";
 import dreamDbData from "../../data/dream_master_db.json";
 import dreamPsychData from "../../data/dream_psychology_50.json";
 
@@ -220,7 +221,16 @@ export interface InterpretDreamResult {
   intercepted?: boolean;
   matched_keywords?: string[];
   crisis_resource_message?: string;
-  symbol_matches?: Array<{ object: string; element: string; meaning: string; kangxi_strokes: number | null; chinese_char: string }>;
+  symbol_matches?: Array<{
+    object: string;
+    element: string;
+    meaning: string;
+    kangxi_strokes: number | null;
+    chinese_char: string;
+    /** เลขที่ตำราผูกกับสัญลักษณ์ — parse เป็นตัวเลขล้วนแล้ว (ไม่ส่งศัพท์ใบ้หวยออกจาก engine) */
+    numbers?: { คู่: string[]; หลักเดี่ยว: string[] } | null;
+    shape_meaning?: string;
+  }>;
   theme_matches?: Array<{ theme: string; psychological_meaning: string; subconscious_trigger: string; advice: string; element_connection: string; remedy: string }>;
   context_synthesis?: string;
   found_anything?: boolean;
@@ -263,6 +273,8 @@ export function interpretDream(
     symbol_matches: symbolMatches.map((m) => ({
       object: m.dream_object, element: m.element, meaning: m.meaning_keyword,
       kangxi_strokes: m.kangxi_strokes, chinese_char: m.chinese_char,
+      numbers: parseSymbolNumbers(m.lucky_number),
+      ...(m.shape_meaning ? { shape_meaning: m.shape_meaning } : {}),
     })),
     theme_matches: themeMatches.map((m) => ({
       theme: m.dream_theme, psychological_meaning: m.psychological_meaning,

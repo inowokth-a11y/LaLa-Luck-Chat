@@ -39,14 +39,34 @@ export function elementDigits(el: Element5): number[] {
   return out;
 }
 
+/**
+ * แปลงคอลัมน์ `lucky_number` ของฐาน v3 ("เด่น 08-80 · วิ่ง 0 8") เป็นตัวเลขล้วน
+ *
+ * 🔴 ผู้ใช้ตัดสิน 7 ส.ค. 2569: **แสดงเฉพาะตัวเลข ตัดคำว่า "เด่น/วิ่ง" ทิ้ง** — คำพวกนั้นเป็น
+ *    ศัพท์ใบ้หวยตรงๆ ซึ่งขัดกับ guardrail ที่ปฏิเสธคำถามเรื่องหวยอยู่แล้ว · ตัวเลขนำเสนอในฐานะ
+ *    "รหัสเชิงสัญลักษณ์" ชุดเดียวกับขีดอักษรคังซี พร้อมหมายเหตุว่าไม่ใช่คำแนะนำการเสี่ยงโชค
+ */
+export function parseSymbolNumbers(raw?: string | null): { คู่: string[]; หลักเดี่ยว: string[] } | null {
+  if (!raw) return null;
+  const [head, tail] = raw.split("·");
+  const pairs = (head ?? "").match(/\d{2}/g) ?? [];
+  const digits = (tail ?? "").match(/\d/g) ?? [];
+  if (pairs.length === 0 && digits.length === 0) return null;
+  return { คู่: pairs, หลักเดี่ยว: digits };
+}
+
 export interface DreamSymbolInput {
   object: string;
   element: string; // ป้ายไทย 4 ธาตุจาก dream DB
   kangxi_strokes?: number | null;
+  /** เลขที่ตำราผูกไว้ (parse แล้ว — ดู parseSymbolNumbers) */
+  numbers?: { คู่: string[]; หลักเดี่ยว: string[] } | null;
 }
 
 export interface DreamEnergyCode {
   เลขขีดสัญลักษณ์: { สัญลักษณ์: string; ขีดคังซี: number }[];
+  /** เลขที่ตำราผูกไว้กับสัญลักษณ์ (ตัวเลขล้วน — ตัดศัพท์ใบ้หวยออกตามที่ผู้ใช้ตัดสิน) */
+  เลขประจำสัญลักษณ์: { สัญลักษณ์: string; คู่: string[]; หลักเดี่ยว: string[] }[];
   เลขดาววันฝัน: number | null;
   ธาตุประจำวันฝัน: string | null;
   สีนำโชคช่วงนี้: string[];
@@ -75,8 +95,14 @@ export function dreamEnergyCode(symbols: DreamSymbolInput[], dayOfWeek?: string 
     if (!(label in digitByElement)) digitByElement[label] = elementDigits(el5);
   }
 
+  const symbolNumbers = symbols
+    .slice(0, 5)
+    .map((s) => ({ สัญลักษณ์: s.object, ...(s.numbers ?? { คู่: [], หลักเดี่ยว: [] }) }))
+    .filter((x) => x.คู่.length > 0 || x.หลักเดี่ยว.length > 0);
+
   return {
     เลขขีดสัญลักษณ์: strokes,
+    เลขประจำสัญลักษณ์: symbolNumbers,
     เลขดาววันฝัน: starNo,
     ธาตุประจำวันฝัน: dayEl ? THAI_LABEL_5[dayEl] : null,
     สีนำโชคช่วงนี้: colors,

@@ -167,12 +167,25 @@ export default async function DreamMeaningPage({ params }: { params: Promise<{ s
           </div>
         </section>
 
-        {entry.kangxiStrokes ? (
+        {entry.kangxiStrokes || entry.numbers ? (
           <section style={card}>
             <h2 style={h2}>รหัสเชิงสัญลักษณ์</h2>
-            <p style={p}>
-              สัญลักษณ์นี้ผูกกับอักษรจีน <b>{entry.kangxiChar}</b> ซึ่งมี <b>{entry.kangxiStrokes} ขีด</b> ตามระบบคังซี
-            </p>
+            {entry.kangxiStrokes ? (
+              <p style={p}>
+                สัญลักษณ์นี้ผูกกับอักษรจีน <b>{entry.kangxiChar}</b> ซึ่งมี <b>{entry.kangxiStrokes} ขีด</b> ตามระบบคังซี
+              </p>
+            ) : null}
+            {/* 🔴 แสดงเฉพาะตัวเลข ตัดศัพท์ใบ้หวย ("เด่น/วิ่ง") ออกตามที่ผู้ใช้ตัดสิน 7 ส.ค. 2569 */}
+            {entry.numbers && entry.numbers.คู่.length > 0 && (
+              <p style={p}>
+                เลขคู่ที่ตำราผูกไว้กับสัญลักษณ์นี้: <b style={{ fontFamily: "var(--font-mono)" }}>{entry.numbers.คู่.join(" · ")}</b>
+              </p>
+            )}
+            {entry.numbers && entry.numbers.หลักเดี่ยว.length > 0 && (
+              <p style={p}>
+                เลขหลักเดี่ยวที่เกี่ยวข้อง: <b style={{ fontFamily: "var(--font-mono)" }}>{entry.numbers.หลักเดี่ยว.join(" · ")}</b>
+              </p>
+            )}
             <p style={{ ...p, fontSize: "0.78rem", opacity: 0.7 }}>{DREAM_SEO_NUMBER_NOTE}</p>
           </section>
         ) : null}

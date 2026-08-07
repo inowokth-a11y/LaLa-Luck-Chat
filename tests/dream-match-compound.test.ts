@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { interpretDream, PRODUCTION_DREAM_DB } from "../lib/engine/dream";
 import { rankAndDedupeSymbols } from "../lib/engine/dream-match";
+import { parseSymbolNumbers } from "../lib/engine/dream-energy";
 
 const objectsOf = (text: string, day = "อังคาร") =>
   (interpretDream(text, day, false, true).symbol_matches ?? []).map((m) => m.object);
@@ -37,4 +38,18 @@ test("จัดลำดับ+ตัดซ้ำ: คำนามรูปธ�
   assert.deepEqual(out.map((r) => r.dream_object), ["งู / พญานาค", "เดิน"]);
   const many = Array.from({ length: 20 }, (_, i) => ({ ...rows[0], dream_object: `สิ่ง${i}`, category: "สถานที่" }));
   assert.equal(rankAndDedupeSymbols(many).length, 8);
+});
+
+test("เลขประจำสัญลักษณ์: แปลงเป็นตัวเลขล้วน ตัดศัพท์ใบ้หวยออก (ผู้ใช้ตัดสิน 7 ส.ค. 2569)", () => {
+  const n = parseSymbolNumbers("เด่น 08-80 · วิ่ง 0 8")!;
+  assert.deepEqual(n.คู่, ["08", "80"]);
+  assert.deepEqual(n.หลักเดี่ยว, ["0", "8"]);
+  assert.deepEqual(parseSymbolNumbers("เด่น 16 · วิ่ง 1 6 7")!.คู่, ["16"]);
+  assert.equal(parseSymbolNumbers(""), null);
+  assert.equal(parseSymbolNumbers(null), null);
+  // 🔴 ค่าที่ engine ส่งออกต้องไม่มีศัพท์หวยติดไปด้วย
+  const r = interpretDream("ฝันว่าแมวเดินมาหา", "อังคาร", false, true);
+  assert.ok(!/เด่น\s*\d{2}/.test(JSON.stringify(r)), "raw lucky string ห้ามหลุดออกจาก engine");
+  const cat = (r.symbol_matches ?? []).find((m) => m.object === "แมว");
+  assert.deepEqual(cat?.numbers?.คู่, ["16", "61"], "แมว (สัตว์บก v3) ต้องมีเลขประจำสัญลักษณ์");
 });
