@@ -26,8 +26,8 @@ const proto = factory();
 // ---- implementation อิสระของตารางทางการ (Calculation_Constants — Name_Numerology) ----
 const VALUES = {};
 const groups = {
-  1: "กดถทภฤAJSุาำ้", 2: "ขชบปงBKTู่", 3: "ฆตฑฒCLUิ", 4: "คธรญษDMVโเแ",
-  5: "ฉณฌนมหฎฮฬENW", 6: "จลวอFOXใั", 7: "ซศสGPY", 8: "ยผฝพฟHQZ", 9: "ฏฐIRไ์",
+  1: "กดถทภฤAJSุาำ้ะ", 2: "ขชบปงBKTู่ื", 3: "ฆตฑฒCLUิีึ๊", 4: "คธรญษDMVโเแ๋",
+  5: "ฉณฌนมหฎฮฬENW", 6: "จลวอFOXใั็", 7: "ซศสGPY", 8: "ยผฝพฟHQZ", 9: "ฏฐIRไ์",
 };
 for (const [g, chars] of Object.entries(groups)) for (const ch of chars) VALUES[ch] = Number(g);
 
@@ -87,6 +87,13 @@ const fix = {
     สมอ: namePowerOfficial("สมอ"),
     นอน: namePowerOfficial("นอน"),
     มือ: namePowerOfficial("มือ"),
+    เสือ: namePowerOfficial("เสือ"),
+    ดี: namePowerOfficial("ดี"),
+    จะ: namePowerOfficial("จะ"),
+    "ก็": namePowerOfficial("ก็"),
+    เก๊: namePowerOfficial("เก๊"),
+    ก๋วย: namePowerOfficial("ก๋วย"),
+    ถึง: namePowerOfficial("ถึง"),
     "": namePowerOfficial(""),
   },
   digit_sum: { 1986: proto.digitSum(1986), 0: proto.digitSum(0), 99: proto.digitSum(99) },
