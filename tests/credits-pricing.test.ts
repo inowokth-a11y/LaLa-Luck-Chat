@@ -50,10 +50,10 @@ test("แพ็กใหญ่ขึ้น = ค่าเครดิตถู�
   assert.equal(cheapestCreditValueThb(), Math.min(...CREDIT_PACKAGES.map(creditValueThb)));
 });
 
-test("ค่าเครดิตถูกสุดคือ ฿129/51 ≈ ฿2.53 (แพ็กพรีเมียม — แบบ ก ที่ผู้ใช้เลือก 30 ก.ค. 2569)", () => {
-  assert.equal(cheapestCreditValueThb(), 129 / 51);
-  // floor ต้องไม่ต่ำกว่า ~฿2.47 ไม่งั้นโลโก้เวกเตอร์/ฉลาก (7cr, ฿2.88) หลุดกฎ 500%
-  assert.ok(cheapestCreditValueThb() >= 2.47);
+test("ค่าเครดิตถูกสุดคือ ฿129/510 ≈ ฿0.253 (พรีเมียม — หน่วยเครดิต ×10 ตั้งแต่ 7 ส.ค. 2569)", () => {
+  assert.equal(cheapestCreditValueThb(), 129 / 510);
+  // floor ต้องไม่ต่ำกว่า ~฿0.247 ไม่งั้นโลโก้เวกเตอร์/ฉลาก (7cr, ฿2.88) หลุดกฎ 500%
+  assert.ok(cheapestCreditValueThb() >= 0.247);
 });
 
 test("ทุกแพ็กขายผ่าน PromptPay ได้ (≥ ขั้นต่ำ ฿20 ของ Omise)", () => {

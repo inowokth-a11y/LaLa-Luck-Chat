@@ -28,15 +28,15 @@ test("packageForSatang — ตรงเป๊ะทุกแพ็ก (สตา
   assert.equal(packageForSatang(0), null);
 });
 
-test("charge จ่ายแล้ว ยอดตรงแพ็กเริ่มต้น ฿29 → เติม 9 เครดิตให้ auth_uid ใน metadata", () => {
+test("charge จ่ายแล้ว ยอดตรงแพ็กเริ่มต้น ฿29 → เติม 90 เครดิตให้ auth_uid ใน metadata", () => {
   const v = verifyChargeForGrant(paidCharge());
   assert.ok(v.ok);
-  assert.deepEqual(v.ok && v.grant, { authUid: UID, credits: 9, packageThb: 29 });
+  assert.deepEqual(v.ok && v.grant, { authUid: UID, credits: 90, packageThb: 29 });
 });
 
-test("แพ็กพรีเมียม ฿129 → 51 เครดิต", () => {
+test("แพ็กพรีเมียม ฿129 → 510 เครดิต", () => {
   const v = verifyChargeForGrant(paidCharge({ amount: 12900 }));
-  assert.ok(v.ok && v.grant.credits === 51);
+  assert.ok(v.ok && v.grant.credits === 510);
 });
 
 test("🔴 ยังไม่จ่าย/สถานะไม่ successful → ปฏิเสธ (กัน webhook ปลอม/charge ค้าง)", () => {

@@ -110,6 +110,104 @@ export function phraseAtWordBoundaries(
   return false;
 }
 
+/** ทุก segment พร้อมตำแหน่งเริ่ม (ใช้หาว่า "คำ" ซ่อนอยู่หัวคำประสมไหม) */
+export function segmentSpans(text: string): { index: number; segment: string }[] | null {
+  const s = getSegmenter();
+  if (!s) return null;
+  return [...s.segment(text)].map((x) => ({ index: x.index, segment: x.segment }));
+}
+
+/**
+ * ความยาว "รูปอักขระ" ของคำไทย — นับรวมสระบน-ล่างด้วย
+ * ⚠️ อย่าใช้ตัวนับที่ตัดสระบน-ล่างทิ้งกับกฎนี้: "งู" จะเหลือ 1 (ง + สระอูใต้) แล้วโดนกฎตัดทิ้ง
+ *    ทั้งที่เป็นคำที่คนฝันถึงมากที่สุด (เจอจริงตอนทดสอบ 7 ส.ค. 2569)
+ */
+function glyphLen(str: string): number {
+  return [...str].length;
+}
+
+/**
+ * คำประสมภาษาไทยเป็นแบบ "หัวคำ + คำขยาย" (งูเห่า = งู + เห่า) — ICU มองเป็นคำเดียว
+ * ทำให้สัญลักษณ์ "งู" ไม่ถูกจับทั้งที่ผู้ใช้ฝันเห็นงูจริงๆ (ช่องว่างที่พบ 6 ส.ค. 2569)
+ *
+ * 🔴 กฎนี้เปิดเฉพาะหมวด "สัตว์/แมลง" เท่านั้น เพราะเป็นกลุ่มที่ประสมคำบ่อยที่สุดในความฝัน
+ *    และชื่อสัตว์ชนกับคำอื่นน้อย — ถ้าเปิดทั้งฐานจะพังทันที เช่น "ตาข่าย" จะถูกจับเป็น "ตา"
+ *    (อวัยวะ) และ "หัวใจ" จะถูกจับเป็น "หัว" · เงื่อนไขเสริมอีก 2 ชั้น:
+ *      - หัวคำต้องยาว ≥ 2 รูปอักขระ (กันคำพยางค์เดียวที่ชนง่าย)
+ *      - ส่วนที่เหลือต้องยาว ≥ 2 รูปอักขระ (กัน "งา" ในคำว่า "งาน" ที่เหลือแค่ "น")
+ */
+function compoundHeadMatch(word: string, spans: { index: number; segment: string }[]): boolean {
+  if (glyphLen(word) < 2) return false;
+  for (const sp of spans) {
+    if (sp.segment.length <= word.length) continue;
+    if (!sp.segment.startsWith(word)) continue;
+    if (glyphLen(sp.segment.slice(word.length)) >= 2) return true;
+  }
+  return false;
+}
+
+/**
+ * คำพ้องรูปที่ "อยู่ในคำอื่น" จนความหมายเปลี่ยนไปคนละเรื่อง — ถ้าคำนั้นปรากฏเฉพาะในกับดักนี้
+ * ทั้งข้อความ ให้ถือว่าไม่ใช่สัญลักษณ์จริง (เจอจากฝันจริงของผู้ใช้: "แผ่แม่เบี้ย" ของงูเห่า
+ * ถูกจับเป็นสัญลักษณ์ "แม่/มารดา")
+ */
+const TRAP_PHRASES: Record<string, string[]> = {
+  แม่: ["แม่เบี้ย", "แม่ทัพ", "แม่แรง", "แม่พิมพ์"],
+  ตา: ["ตาข่าย", "ตารางเวลา"],
+  หัว: ["หัวใจ", "หัวหน้า", "หัวข้อ"],
+  ปู: ["ปูน", "ปูเสื่อ", "ปู่"],
+  พ่อ: ["พ่อค้า", "พ่อครัว"],
+  ต่อ: ["ต่อไป", "ต่อจาก", "ต่อรอง", "ต่อสู้", "ต่อเนื่อง", "ติดต่อ", "ต่อต้าน"],
+};
+
+function countOccurrences(text: string, needle: string): number {
+  let n = 0;
+  let i = text.indexOf(needle);
+  while (i !== -1) {
+    n++;
+    i = text.indexOf(needle, i + needle.length);
+  }
+  return n;
+}
+
+/** true = คำนี้ปรากฏเฉพาะในกับดัก (ไม่ได้หมายถึงสัญลักษณ์จริง) */
+function onlyInTrap(word: string, text: string): boolean {
+  const traps = TRAP_PHRASES[word];
+  if (!traps) return false;
+  const total = countOccurrences(text, word);
+  if (total === 0) return false;
+  const inTrap = traps.reduce((sum, t) => sum + countOccurrences(text, t) * countOccurrences(t, word), 0);
+  return inTrap >= total;
+}
+
+/**
+ * จัดลำดับสัญลักษณ์ที่จับได้ + ตัดซ้ำ + จำกัดจำนวน (ใช้เฉพาะเส้น production)
+ *
+ * เหตุผล: ฐานความฝันมีแถวซ้ำ 49 แถว (หมวดเดียวกันแต่ชื่อหมวดต่อท้ายภาษาอังกฤษ) และมีสัญลักษณ์
+ * ที่เป็นคำใช้ทั่วไปในภาษา ("ให้" "ต่อ") ซึ่งโผล่ในประโยคปกติได้ตลอด — ถ้าส่งไปทั้งกองผู้เล่าเรื่อง
+ * จะให้น้ำหนักผิด จึงเรียง "คำนามรูปธรรม (สัตว์/สถานที่/ภัย/สิ่งของ) มาก่อน" แล้วค่อยกริยา/อารมณ์
+ * และตัดเหลือ 8 รายการ — ไม่ได้ลบข้อมูลออกจากฐาน แค่จัดลำดับความสำคัญ
+ */
+const ABSTRACT_CATEGORY = /การกระทำ|กริยา|อารมณ์|สภาวะ/;
+const MAX_SYMBOLS = 8;
+
+export function rankAndDedupeSymbols(matches: readonly DreamSymbol[]): DreamSymbol[] {
+  const seen = new Set<string>();
+  const unique = matches.filter((m) => {
+    if (seen.has(m.dream_object)) return false;
+    seen.add(m.dream_object);
+    return true;
+  });
+  return unique
+    .map((m, i) => ({ m, i, rank: ABSTRACT_CATEGORY.test(m.category) ? 1 : 0 }))
+    .sort((a, b) => a.rank - b.rank || b.m.dream_object.length - a.m.dream_object.length || a.i - b.i)
+    .slice(0, MAX_SYMBOLS)
+    .map((x) => x.m);
+}
+
+/** หมวดที่อนุญาตให้จับหัวคำประสม (ดูเหตุผลใน compoundHeadMatch) */
+const COMPOUND_HEAD_CATEGORY = /สัตว์|แมลง/;
+
 /**
  * จับสัญลักษณ์จากฐานข้อมูลด้วยขอบเขตคำ
  * ถ้า runtime ตัดคำไทยไม่ได้ → คืน null เพื่อให้ผู้เรียก fallback ไปใช้ substring แบบเดิม
@@ -125,16 +223,20 @@ export function findSymbolMatchesSegmented(
   // ลำดับ token แล้วพลาดทั้งที่คำอยู่ตรงนั้น — false-negative ของ engine = ปลุก AI-1 ฟรีๆ
   const bounds = segmentBoundaries(dreamText);
   if (!bounds) return null;
+  const spans = segmentSpans(dreamText) ?? [];
   const out: DreamSymbol[] = [];
   for (const row of db) {
+    const allowCompound = COMPOUND_HEAD_CATEGORY.test(row.category);
     for (const v of variants(row.dream_object)) {
-      if (v && phraseAtWordBoundaries(v, dreamText, bounds)) {
+      if (!v) continue;
+      if (onlyInTrap(v, dreamText)) continue;
+      if (phraseAtWordBoundaries(v, dreamText, bounds) || (allowCompound && compoundHeadMatch(v, spans))) {
         out.push(row);
         break;
       }
     }
   }
-  return out;
+  return rankAndDedupeSymbols(out);
 }
 
 /** เวอร์ชันสำหรับธีมจิตวิทยา — ธีมสั้นและกำกวมกว่า จึงเทียบสองทางเหมือนตรรกะเดิม */

@@ -436,7 +436,7 @@ function LabelComposer() {
         {/* ปุ่มแยกชัดจากการวิเคราะห์สี — เส้นนี้ "ส่งภาพออกจากเครื่อง" และมีค่าใช้จ่าย */}
         {importJpeg && !vision && (
           <button type="button" style={{ ...S.chip, alignSelf: "flex-start" }} onClick={runVision} disabled={visionBusy}>
-            {visionBusy ? "กำลังอ่านลวดลาย…" : "🔍 อ่านลวดลาย/รูปทรงด้วย AI (ฟรี 3 ครั้ง จากนั้น 1 เครดิต)"}
+            {visionBusy ? "กำลังอ่านลวดลาย…" : "🔍 อ่านลวดลาย/รูปทรงด้วย AI (ฟรี 3 ครั้ง จากนั้น 10 เครดิต)"}
           </button>
         )}
         {importJpeg && !vision && (

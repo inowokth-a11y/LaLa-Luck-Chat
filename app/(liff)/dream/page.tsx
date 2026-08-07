@@ -35,7 +35,7 @@ const DAYS = ["อาทิตย์", "จันทร์", "อังคาร
 
 export default function DreamPage() {
   const [msgs, setMsgs] = useState<Msg[]>([
-    { who: "lala", text: "ลาลา~ สวัสดีค่ะ เล่าความฝันเมื่อคืนให้อาจารย์ลาลา ลักกี้ฟังหน่อยได้ไหมคะ 🌙" },
+    { who: "lala", text: "ลาลา~ สวัสดีค่ะ เล่าความฝันเมื่อคืนให้อาจารย์ลาลา ลักกี้ฟังหน่อยได้ไหมคะ 🌙\n\nเล่าเป็นฉากได้เลยค่ะ — เห็นอะไร อยู่ที่ไหน ใครอยู่ด้วย แล้วเกิดอะไรขึ้นต่อ ยิ่งเล่าละเอียด อาจารย์ยิ่งอ่านรายละเอียดให้ได้ครบ" },
   ]);
   const [input, setInput] = useState("");
   const [day, setDay] = useState("");
@@ -195,7 +195,7 @@ export default function DreamPage() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="เล่าความฝันของคุณ…"
+            placeholder="เล่าฉากในฝัน เช่น อยู่ที่บ้าน เห็นงูอยู่ในถุง แล้วงูหลุดออกมา…"
             className={styles.input}
             disabled={loading}
           />

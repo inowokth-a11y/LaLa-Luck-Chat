@@ -12,7 +12,7 @@ import { grantCredits, getCreditBalance } from "@/lib/credits/wallet";
 
 export const runtime = "nodejs";
 
-const MAX_GRANT_PER_CALL = 500; // กันพิมพ์เลขผิด (เช่นเผลอวางเบอร์โทร) — เติมก้อนใหญ่ให้แบ่งหลายครั้ง
+const MAX_GRANT_PER_CALL = 5000; // ×10 ตามหน่วยเครดิตใหม่ (7 ส.ค. 2569) · กันพิมพ์เลขผิด (เช่นเผลอวางเบอร์โทร) — เติมก้อนใหญ่ให้แบ่งหลายครั้ง
 
 async function adminEmail(): Promise<string | null> {
   try {

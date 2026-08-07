@@ -7,6 +7,10 @@
 // ต้นทุนต่อ action = วัดจริงจาก API (CLAUDE.md §15) · รูปภาพ = ราคา fal จริง (Recraft V3 / FLUX)
 // ⚠️ ต้นทุน AI เปลี่ยนได้ตามเรต/โมเดล — ทบทวนเรทเมื่อราคาต้นทางขยับ
 
+// 🔴 หน่วยเครดิต ×10 (ผู้ใช้ตัดสิน 7 ส.ค. 2569): แพ็กและอัตราหักคูณสิบพร้อมกันทั้งระบบ
+//    เหตุผลเชิงจิตวิทยาราคา — "จ่าย ฿29 ได้ 90 เครดิต" รู้สึกได้มากกว่าเงินที่จ่าย
+//    ⚠️ อัตราส่วนเงิน:ของ ไม่เปลี่ยนเลย (ค่าเครดิตลดลง 10 เท่าพร้อมกัน) กำไรทุกรายการเท่าเดิม
+//    เพิ่มแพ็ก/เรทใหม่ต้องอยู่ในหน่วยเดียวกันนี้ (มีเทสต์ล็อกกำไร ≥500% คอยจับ)
 export const USD_THB = 36;
 /** กำไรขั้นต่ำ 500% → ราคาขายต้อง ≥ 6 เท่าของต้นทุน */
 export const MIN_PROFIT_MULTIPLIER = 6;
@@ -35,23 +39,23 @@ export const ACTION_RATES: ActionRate[] = [
   { key: "naming_text", label: "ตั้งชื่อ/คำ prompt โลโก้ (ข้อความ)", costThb: 0, credits: 0, category: "free", note: "engine ล้วน ไม่ใช้ AI" },
 
   // ---- แชท: หักต่อคำถาม ----
-  { key: "chat_question", label: "ถามแชท 1 คำถาม (ทุกฟังก์ชัน)", costThb: 0.35, credits: 1, category: "chat",
+  { key: "chat_question", label: "ถามแชท 1 คำถาม (ทุกฟังก์ชัน)", costThb: 0.35, credits: 10, category: "chat",
     note: "วัดใหม่ 4 ส.ค. 2569: prompt planner โต ~6k token (allowlist 19 fn) → เปิด prompt caching (แคชอุ่น ฿0.04 / เย็น ฿0.33) + Flash ฿0.28 คำตอบโครงเต็ม → เฉลี่ย ~฿0.35" },
 
   // ---- Oracle: หมวดแยก ----
-  { key: "oracle", label: "เสี่ยงทายวงแหวนคู่", costThb: 0.76, credits: 2, category: "oracle" },
+  { key: "oracle", label: "เสี่ยงทายวงแหวนคู่", costThb: 0.76, credits: 20, category: "oracle" },
 
   // ---- ฝัน ----
-  { key: "dream", label: "ทำนายฝัน", costThb: 0.69, credits: 2, category: "dream",
+  { key: "dream", label: "ทำนายฝัน", costThb: 0.69, credits: 20, category: "dream",
     note: "คิดตามต้นทุนแคช · AI-1 ที่ปลุกครั้งแรกถือเป็นต้นทุนสร้างคลัง (แคชถาวร)" },
 
   // ---- โลโก้: หมวดแยก ----
-  { key: "logo_preview", label: "โลโก้ตัวอย่าง (FLUX)", costThb: 0.22, credits: 1, category: "logo" },
-  { key: "logo_vector", label: "โลโก้เวกเตอร์ SVG (Recraft V3)", costThb: 2.88, credits: 7, category: "logo",
+  { key: "logo_preview", label: "โลโก้ตัวอย่าง (FLUX)", costThb: 0.22, credits: 10, category: "logo" },
+  { key: "logo_vector", label: "โลโก้เวกเตอร์ SVG (Recraft V3)", costThb: 2.88, credits: 70, category: "logo",
     note: "เวกเตอร์ ขยายไม่แตก ใช้เชิงพาณิชย์ได้" },
-  { key: "label_artwork", label: "พื้นหลังฉลาก AI (Recraft V3)", costThb: 2.88, credits: 7, category: "logo",
+  { key: "label_artwork", label: "พื้นหลังฉลาก AI (Recraft V3)", costThb: 2.88, credits: 70, category: "logo",
     note: "ต้นทุนเดียวกับโลโก้เวกเตอร์ (Recraft V3) จึงเรทเท่ากัน" },
-  { key: "vision_motif", label: "อ่านลวดลาย/รูปทรงจากภาพ (AI vision)", costThb: 0.08, credits: 1, category: "logo",
+  { key: "vision_motif", label: "อ่านลวดลาย/รูปทรงจากภาพ (AI vision)", costThb: 0.08, credits: 10, category: "logo",
     note: "Haiku 4.5 วัดจริง 30 ก.ค. 2569: ฿0.051 (in 1,084/out 69, ภาพ ~370px) → ตั้ง 0.08 เผื่อภาพเต็ม 768px · แคช hash = ซ้ำฟรี" },
 ];
 
@@ -65,9 +69,9 @@ export interface CreditPackage {
 // 🔴 ผู้ใช้เลือก "แบบ ก" 30 ก.ค. 2569: ป้ายราคาลงท้าย 9 ทั้งชุด (เริ่มต้น/โปร/พรีเมียม)
 //    แพ็ก ฿15 เดิมถูกแทนที่ — ต่ำกว่าขั้นต่ำ PromptPay ฿20 ของ Omise (ยืนยันจาก API จริง)
 export const CREDIT_PACKAGES: CreditPackage[] = [
-  { priceThb: 29, credits: 9, label: "เริ่มต้น" }, // ฿3.22/เครดิต
-  { priceThb: 59, credits: 21, label: "โปร" }, // ฿2.81/เครดิต (−13%)
-  { priceThb: 129, credits: 51, label: "พรีเมียม" }, // ฿2.53/เครดิต (−21%) ← floor (ต้อง ≥ ~฿2.47 ไม่งั้นฉลาก/โลโก้เวกเตอร์หลุด 500%)
+  { priceThb: 29, credits: 90, label: "เริ่มต้น" }, // ฿0.322/เครดิต
+  { priceThb: 59, credits: 210, label: "โปร" }, // ฿0.281/เครดิต (−13%)
+  { priceThb: 129, credits: 510, label: "พรีเมียม" }, // ฿0.253/เครดิต (−21%) ← floor (ต้อง ≥ ~฿0.247 ไม่งั้นฉลาก/โลโก้เวกเตอร์หลุด 500%)
 ];
 
 /**

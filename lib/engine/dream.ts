@@ -32,6 +32,38 @@ export interface DreamTheme {
 }
 
 const DREAM_DB = dreamDbData as DreamSymbol[];
+
+/**
+ * สัญลักษณ์ที่ "ตำราแก้เคล็ด" (Unified_Kaekled_DB) มีข้อมูลครบ แต่ฐาน 457 สัญลักษณ์ไม่มีเลย
+ * — พบตอนเปิดไฟล์ตำราแก้เคล็ดครั้งแรก (เฟส 2, 7 ส.ค. 2569): ฐานความฝันไม่มี "งู" เดี่ยวๆ
+ *   (มีแต่พญานาค/มังกร) และไม่มี "ไฟไหม้" ทั้งที่เป็นสองเรื่องที่คนไทยฝันและค้นหามากที่สุด
+ *
+ * ตัวเลข/ความหมายทุกช่องคัดตรงจากตำราแก้เคล็ด ไม่ได้แต่งขึ้น · อักษรจีนเติมจากจำนวนขีดที่
+ * ตรงกันพอดี (蛇 = 11 ขีด · 火 = 4 ขีด ตรงกับที่ตำราระบุ) จึงเป็นการยืนยันข้ามกัน ไม่ใช่การเดา
+ *
+ * ⚠️ ใช้เฉพาะเส้น production (useSegmentation = true) — เส้นเทียบ Python คงฐานเดิมเป๊ะ
+ */
+const KAEKLED_SUPPLEMENT: DreamSymbol[] = [
+  {
+    category: "สัตว์ร้าย",
+    dream_object: "งู / พญานาค",
+    chinese_char: "蛇",
+    kangxi_strokes: 11,
+    element: "ไฟ", // ตำราระบุ "ไฟ / ดิน" — ใช้ธาตุแรกเป็นหลักตามที่ตำราใช้หาธาตุเชื่อม
+    meaning_keyword: "เนื้อคู่, พลังทางเพศ, ศัตรู, การเปลี่ยนแปลง",
+  },
+  {
+    category: "ภัยพิบัติ",
+    dream_object: "ไฟไหม้",
+    chinese_char: "火",
+    kangxi_strokes: 4,
+    element: "ไฟ",
+    meaning_keyword: "ความโกรธ, การเปลี่ยนแปลงฉับพลัน, การเผาผลาญสิ่งเก่า, ข่าวร้อน",
+  },
+];
+
+/** ฐานที่ production ใช้จริง (ฐานหลัก + สัญลักษณ์จากตำราแก้เคล็ดที่ฐานหลักไม่มี) */
+export const PRODUCTION_DREAM_DB: DreamSymbol[] = [...DREAM_DB, ...KAEKLED_SUPPLEMENT];
 const DREAM_PSYCH = dreamPsychData as DreamTheme[];
 
 const RECURRING_THRESHOLD_PER_MONTH = 3;
@@ -206,7 +238,7 @@ export function interpretDream(
   }
 
   const symbolMatches =
-    (useSegmentation ? findSymbolMatchesSegmented(dreamText, DREAM_DB) : null) ?? findSymbolMatches(dreamText);
+    (useSegmentation ? findSymbolMatchesSegmented(dreamText, PRODUCTION_DREAM_DB) : null) ?? findSymbolMatches(dreamText);
   const themeMatches =
     (useSegmentation ? findThemeMatchesSegmented(dreamText, DREAM_PSYCH) : null) ?? findThemeMatches(dreamText);
 

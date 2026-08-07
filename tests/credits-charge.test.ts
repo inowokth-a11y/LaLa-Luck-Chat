@@ -30,13 +30,13 @@ test("เครดิตพอดีเป๊ะ (balance === cost) → หั�
   assert.equal(d.mode, "credits");
 });
 
-test("creditCost อ่านจาก ACTION_RATES จริง — chat 1 · oracle/dream 2 · โลโก้ 1/7 · ฉลาก 7", () => {
-  assert.equal(creditCost("chat_question"), 1);
-  assert.equal(creditCost("oracle"), 2);
-  assert.equal(creditCost("dream"), 2);
-  assert.equal(creditCost("logo_preview"), 1);
-  assert.equal(creditCost("logo_vector"), 7);
-  assert.equal(creditCost("label_artwork"), 7);
+test("creditCost อ่านจาก ACTION_RATES จริง — chat 10 · oracle/dream 20 · โลโก้ 10/70 · ฉลาก 70 (หน่วย ×10)", () => {
+  assert.equal(creditCost("chat_question"), 10);
+  assert.equal(creditCost("oracle"), 20);
+  assert.equal(creditCost("dream"), 20);
+  assert.equal(creditCost("logo_preview"), 10);
+  assert.equal(creditCost("logo_vector"), 70);
+  assert.equal(creditCost("label_artwork"), 70);
 });
 
 test("creditCost กับ key ที่ไม่มีจริง → throw ทันที (กันสะกดผิดเงียบๆ)", () => {

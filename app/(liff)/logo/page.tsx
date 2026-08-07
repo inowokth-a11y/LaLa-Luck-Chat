@@ -193,7 +193,7 @@ export default function LogoPage() {
         <div style={{ display: "flex", gap: "0.5rem" }}>
           {(["preview", "vector"] as Variant[]).map((v) => (
             <button key={v} type="button" onClick={() => setVariant(v)} style={{ ...S.chip, ...(variant === v ? S.chipActive : {}) }}>
-              {v === "preview" ? "ตัวอย่างเร็ว (1 เครดิต)" : "เวกเตอร์ SVG (7 เครดิต)"}
+              {v === "preview" ? "ตัวอย่างเร็ว (10 เครดิต)" : "เวกเตอร์ SVG (70 เครดิต)"}
             </button>
           ))}
         </div>

@@ -67,16 +67,16 @@ test("computeAffiliateStats — แยกยอดต่อลิงก์: ส�
     { auth_uid: "u3", link_id: "L2" },
   ];
   const topups = [
-    { auth_uid: "u1", delta: 9 }, // ฿29
-    { auth_uid: "u1", delta: 51 }, // ฿129 — คนเดิมเติมซ้ำ = payingUsers ยังนับ 1
-    { auth_uid: "u3", delta: 21 }, // ฿59 → L2
-    { auth_uid: "u9", delta: 51 }, // ผู้ใช้ที่ไม่ได้มาจากลิงก์ — ต้องไม่ถูกนับให้ใคร
+    { auth_uid: "u1", delta: 90 }, // ฿29
+    { auth_uid: "u1", delta: 510 }, // ฿129 — คนเดิมเติมซ้ำ = payingUsers ยังนับ 1
+    { auth_uid: "u3", delta: 210 }, // ฿59 → L2
+    { auth_uid: "u9", delta: 510 }, // ผู้ใช้ที่ไม่ได้มาจากลิงก์ — ต้องไม่ถูกนับให้ใคร
   ];
   const [s1, s2, s3] = computeAffiliateStats(links, attributions, topups);
   assert.equal(s1.signups, 2);
   assert.equal(s1.payingUsers, 1);
   assert.equal(s1.topupCount, 2);
-  assert.equal(s1.creditsSold, 60);
+  assert.equal(s1.creditsSold, 600);
   assert.equal(s1.revenueThb, 158);
   assert.equal(s1.revenueUncertain, false);
   assert.equal(s2.signups, 1);
@@ -91,13 +91,13 @@ test("computeAffiliateStats — delta ที่เทียบแพ็กไม
     [link("L1", "x-page")],
     [{ auth_uid: "u1", link_id: "L1" }],
     [
-      { auth_uid: "u1", delta: 9 }, // ฿29 รู้จัก
-      { auth_uid: "u1", delta: 7 }, // ไม่ตรงแพ็กไหน (เช่นแพ็กเก่าที่เลิกขาย)
+      { auth_uid: "u1", delta: 90 }, // ฿29 รู้จัก
+      { auth_uid: "u1", delta: 70 }, // ไม่ตรงแพ็กไหน (เช่นแพ็กเก่าที่เลิกขาย)
     ]
   );
   assert.equal(s.revenueThb, 29); // เฉพาะที่รู้ราคา — ไม่เดาส่วนที่ไม่รู้
   assert.equal(s.revenueUncertain, true);
-  assert.equal(s.creditsSold, 16);
+  assert.equal(s.creditsSold, 160);
 });
 
 test("computeAffiliateStats — delta ติดลบ (การหักใช้) ต้องไม่ปนเข้ารายรับ", () => {
@@ -117,8 +117,8 @@ test("คอมมิชชัน — เริ่มต้น 15% ของร�
     { auth_uid: "u2", link_id: "L2" },
   ];
   const topups = [
-    { auth_uid: "u1", delta: 51 }, // ฿129 → คอม 15% = ฿19.35
-    { auth_uid: "u2", delta: 9 },  // ฿29 → คอม 20% = ฿5.80
+    { auth_uid: "u1", delta: 510 }, // ฿129 → คอม 15% = ฿19.35
+    { auth_uid: "u2", delta: 90 },  // ฿29 → คอม 20% = ฿5.80
   ];
   const payouts = [
     { link_id: "L1", amount_thb: 10 },
@@ -134,7 +134,7 @@ test("คอมมิชชัน — เริ่มต้น 15% ของร�
 
 test("คอมมิชชัน — ไม่ส่ง payouts (ค่าเริ่มต้น) = จ่ายแล้ว 0 ค้างจ่ายเท่าค่าคอม", () => {
   const links = [link("L1", "a")];
-  const [s1] = computeAffiliateStats(links, [{ auth_uid: "u1", link_id: "L1" }], [{ auth_uid: "u1", delta: 21 }]);
+  const [s1] = computeAffiliateStats(links, [{ auth_uid: "u1", link_id: "L1" }], [{ auth_uid: "u1", delta: 210 }]);
   assert.equal(s1.commissionThb, 8.85); // 15% ของ ฿59
   assert.equal(s1.paidThb, 0);
   assert.equal(s1.owedThb, 8.85);
