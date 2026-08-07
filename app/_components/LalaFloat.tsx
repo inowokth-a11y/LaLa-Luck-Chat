@@ -244,7 +244,10 @@ export default function LalaFloat() {
     } catch {}
   }
 
-  if (HIDE_ON.some((p) => pathname?.startsWith(p))) return null;
+  // ⚠️ ต้องเทียบแบบ "ตรงตัวหรือเป็นเส้นทางย่อย" ไม่ใช่ startsWith เฉยๆ —
+  //    ไม่งั้น /dream-meaning (พจนานุกรมฝัน) จะถูกนับเป็น /dream แล้วปุ่มแม่หมอหายไป
+  //    ทั้งที่หน้านั้นคือหน้าที่คนมาจาก Google เจอเป็นหน้าแรก (เจอ 7 ส.ค. 2569)
+  if (HIDE_ON.some((p) => pathname === p || pathname?.startsWith(`${p}/`))) return null;
 
   const quotaLabel = needsLogin
     ? ""

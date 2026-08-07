@@ -21,7 +21,6 @@ const GENDER_OPTIONS = [
 
 const TOOLS: { href: string; label: string }[] = [
   { href: "/dream", label: "🌙 ทำนายฝัน" },
-  { href: "/dream-meaning", label: "📖 พจนานุกรมฝัน" },
   { href: "/lucky-number", label: "🔢 ดูดวงทะเบียนรถ-เบอร์โทร" },
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา ลักกี้ (วิเคราะห์อิสระ)" },
   { href: "/fortune", label: "✨ ดวงของฉัน" },

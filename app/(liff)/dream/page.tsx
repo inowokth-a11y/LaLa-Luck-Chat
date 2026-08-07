@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 // Logic 4 — ทำนายฝัน (chat) — โทน 🌑 มืด ตาม CLAUDE.md §2 (พิธีกรรม/โต้ตอบสด)
 // เรียก /api/dream ซึ่งรัน Safety Gate → engine → AI-1 → AI-2 ฝั่ง server
 
@@ -102,6 +104,11 @@ export default function DreamPage() {
           <br />
           {remaining === null ? "ช่วงทดลอง ทำนายฟรี 1 ครั้ง" : `เหลือ ${remaining}/1 ครั้ง`}
         </p>
+        {/* ชั้นอ้างอิงของโหมดเดียวกัน — คนที่อยากดูความหมายรายสัญลักษณ์ก่อนเล่าฝันเต็มฉาก
+            (ไม่ใช่คนละโหมด: หน้านั้นคือพจนานุกรมไว้ค้น หน้านี้คือที่อ่านฝันของคุณจริง) */}
+        <Link href="/dream-meaning" className={styles.sub} style={{ display: "inline-block", marginTop: "0.15rem", color: "var(--gold)", fontSize: "0.82rem" }}>
+          📖 ค้นความหมายรายสัญลักษณ์ →
+        </Link>
       </header>
 
       <div className={styles.chat}>
