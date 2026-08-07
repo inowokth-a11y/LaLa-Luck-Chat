@@ -7,10 +7,10 @@ import MascotLogo from "@/app/_components/MascotLogo";
 import { dreamSeoByCategory, dreamSeoEntries } from "@/lib/dream/seo";
 
 export const metadata: Metadata = {
-  title: "ทำนายฝัน ตามตำราธาตุ — ค้นความหมายความฝันรายสัญลักษณ์",
+  title: "ทำนายฝัน — ฝันเห็นอะไรหมายถึงอะไร ค้นได้ 487 สัญลักษณ์",
   description:
-    "ทำนายฝันจากฐานสัญลักษณ์ความฝันพร้อมธาตุประจำสัญลักษณ์ อักษรจีนคังซี และแนวทางคลี่คลายตามตำรา " +
-    "เลือกสิ่งที่ฝันเห็นเพื่อดูความหมาย หรือเล่าฝันทั้งฉากให้ระบบอ่านให้ทีเดียว",
+    "ทำนายฝันและค้นความหมาย ฝันเห็น / ฝันว่า / ฝันถึง สิ่งต่างๆ จากฐานสัญลักษณ์ความฝัน 487 รายการ " +
+    "พร้อมธาตุประจำสัญลักษณ์ อักษรจีนคังซี และแนวทางคลี่คลายตามตำรา หรือเล่าฝันทั้งฉากให้ระบบอ่านให้ทีเดียว",
   alternates: { canonical: "/dream-meaning" },
 };
 
@@ -24,7 +24,7 @@ export default function DreamMeaningHub() {
         <header style={{ textAlign: "center", marginBottom: "1rem" }}>
           <MascotLogo size={90} />
           <h1 style={{ fontFamily: "var(--font-serif-thai)", color: "var(--gold)", fontSize: "1.55rem", margin: "0.4rem 0 0.3rem" }}>
-            ทำนายฝัน ตามตำราธาตุ
+            ทำนายฝัน — ฝันเห็นอะไร หมายถึงอะไร
           </h1>
           <p style={{ fontSize: "0.9rem", color: "var(--ink-dim)", lineHeight: 1.6 }}>
             พจนานุกรมค้นความหมายรายสัญลักษณ์ {total} รายการ — แต่ละสัญลักษณ์มีธาตุประจำตัว

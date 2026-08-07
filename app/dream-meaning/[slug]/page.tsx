@@ -32,9 +32,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!e) return { title: "ไม่พบสัญลักษณ์" };
   const alias = e.aliases.length ? ` (${e.aliases.join(" / ")})` : "";
   return {
-    title: `ฝันเห็น${e.name} หมายถึงอะไร — ทำนายฝันตามตำราธาตุ`,
+    title: `ฝันเห็น${e.name} หมายถึงอะไร — ทำนายฝัน${e.name} ตามตำราธาตุ`,
     description:
-      `ทำนายฝันเห็น${e.name}${alias} ตามฐานสัญลักษณ์ความฝัน: ธาตุ${e.element} ` +
+      `ฝันเห็น${e.name} ฝันว่า${e.name} ฝันถึง${e.name}${alias} หมายถึงอะไร — ตามฐานสัญลักษณ์ความฝัน: ธาตุ${e.element} ` +
       `${e.kangxiChar ? `อักษรจีน ${e.kangxiChar} ${e.kangxiStrokes} ขีด ` : ""}` +
       `ความหมาย ${e.meaning} พร้อมหลักการอ่านตามวันที่ฝันและแนวทางคลี่คลายตามหลักธาตุ`,
     alternates: { canonical: `/dream-meaning/${encodeURIComponent(e.slug)}` },
@@ -73,6 +73,14 @@ export default async function DreamMeaningPage({ params }: { params: Promise<{ s
       },
       {
         "@type": "Question",
+        name: `ฝันว่า${entry.name} กับ ฝันถึง${entry.name} ต่างกันไหม`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `ทั้งสองแบบใช้สัญลักษณ์เดียวกันคือ ${entry.name} (ธาตุ${entry.element}) สิ่งที่ทำให้ความหมายต่างกันคือรายละเอียดของฉากในฝันและวันที่ฝัน ไม่ใช่คำที่ใช้เล่า`,
+        },
+      },
+      {
+        "@type": "Question",
         name: `ฝันเห็น${entry.name} ควรทำอย่างไร`,
         acceptedAnswer: {
           "@type": "Answer",
@@ -99,9 +107,10 @@ export default async function DreamMeaningPage({ params }: { params: Promise<{ s
           <h1 style={{ fontFamily: "var(--font-serif-thai)", color: "var(--gold)", fontSize: "1.5rem", margin: "0.3rem 0" }}>
             ฝันเห็น{entry.name} หมายถึงอะไร
           </h1>
-          {entry.aliases.length > 0 && (
-            <p style={{ fontSize: "0.85rem", color: "var(--ink-dim)" }}>เรียกอีกอย่างว่า {entry.aliases.join(" · ")}</p>
-          )}
+          <p style={{ fontSize: "0.85rem", color: "var(--ink-dim)" }}>
+            ฝันว่า{entry.name} · ฝันถึง{entry.name}
+            {entry.aliases.length > 0 ? ` · เรียกอีกอย่างว่า ${entry.aliases.join(" · ")}` : ""}
+          </p>
         </header>
 
         <section style={card}>
