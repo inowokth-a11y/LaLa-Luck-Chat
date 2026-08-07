@@ -122,6 +122,21 @@ export default async function DreamMeaningPage({ params }: { params: Promise<{ s
           </ul>
         </section>
 
+        {entry.shapeMeaning && (
+          <section style={card}>
+            <h2 style={h2}>อ่านจากรูปลักษณ์ของ{entry.name}</h2>
+            <ul style={{ margin: "0.3rem 0 0", paddingLeft: "1.1rem", lineHeight: 1.9 }}>
+              {entry.shapeMeaning
+                .split(";")
+                .map((x) => x.trim())
+                .filter(Boolean)
+                .map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+            </ul>
+          </section>
+        )}
+
         <section style={card}>
           <h2 style={h2}>ฝันวันไหน ให้ผลต่างกันอย่างไร</h2>
           <p style={p}>

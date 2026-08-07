@@ -100,7 +100,7 @@ export default function DreamPage() {
       <header className={styles.header}>
         <h1>ทำนายฝัน</h1>
         <p className={styles.sub}>
-          อาจารย์ลาลา ลักกี้ 🐾 · ฐานข้อมูล 457 สัญลักษณ์ + 50 ธีมจิตวิทยา
+          อาจารย์ลาลา ลักกี้ 🐾 · ฐานข้อมูล 487 สัญลักษณ์ + 50 ธีมจิตวิทยา
           <br />
           {remaining === null ? "ช่วงทดลอง ทำนายฟรี 1 ครั้ง" : `เหลือ ${remaining}/1 ครั้ง`}
         </p>

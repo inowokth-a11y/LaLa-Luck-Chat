@@ -3,7 +3,7 @@
 // เป้าหมายคีย์เวิร์ด: "ทำนายฝัน" (274k/เดือน KD 23 — SERP อ่อนผิดปกติ อันดับ 2 เป็นเว็บ DA 8)
 // และหางยาว "ฝันเห็น<สัญลักษณ์>" อีกหลายร้อยคำ
 //
-// 🔴 ทุกหน้าใช้ข้อมูลจากฐานจริงล้วน (สัญลักษณ์ 457 แถว + ตำราแก้เคล็ด) **ไม่มีการให้ AI เขียน
+// 🔴 ทุกหน้าใช้ข้อมูลจากฐานจริงล้วน (สัญลักษณ์ 487 แถว + ตำราแก้เคล็ด) **ไม่มีการให้ AI เขียน
 //    เนื้อหาคำทำนาย** — เนื้อหาที่เรนเดอร์เป็นการจัดวางข้อมูลที่มีอยู่ + คำอธิบายหลักการที่
 //    เขียนจากสูตรจริง (ธาตุเชื่อม/วงจรกำเนิด) ต้นทุนต่อหน้า = ฿0 และ deterministic
 //
@@ -26,6 +26,8 @@ export interface DreamSeoEntry {
   kangxiChar: string;
   kangxiStrokes: number | null;
   meaning: string;
+  /** ความหมายจากรูปทรง/ลักษณะ (ฐาน v3 — มีเฉพาะหมวดสัตว์บก) */
+  shapeMeaning?: string;
   remedy: KaekledGuidance | null;
 }
 
@@ -61,6 +63,7 @@ export function dreamSeoEntries(): DreamSeoEntry[] {
       kangxiChar: row.chinese_char,
       kangxiStrokes: row.kangxi_strokes,
       meaning: row.meaning_keyword,
+      ...(row.shape_meaning ? { shapeMeaning: row.shape_meaning } : {}),
       remedy: kaekledFor(row.dream_object, row.element),
     });
   }
