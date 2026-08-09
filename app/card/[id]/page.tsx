@@ -54,7 +54,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     // เฉพาะ social crawler — ถ้าให้ Google index จะเป็น cloaking (bot เห็นเนื้อหา คนเห็น redirect)
     // เสี่ยงโทษทั้งโดเมน · ถ้าจะใช้การ์ด 100 ใบเป็นหน้า SEO ต้องเลิก redirect ก่อน (ถามผู้ใช้)
     robots: { index: false, follow: false },
-    openGraph: { title, description },
+    // canonical + og:url แบบ https — ไม่มีสองตัวนี้ FB จะปักหมุด URL ตามที่คนพิมพ์ (http://)
+    // แล้วสเครปผ่านทาง http ตลอด (เจอจริง 9 ส.ค. 2569 ใน Sharing Debugger)
+    alternates: { canonical: `/card/${id}` },
+    openGraph: { title, description, url: `/card/${id}` },
     twitter: { card: "summary_large_image", title, description },
   };
 }
