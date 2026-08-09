@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/warm-og",
-      "schedule": "20 * * * *"
+      "schedule": "50 20 * * *"
     }
   ]
 }

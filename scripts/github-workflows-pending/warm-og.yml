@@ -1,0 +1,29 @@
+# อุ่นรูป OG ทุกชั่วโมง + หลัง deploy — ทำที่ GitHub Actions เพราะ Vercel แผน Hobby
+# จำกัด cron เป็นรายวันเท่านั้น (cron รายชั่วโมงใน vercel.json ทำให้ deploy ล้มทั้งยวง
+# — เจอจริง 9 ส.ค. 2569: commit ที่มี "20 * * * *" ไม่ขึ้น prod เลย)
+#
+# ต้องตั้ง secret ชื่อ CRON_SECRET ใน GitHub repo (Settings → Secrets and variables →
+# Actions) ให้ค่าตรงกับ env CRON_SECRET บน Vercel — ไม่ตั้ง = ยิงแล้วโดน 401 เฉยๆ ไม่พัง
+name: warm-og
+on:
+  schedule:
+    - cron: "20 * * * *" # ทุกชั่วโมงนาทีที่ 20
+  push:
+    branches: [main] # อุ่นทันทีหลัง deploy (แคชรูปหลุดทุก deploy)
+  workflow_dispatch: {}
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: รอ Vercel deploy เสร็จก่อน (เฉพาะตอน push)
+        if: github.event_name == 'push'
+        run: sleep 240
+      - name: อุ่นรูป OG ทั้งชุด
+        run: |
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" --max-time 280 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://lalaluckychat.com/api/cron/warm-og)
+          cat /tmp/out.json; echo
+          # 401 = ยังไม่ได้ตั้ง secret ให้ตรงกัน — เตือนแต่ไม่ fail (กัน spam อีเมลแดง)
+          if [ "$code" != "200" ] && [ "$code" != "401" ]; then exit 1; fi
