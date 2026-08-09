@@ -1343,6 +1343,12 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
    บน developers.facebook.com (ต้องกรอก Privacy Policy URL = /privacy + Data deletion URL + ไอคอน
    ก่อนสวิตช์เปิด) · **IG login ทำไม่ได้โดยธรรมชาติ** (Basic Display API ปิดถาวร — ธงเดิมถูกต้อง
    ไม่เคยมีปุ่ม IG ในระบบ)
+1b. 🔴 **ตัวการที่สองของแชร์การ์ดไม่ขึ้นรูป (FB Debugger ชี้เอง): robots.txt Disallow /card/
+   บล็อก facebookexternalhit ด้วย** (403 "could be due to a robots.txt block") — crawler
+   โซเชียลเคารพ robots.txt · แก้: robots.ts เพิ่มกลุ่ม UA เจาะจง (facebookexternalhit/Facebot/
+   Twitterbot/LinkedInBot/Line-poker) Allow /card/ — กลุ่มเจาะจงชนะกลุ่ม * ตามสเปก ส่วน
+   Googlebot ยังโดน Disallow ตามเดิม (จุดยืนกัน cloaking ไม่เปลี่ยน) · หลังแก้ต้องกด
+   "สเครปอีกครั้ง" ใน Sharing Debugger ต่อ URL ที่เคยแชร์
 3. **คำทำนายแรกพบ: ตรวจยิงจริงผ่าน** — โครง ①-⑤ ครบ · คะแนน 7 วันตรง engine ทุกตัว (จันทร์/
    พฤหัส/ศุกร์ +2) · วันที่ไทยถูก (UTC+7) · บุคคลต้นแบบ historical ไม่ใช้กรอบ "ตำนานเล่าว่า" ·
    caveat + ชวนถาม (โควตาฟรี 3 ข้อ) ครบ
