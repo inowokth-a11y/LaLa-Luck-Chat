@@ -1338,6 +1338,13 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
    cron นาทีที่ 20) — อ่าน ?hash สดจาก meta ของหน้า ไม่ hardcode (hash เป็นค่าเดียวทั้ง route
    ตรวจแล้ว) + อุ่นมือทันทีครบ 101 รูป (0.24s HIT ทุกใบ) · ⚠️ ลิงก์ที่เคยแชร์แล้วต้อง Scrape Again
    ใน Sharing Debugger ต่อ URL (แคชฝั่ง FB)
+   🔴 **บทเรียนแพง: cron รายชั่วโมงใน vercel.json ทำ deploy ล้มเงียบทั้งยวงบนแผน Hobby**
+   (จำกัด cron รายวันเท่านั้น) — commit ที่มี "20 * * * *" ไม่ขึ้น prod เลย 2 รอบ (สังเกตจาก
+   route ใหม่ 404 + robots.txt ค้างของเก่า) → cron ฝั่ง Vercel เป็นรายวัน 03:50 ไทย ·
+   ตัวรายชั่วโมงเตรียมเป็น GitHub Actions ไว้ที่ `scripts/github-workflows-pending/warm-og.yml`
+   (push ไม่ได้ — PAT ของ repo ไม่มีสิทธิ์ workflow) · ⚠️ แคชรูป OG เป็นรายชุด deploy:
+   **ทุก deploy = เย็นใหม่ทั้ง 101 รูปเสมอ** แม้ hash ไม่เปลี่ยน — ช่วง GH Actions ยังไม่ติดตั้ง
+   ถ้า deploy แล้วจะแชร์ทันที ให้อุ่นมือ (สคริปต์ curl วน 100 ใบ) หรือรอ cron รายวัน
 2. **FB login: โครงเราปกติ** (Supabase 302 → FB login form ขึ้นจริง) — ติดที่**แอป Meta ยังเป็น
    Development mode** ล็อกอินได้เฉพาะ Admin/Tester ตามธงเดิม §15 → ผู้ใช้ต้องสลับแอปเป็น Live
    บน developers.facebook.com (ต้องกรอก Privacy Policy URL = /privacy + Data deletion URL + ไอคอน
