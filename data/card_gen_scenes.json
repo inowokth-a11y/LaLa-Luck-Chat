@@ -1,0 +1,502 @@
+{
+ "00": {
+  "name_en": "The Secluded One",
+  "name_th": "ผูปลีกวิเวก",
+  "scene": "an ancient sage meditating in complete solitude within a silent cave, illuminated only by the soft glow of a single candle"
+ },
+ "01": {
+  "name_en": "The Unsung Hero",
+  "name_th": "วีรบุรุษผูถูกลืม",
+  "scene": "a genius inventor standing proudly yet somberly next to his world-changing invention, featuring glowing coils and scattered blueprints"
+ },
+ "02": {
+  "name_en": "The Soft-Hearted",
+  "name_th": "คนใจออน",
+  "scene": "a noble lady in a stained dress kneeling to offer food to a destitute person, her eyes filled with compassionate tears"
+ },
+ "03": {
+  "name_en": "The Hot-headed Genius",
+  "name_th": "อัจฉริยะหัวรอน",
+  "scene": "a brilliant man in a chaotic office, featuring a whiteboard with frantic equations and a shattered lightbulb overhead"
+ },
+ "04": {
+  "name_en": "The Secret Investigator",
+  "name_th": "นักสืบหาความลับ",
+  "scene": "a writer with intense eyes in a dark, candlelit study, with a raven on his shoulder as he deciphers a secret from an ancient manuscript"
+ },
+ "05": {
+  "name_en": "The Rational Traveler",
+  "name_th": "นักเดินทางผูมีเหตุผล",
+  "scene": "a weathered traveler on the prow of a simple ship, navigating by a star chart with a determined gaze"
+ },
+ "06": {
+  "name_en": "The Disappointed Charmer",
+  "name_th": "คนเจาเสนหผูผิดหวัง",
+  "scene": "a charismatic Roman general in an opulent Egyptian setting, his expression one of tragic love and impending doom"
+ },
+ "07": {
+  "name_en": "The Struggling Fighter",
+  "name_th": "นักสูผูฝาฟน",
+  "scene": "a mighty warrior, scarred and bleeding, standing over a defeated beast with a broken sword but an unbroken spirit"
+ },
+ "08": {
+  "name_en": "The Gambler",
+  "name_th": "นักเสี่ยงโชค",
+  "scene": "a charming man in a Venetian mask at a high-stakes card game, with playing cards and a pile of gold coins, a confident smirk on his lips"
+ },
+ "09": {
+  "name_en": "The Clairvoyant",
+  "name_th": "ผูมีญาณทิพย",
+  "scene": "a priestess, blindfolded amidst swirling sacred smoke, her hands hovering over a glowing crystal ball that shows celestial patterns"
+ },
+ "10": {
+  "name_en": "The Successful Initiator",
+  "name_th": "ผูริเริ่มแหงความสําเร็จ",
+  "scene": "a young, majestic commander in gleaming armor on a cliff, pointing authoritatively towards a new land to conquer"
+ },
+ "11": {
+  "name_en": "The Premonitioner",
+  "name_th": "ผูมีลางสังหรณ",
+  "scene": "a peasant girl in simple armor holding a sacred banner on a chaotic battlefield, her eyes glowing with divine, prophetic light"
+ },
+ "12": {
+  "name_en": "The Fragile Artist",
+  "name_th": "ศิลปนผูเปราะบาง",
+  "scene": "an artist in a swirling, vibrant sunflower field, his expression a mix of creative ecstasy and deep personal pain, his ear bandaged"
+ },
+ "13": {
+  "name_en": "The Creative Orator",
+  "name_th": "นักพูดผูสรางสรรค",
+  "scene": "an orator delivering a powerful speech to a vast, hopeful crowd, his hand raised for emphasis, a symbol of peaceful revolution"
+ },
+ "14": {
+  "name_en": "The Modern Communicator",
+  "name_th": "นักสื่อสารยุคใหม",
+  "scene": "a graceful god with winged sandals and a caduceus staff pausing mid-stride on a cloud, looking down at the world with a mischievous grin"
+ },
+ "15": {
+  "name_en": "The Purposeful Traveler",
+  "name_th": "นักเดินทางผูมีเปาหมาย",
+  "scene": "a wise traveler in rich silk robes in a bustling Silk Road market, examining exotic goods with a curious and knowing gaze"
+ },
+ "16": {
+  "name_en": "The Family Builder",
+  "name_th": "ผูสรางครอบครัว",
+  "scene": "a woman by a warm hearth in a quiet, sunlit room, her expression resilient yet pensive, symbolizing the spiritual core of the home"
+ },
+ "17": {
+  "name_en": "The Sage",
+  "name_th": "นักปราชญ",
+  "scene": "a wise king in ornate royal robes on a golden throne, his gaze discerning and fair as he makes a monumental judgment"
+ },
+ "18": {
+  "name_en": "The Daredevil",
+  "name_th": "ผูกลาบาบิ่น",
+  "scene": "a mighty warrior in Trojan armor letting out a furious war cry on the battlefield, his rage making him an unstoppable but reckless force"
+ },
+ "19": {
+  "name_en": "The Benevolent",
+  "name_th": "ผูมีเมตตา",
+  "scene": "a great emperor standing before a monumental stone pillar carved with his edicts of peace, renouncing his violent past under a Bodhi tree"
+ },
+ "20": {
+  "name_en": "The Coordinator",
+  "name_th": "ผูประสานงาน",
+  "scene": "a goddess in a flowing iridescent gown at the beginning of a rainbow bridge, her gentle gaze connecting the heavens and the earth"
+ },
+ "21": {
+  "name_en": "The Shining Star",
+  "name_th": "ดาวเดน",
+  "scene": "a handsome god, bathed in a radiant golden light, playing a golden lyre with a laurel wreath on his head"
+ },
+ "22": {
+  "name_en": "The World Changer",
+  "name_th": "ผูเปลี่ยนแปลงโลก",
+  "scene": "a genius with a long beard in a moment of brilliant insight, simultaneously sketching a Vitruvian Man diagram and blueprints for a flying machine"
+ },
+ "23": {
+  "name_en": "The Charmer",
+  "name_th": "ผูมีเสนห",
+  "scene": "a powerful and charming queen with a royal headdress sailing down the Nile on a golden barge, her commanding presence captivating all who see her"
+ },
+ "24": {
+  "name_en": "The Practitioner",
+  "name_th": "นักปฏิบัติ",
+  "scene": "a strong goddess of the harvest in a field of golden wheat, her expression loving but tinged with the worry of a protective mother"
+ },
+ "25": {
+  "name_en": "The Scholar",
+  "name_th": "นักวิชาการ",
+  "scene": "a great philosopher in a classical academy, lost in deep thought, surrounded by scrolls and books"
+ },
+ "26": {
+  "name_en": "The Judge",
+  "name_th": "ผูพิพากษา",
+  "scene": "a blindfolded goddess holding the scales of justice and a sword, the embodiment of divine law"
+ },
+ "27": {
+  "name_en": "The Altruist",
+  "name_th": "ผูเสียสละ",
+  "scene": "an elderly woman in a simple sari lovingly cradling a sick child, her face a testament to a life of selfless sacrifice"
+ },
+ "28": {
+  "name_en": "The Courageous Leader",
+  "name_th": "ผูนําที่กลาหาญ",
+  "scene": "a formidable emperor standing before his silent, imposing army of terracotta soldiers, his gaze both ruthless and visionary"
+ },
+ "29": {
+  "name_en": "The Merciful Believer",
+  "name_th": "ผูศรัทธาที่เมตตา",
+  "scene": "a monk on a long pilgrimage through misty mountains, carrying sacred scrolls, his expression weary but filled with unwavering faith"
+ },
+ "30": {
+  "name_en": "The Thinker-Speaker",
+  "name_th": "นักคิดนักพูด",
+  "scene": "a philosopher in the Agora marketplace, his hand raised in a questioning gesture, challenging the assumptions of his disciples"
+ },
+ "31": {
+  "name_en": "The Creative King",
+  "name_th": "ราชาผูสรางสรรค",
+  "scene": "a young man with a look of destiny on his face pulling a glowing sword from a stone, signaling the dawn of a new, creative kingdom"
+ },
+ "32": {
+  "name_en": "The Goodwill Ambassador",
+  "name_th": "ทูตสันถวไมตรี",
+  "scene": "a cunning diplomat before a map of Europe, his shrewd smile hinting at his ability to adapt and thrive through multiple political upheavals"
+ },
+ "33": {
+  "name_en": "The Compassionate Master",
+  "name_th": "ปรมาจารยผูเมตตา",
+  "scene": "a multi-armed deity looking upon the world with infinite compassion, each hand reaching out to alleviate the suffering of all beings"
+ },
+ "34": {
+  "name_en": "The Wise Warrior",
+  "name_th": "นักรบผูชาญฉลาด",
+  "scene": "a goddess in a battle helmet, an owl of wisdom on her shoulder, poised and calm, ready for strategic warfare"
+ },
+ "35": {
+  "name_en": "The Adventurer",
+  "name_th": "นักสํารวจ",
+  "scene": "a daring navigator on the deck of his ship, looking out at the uncharted, monster-filled waters of a new world, his gaze ambitious"
+ },
+ "36": {
+  "name_en": "The Giver",
+  "name_th": "ผูให",
+  "scene": "a kind-faced man in bishop's robes secretly leaving gifts for the poor in a snowy village, embodying the spirit of selfless giving"
+ },
+ "37": {
+  "name_en": "The Solitary Scholar",
+  "name_th": "นักปราชญผูสันโดษ",
+  "scene": "a lone scholar in a solitary pavilion high in the mountains, contemplating nature and writing his philosophy, finding wisdom in hardship"
+ },
+ "38": {
+  "name_en": "The Risk-Taking Businessman",
+  "name_th": "นักธุรกิจผูกลาไดกลาเสีย",
+  "scene": "a handsome billionaire with a reckless smile surrounded by flashing cameras, one moment a film producer, the next a pilot risking his life"
+ },
+ "39": {
+  "name_en": "The Philanthropist",
+  "name_th": "ผูใจบุญ",
+  "scene": "an elderly industrial magnate, with his steel mills behind him, now dedicating his vast fortune to building public libraries and institutions"
+ },
+ "40": {
+  "name_en": "The Scientist",
+  "name_th": "นักวิทยาศาสตร",
+  "scene": "a female scientist in a dark lab intently studying beakers filled with a glowing, radioactive substance, her work foundational to a new age"
+ },
+ "41": {
+  "name_en": "The Creative Founder",
+  "name_th": "ผูนําผูสรางสรรค",
+  "scene": "a visionary man at his animation desk, sketching a cheerful mouse, with the blueprint of a fantasy castle visible behind him"
+ },
+ "42": {
+  "name_en": "The Loyal Partner",
+  "name_th": "หุนสวนผูภักดี",
+  "scene": "a loyal friend standing faithfully beside a troubled prince in a dark castle, his expression one of unwavering support in the face of tragedy"
+ },
+ "43": {
+  "name_en": "The Firm Communicator",
+  "name_th": "นักสื่อสารผูหนักแนน",
+  "scene": "a resolute leader speaking into a radio microphone, his determined expression inspiring a nation at war to never surrender"
+ },
+ "44": {
+  "name_en": "The Master Builder",
+  "name_th": "จอมคนผูสรางเมือง",
+  "scene": "a Roman emperor, looking weary but proud, standing before the grand columns of the city he has built, a blueprint in his hand"
+ },
+ "45": {
+  "name_en": "The Flexible Pioneer",
+  "name_th": "นักบุกเบิกผูยืดหยุน",
+  "scene": "a Viking explorer landing his longship on a new, untamed shore, using a sunstone to navigate, his gaze set on building a new life"
+ },
+ "46": {
+  "name_en": "The Stable Guardian",
+  "name_th": "ผูพิทักษที่มั่นคง",
+  "scene": "a Trojan prince and warrior bidding a loving but sad farewell to his family at the city gates, his duty to protect them paramount"
+ },
+ "47": {
+  "name_en": "The Solitary Sage",
+  "name_th": "ปราชญผูสันโดษ",
+  "scene": "an old sage leaving civilization behind, riding an ox into the misty mountains, carrying only his written wisdom on a bamboo scroll"
+ },
+ "48": {
+  "name_en": "The Golden Executive",
+  "name_th": "นักบริหารมือทอง",
+  "scene": "a king in his treasury, everything he touches turning to gold, his expression one of horror as he realizes the curse of his greed"
+ },
+ "49": {
+  "name_en": "The Steadfast Giver",
+  "name_th": "ผูใหที่หนักแนน",
+  "scene": "a determined nurse carrying a lantern through a dark, crowded military hospital at night, a steadfast beacon of hope and care"
+ },
+ "50": {
+  "name_en": "The Independent Voyager",
+  "name_th": "นักเดินทางผูอิสระ",
+  "scene": "an adventurer on his ship looking up in awe and terror as a giant mythological Roc bird descends from the sky"
+ },
+ "51": {
+  "name_en": "The Adventurous Leader",
+  "name_th": "ผูนํานักผจญภัย",
+  "scene": "an expedition leader on Antarctic ice, his ship crushed and frozen behind him, but his stare is fixed forward with unbreakable determination"
+ },
+ "52": {
+  "name_en": "The Flexible Partner",
+  "name_th": "หุนสวนผูยืดหยุน",
+  "scene": "a great leader, after years of struggle, shaking hands with his former oppressor, his wise and forgiving smile signaling a new era of cooperation"
+ },
+ "53": {
+  "name_en": "The Traveling Artist",
+  "name_th": "ศิลปนนักเดินทาง",
+  "scene": "an artist, having escaped civilization, painting expressive, vibrant portraits of local people amidst the lush tropical beauty of a remote island"
+ },
+ "54": {
+  "name_en": "The Flexible Builder",
+  "name_th": "ผูสรางที่ยืดหยุน",
+  "scene": "a brilliant inventor testing his newly crafted wings of wax and feathers, a desperate genius planning his escape from a complex labyrinth"
+ },
+ "55": {
+  "name_en": "The Revolutionary",
+  "name_th": "นักปฏิวัติ",
+  "scene": "a gladiator who broke his chains now leading a massive army of rebels against an empire, his expression fiery and defiant"
+ },
+ "56": {
+  "name_en": "The Flexible Caregiver",
+  "name_th": "ผูดูแลที่ยืดหยุน",
+  "scene": "a wise educator calmly observing children as they learn independently in a specially designed classroom, her method based on respect and flexibility"
+ },
+ "57": {
+  "name_en": "The Mystic Sage",
+  "name_th": "ปราชญผูลึกลับ",
+  "scene": "a mysterious scholar in a dark room filled with celestial charts, gazing into a flame, his eyes reflecting prophecies of future events"
+ },
+ "58": {
+  "name_en": "The Adaptive Investor",
+  "name_th": "นักลงทุนผูปรับตัว",
+  "scene": "a silhouette of an investor standing amidst a chaotic storm of soaring and crashing stock market graphs, thriving in the financial volatility"
+ },
+ "59": {
+  "name_en": "The Free-spirited Giver",
+  "name_th": "ผูใหผูรักอิสระ",
+  "scene": "a kind-hearted wanderer with a pot on his head joyfully scattering apple seeds across a vast, untamed American landscape for others to enjoy"
+ },
+ "60": {
+  "name_en": "The Family Guardian",
+  "name_th": "ผูพิทักษครอบครัว",
+  "scene": "a majestic queen in a grand hall, spinning the threads of fate, her powerful gaze filled with the worry of protecting her divine family"
+ },
+ "61": {
+  "name_en": "The Loving Leader",
+  "name_th": "ผูนําผูเปยมรัก",
+  "scene": "a queen in mourning dress looking out over an industrializing city, her expression one of solemn duty and maternal love for her vast empire"
+ },
+ "62": {
+  "name_en": "The Relationship Mediator",
+  "name_th": "ผูประสานสัมพันธ",
+  "scene": "an influential media personality connecting with her audience from a vibrant television studio, her expression empathetic and her words inspiring millions"
+ },
+ "63": {
+  "name_en": "The Caring Communicator",
+  "name_th": "นักสื่อสารผูชอบดูแล",
+  "scene": "a man standing on a horrific battlefield, his expression one of compassionate horror that inspires him to create an organization of neutral aid, symbolized by a red cross"
+ },
+ "64": {
+  "name_en": "The Family Architect",
+  "name_th": "สถาปนิกของครอบครัว",
+  "scene": "a philosopher-emperor in his military tent at night, writing in his journal, contemplating his duty to build a stable foundation for his empire"
+ },
+ "65": {
+  "name_en": "The Responsible Traveler",
+  "name_th": "นักเดินทางผูมีความรับผิดชอบ",
+  "scene": "a meticulous scholar and traveler carefully documenting his journey across exotic lands, balancing his desire for freedom with his scholarly duties"
+ },
+ "66": {
+  "name_en": "The Great Giver",
+  "name_th": "ผูใหที่ยิ่งใหญ",
+  "scene": "a divine being pouring healing nectar from a vase, her expression one of infinite mercy and compassion for all suffering beings in the world"
+ },
+ "67": {
+  "name_en": "The Responsible Sage",
+  "name_th": "ปราชญผูมีความรับผิดชอบ",
+  "scene": "a philosopher in his academy, using geometric diagrams to explain his theories of an ideal and responsible society"
+ },
+ "68": {
+  "name_en": "The Empire Lord",
+  "name_th": "เจาแหงอาณาจักร",
+  "scene": "a great khan on horseback overlooking his vast nomadic army on the open steppe, his gaze strategic and commanding, ready to build his empire"
+ },
+ "69": {
+  "name_en": "The Sacrificial Saint",
+  "name_th": "นักบุญผูเสียสละ",
+  "scene": "a serene and resolute leader in simple cloth leading a peaceful march of thousands, embodying the power of non-violent, sacrificial resistance"
+ },
+ "70": {
+  "name_en": "The Truth Seeker",
+  "name_th": "ผูแสวงหาสัจธรรม",
+  "scene": "a man sitting in perfect serenity under the Bodhi tree, bathed in a golden aura, having achieved enlightenment and discovered the ultimate truth"
+ },
+ "71": {
+  "name_en": "The Research Leader",
+  "name_th": "ผูนํานักวิจัย",
+  "scene": "a great scientist under a tree, an apple falling nearby, his mind consumed with the profound discovery of the laws that govern the universe"
+ },
+ "72": {
+  "name_en": "The Relational Analyst",
+  "name_th": "นักวิเคราะหความสัมพันธ",
+  "scene": "a thoughtful psychoanalyst in his study filled with ancient artifacts, his gaze deeply analytical as he listens to an unseen patient"
+ },
+ "73": {
+  "name_en": "The Analytical Writer",
+  "name_th": "นักเขียนเชิงวิเคราะห",
+  "scene": "a scholar wandering through a labyrinthine library, finding hidden symbols and codes within a medieval manuscript, decoding the nature of reality"
+ },
+ "74": {
+  "name_en": "The Analytical Architect",
+  "name_th": "สถาปนิกนักวิเคราะห",
+  "scene": "a Roman architect meticulously drawing the blueprint for a perfect temple on a wax tablet, using precise geometric ratios to create order"
+ },
+ "75": {
+  "name_en": "The Inquisitive Explorer",
+  "name_th": "นักสํารวจผูใฝรู",
+  "scene": "a naturalist aboard his exploration ship meticulously sketching different species of finches in his journal, his curiosity changing the world"
+ },
+ "76": {
+  "name_en": "The Wise Caregiver",
+  "name_th": "ผูดูแลผูเปยมดวยปญญา",
+  "scene": "a wise centaur, a teacher of heroes, patiently instructing a young student on the arts of healing and music, his gaze full of knowledge"
+ },
+ "77": {
+  "name_en": "The Oracle Sage",
+  "name_th": "ปราชญผูหยั่งรู",
+  "scene": "a powerful wizard in his tower observatory, his eyes glowing as he sees visions of the past and future, but he is utterly alone"
+ },
+ "78": {
+  "name_en": "The Visionary Executive",
+  "name_th": "นักบริหารผูมีวิสัยทัศน",
+  "scene": "a wealthy banker standing before a masterpiece he commissioned, with the dome of a grand cathedral he funded visible in the background"
+ },
+ "79": {
+  "name_en": "The Wise Saint",
+  "name_th": "นักบุญผูมีปญญา",
+  "scene": "a spiritual leader with a gentle and wise smile sitting before the Himalayas, his presence radiating compassionate wisdom to the world"
+ },
+ "80": {
+  "name_en": "The Empire Lord",
+  "name_th": "เจาแหงอาณาจักร",
+  "scene": "the wealthiest king in history leading a grand caravan of gold across the desert, his immense golden wealth on full display, a symbol of absolute power"
+ },
+ "81": {
+  "name_en": "The Powerful Emperor",
+  "name_th": "จักรพรรดิผูทรงอํานาจ",
+  "scene": "a magnificent sultan enthroned in his majestic palace, his authoritative expression showing his absolute power as a lawgiver and emperor"
+ },
+ "82": {
+  "name_en": "The Influential Ambassador",
+  "name_th": "ทูตผูทรงอิทธิพล",
+  "scene": "an influential diplomat engaging in a tense, secret negotiation between superpowers, his expression unreadable, shaping the world from the shadows"
+ },
+ "83": {
+  "name_en": "The Influencer",
+  "name_th": "ผูทรงอิทธิพลทางความคิด",
+  "scene": "a cunning political thinker writing his famous treatise on power, a shadowy representation of his ideas whispering advice into a ruler's ear"
+ },
+ "84": {
+  "name_en": "The Powerful Architect",
+  "name_th": "สถาปนิกผูทรงอํานาจ",
+  "scene": "a divinely inspired architect directing the construction of the world's first step pyramid, laying the foundation for an eternal civilization"
+ },
+ "85": {
+  "name_en": "The Powerful Revolutionary",
+  "name_th": "นักปฏิวัติผูทรงอํานาจ",
+  "scene": "a brilliant general on a rearing horse leading his revolutionary army to victory, his ambitious gaze set on transforming his nation into an empire"
+ },
+ "86": {
+  "name_en": "The Influential Caregiver",
+  "name_th": "ผูดูแลผูทรงอิทธิพล",
+  "scene": "an influential First Lady standing before a diverse group of people, holding a copy of the Universal Declaration of Human Rights, a powerful caregiver for the world"
+ },
+ "87": {
+  "name_en": "The Powerful Sage",
+  "name_th": "ปราชญผูทรงอํานาจ",
+  "scene": "a mysterious mystic with hypnotic eyes in the background of the imperial court, his unsettling aura showing his powerful, hidden influence"
+ },
+ "88": {
+  "name_en": "The Emperor of Wealth",
+  "name_th": "จักรพรรดิแหงความมั่งคั่ง",
+  "scene": "a king weeping in his golden palace, accidentally turning his own daughter into a golden statue, the ultimate symbol of wealth's tragic curse"
+ },
+ "89": {
+  "name_en": "The Sacrificial Leader",
+  "name_th": "ผูนําผูเสียสละ",
+  "scene": "a weary president in his office, the immense burden of a divided nation and the moral weight of his historic proclamation visible on his face"
+ },
+ "90": {
+  "name_en": "The Giving Saint",
+  "name_th": "นักบุญผูให",
+  "scene": "a saint in a simple brown habit, having renounced all wealth, preaching to a flock of birds, his hands showing the stigmata, his face blissful"
+ },
+ "91": {
+  "name_en": "The Compassionate Leader",
+  "name_th": "ผูนําผูเปยมเมตตา",
+  "scene": "a wise Persian king issuing a decree allowing a captive people to return home and rebuild their sacred temple, his gaze merciful and respectful"
+ },
+ "92": {
+  "name_en": "The Ambassador of Peace",
+  "name_th": "ทูตแหงสันติภาพ",
+  "scene": "a diplomat standing before the UN headquarters, his focus entirely on his selfless duty to negotiate peace, a dove of peace nearby"
+ },
+ "93": {
+  "name_en": "The Social Artist",
+  "name_th": "ศิลปนเพื่อสังคม",
+  "scene": "a passionate conductor leading a symphony orchestra, his music a powerful force for unifying people and inspiring social hope and change"
+ },
+ "94": {
+  "name_en": "The Community Builder",
+  "name_th": "ผูสรางชุมชน",
+  "scene": "a determined social reformer at the entrance of the community house she founded, providing a stable foundation for immigrants and the poor"
+ },
+ "95": {
+  "name_en": "The Philanthropic Traveler",
+  "name_th": "นักเดินทางผูใจบุญ",
+  "scene": "a resolute explorer and missionary confronting slave traders in the heart of Africa, his journey driven by a desire to help and heal"
+ },
+ "96": {
+  "name_en": "The Sacrificial Caregiver",
+  "name_th": "ผูดูแลผูเสียสละ",
+  "scene": "a woman showing a cloth bearing the imprinted face of a suffering man, an act of pure compassion and care in a moment of extreme sacrifice"
+ },
+ "97": {
+  "name_en": "The Social Psychologist",
+  "name_th": "นักจิตวิทยาเพื่อสังคม",
+  "scene": "the face of a wise psychologist surrounded by swirling archetypal symbols from the collective unconscious, showing his deep understanding of humanity"
+ },
+ "98": {
+  "name_en": "The Social Manager",
+  "name_th": "ผูจัดการเพื่อสังคม",
+  "scene": "an economist smiling hopefully as he helps a woman in a poor village sign a micro-loan document, empowering her to start a business"
+ },
+ "99": {
+  "name_en": "The World Philanthropist",
+  "name_th": "ผูอุทิศตนเพื่อโลก",
+  "scene": "a titan chained to a rock as punishment for giving fire to humankind, his expression one of defiant agony, a symbol of ultimate sacrifice"
+ }
+}
