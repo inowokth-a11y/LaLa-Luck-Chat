@@ -166,7 +166,6 @@ export default function DreamPage() {
                 </a>
               )}
 
-              {m.via && <div className={styles.via}>ตอบโดย {m.via}</div>}
             </div>
           </div>
         ))}

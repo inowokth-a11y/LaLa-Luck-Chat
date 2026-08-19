@@ -60,6 +60,13 @@ export default function ProfilePage() {
 
   // เติมข้อมูลจากโปรไฟล์ที่ผู้ใช้กรอกไว้ (ไม่ทับค่าที่ผู้ใช้พิมพ์เองแล้ว)
   const { profile } = useStoredProfile();
+  // guest (anonymous) ไหม — ใช้โชว์ CTA ผูกบัญชีหลังได้คำทำนาย
+  const [isGuest, setIsGuest] = useState(false);
+  useEffect(() => {
+    import("@/lib/supabase/auth-browser").then(({ createSupabaseBrowser }) =>
+      createSupabaseBrowser().auth.getUser().then(({ data }) => setIsGuest(Boolean(data.user?.is_anonymous)))
+    ).catch(() => {});
+  }, []);
   useEffect(() => {
     if (!profile) return;
     let did = false;
@@ -242,6 +249,34 @@ export default function ProfilePage() {
     
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
       {card && cardId && <ShareCard cardId={cardId} cardName={card.energy_name} figure={card.archetype_figure} />}
+      {/* guest ได้คำทำนายแล้ว → ชวนผูกบัญชีรับสิทธิ์ฟรีเพิ่ม (ผู้ใช้สั่ง 10 ส.ค. 2569:
+          "ทำนายฟรีก่อน แล้วค่อยล็อกอินเพื่อรับสิทธิ์เพิ่ม") — linkIdentity เก็บข้อมูลเดิมไว้ครบ */}
+      {card && isGuest && (
+        <div
+          style={{
+            marginTop: "1rem", padding: "0.9rem 1rem", borderRadius: 12,
+            background: "color-mix(in srgb, var(--gold) 12%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--gold) 45%, transparent)",
+            fontSize: "0.9rem", lineHeight: 1.65,
+          }}
+        >
+          <b>🎁 อยากได้สิทธิ์ฟรีเพิ่มไหมคะ?</b> ผูกบัญชี (ฟรี ไม่กี่วินาที) แล้วรับเพิ่มทันที:
+          ทำนายฝันฟรี 1 ครั้ง · เสี่ยงทายฟรี 2 ครั้ง · รางวัลแชร์การ์ด +2 คำถาม — ข้อมูลและการ์ดของคุณไม่หาย
+          <div style={{ marginTop: "0.6rem" }}>
+            <a
+              href="/login?next=/profile"
+              style={{
+                display: "inline-block", padding: "0.6rem 1.2rem", borderRadius: 10,
+                background: "linear-gradient(135deg, #d4a52f, var(--gold) 55%, #8a6608)",
+                color: "#fffdf8", fontWeight: 700, textDecoration: "none",
+                boxShadow: "0 3px 10px rgba(150, 112, 10, 0.3)",
+              }}
+            >
+              🔗 ผูกบัญชี รับสิทธิ์ฟรีเพิ่ม
+            </a>
+          </div>
+        </div>
+      )}
 
       <FunctionChat
         logicId={1}

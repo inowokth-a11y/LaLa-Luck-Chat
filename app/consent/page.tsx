@@ -126,14 +126,14 @@ export default function ConsentPage() {
                 border: "1px solid var(--gold)",
               }}
             >
-              {busy ? "กำลังเตรียม…" : "🐾 เริ่มเลย ไม่ต้องสมัคร (ผู้เยี่ยมชม)"}
+              {busy ? "กำลังเตรียม…" : "🔮 รับคำทำนายฟรีเลย — ไม่ต้องสมัคร"}
             </button>
             <button
               disabled={!agreed || busy}
               onClick={goLogin}
               style={{ ...btn, background: "var(--card-bg)", border: "1px solid var(--gold-dim, #cbb98f)", color: "var(--ink)" }}
             >
-              เข้าสู่ระบบด้วย Google / LINE / อีเมล
+              มีบัญชีอยู่แล้ว? เข้าสู่ระบบ (Google / LINE / อีเมล)
             </button>
           </div>
           <p style={{ fontSize: "0.75rem", color: "var(--ink-dim)", marginTop: "0.7rem", lineHeight: 1.6 }}>

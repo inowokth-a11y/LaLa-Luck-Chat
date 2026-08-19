@@ -126,27 +126,43 @@ export default function AuthStatus() {
   };
   const sep: React.CSSProperties = { opacity: 0.45 };
 
+  // ป้ายกำกับเต็มคำ + ปุ่มเติมเครดิตแยกใต้ชิป (ผู้ใช้สั่ง 10 ส.ค. 2569: "มีแต่รูปคนอาจไม่เข้าใจ")
+  const topup: React.CSSProperties = {
+    ...pill,
+    padding: "0.3rem 0.75rem",
+    background: "linear-gradient(135deg, #c9992a, var(--gold, #b8860b) 60%, #96700a)",
+    color: "#fffdf8",
+    border: "1px solid #96700a",
+    fontWeight: 700,
+  };
   return (
-    <div style={{ ...wrap, display: "flex", gap: "0.4rem", alignItems: "center" }}>
-      {status && isAdmin && (
-        <Link href="/admin" style={pill} title="แดชบอร์ดแอดมิน">
-          🛠 แอดมิน
+    <div style={{ ...wrap, display: "flex", flexDirection: "column", gap: "0.35rem", alignItems: "flex-end" }}>
+      <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+        {status && isAdmin && (
+          <Link href="/admin" style={pill} title="แดชบอร์ดแอดมิน">
+            🛠 แอดมิน
+          </Link>
+        )}
+        {status ? (
+          <Link href="/account" style={pill} title="บัญชี / เติมเครดิต">
+            <span aria-hidden>👤</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "7.5rem" }}>{status.name}</span>
+            <span style={sep}>·</span>
+            <span title="เครดิตคงเหลือ">⭐ {status.credits} เครดิต</span>
+            <span style={sep}>·</span>
+            <span title="คำถามฟรีคงเหลือ">💬 ถามฟรี {status.freeQuestions}</span>
+          </Link>
+        ) : loggedOut ? (
+          <Link href="/login" style={pill}>
+            เข้าสู่ระบบ
+          </Link>
+        ) : null}
+      </div>
+      {status && (
+        <Link href="/account" style={topup} title="เติมเครดิตด้วย PromptPay">
+          ➕ เติมเครดิต
         </Link>
       )}
-      {status ? (
-        <Link href="/account" style={pill} title="บัญชี / เติมเครดิต">
-          <span aria-hidden>👤</span>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "9rem" }}>{status.name}</span>
-          <span style={sep}>·</span>
-          <span title="เครดิตคงเหลือ">⭐ {status.credits}</span>
-          <span style={sep}>·</span>
-          <span title="คำถามฟรีคงเหลือ">💬 {status.freeQuestions}</span>
-        </Link>
-      ) : loggedOut ? (
-        <Link href="/login" style={pill}>
-          เข้าสู่ระบบ
-        </Link>
-      ) : null}
     </div>
   );
 }

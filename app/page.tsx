@@ -46,13 +46,16 @@ const S = {
   gold: {
     fontFamily: "var(--font-sans-thai)",
     color: "#fffdf8",
-    background: "linear-gradient(135deg, #c9992a, var(--gold) 60%, #96700a)",
-    border: "1px solid var(--gold)",
-    padding: "0.8rem 1.6rem",
+    fontWeight: 700,
+    background: "linear-gradient(135deg, #d4a52f, var(--gold) 55%, #8a6608)",
+    border: "1px solid #8a6608",
+    padding: "0.85rem 1.6rem",
     borderRadius: 10,
     cursor: "pointer",
-    fontSize: "1rem",
+    fontSize: "1.02rem",
     width: "100%",
+    boxShadow: "0 4px 14px rgba(150, 112, 10, 0.35)",
+    textShadow: "0 1px 2px rgba(90, 60, 0, 0.35)",
   } as React.CSSProperties,
 };
 
@@ -180,15 +183,17 @@ export default function Home() {
             key={t.href}
             href={t.href}
             style={{
+              // ปรับให้เด่นขึ้น (ผู้ใช้สั่ง 10 ส.ค. 2569): ขอบทองเข้ม + ตัวหนา + เงาลึก
               fontFamily: "var(--font-sans-thai)",
-              color: "var(--ink)",
+              color: "#1d1812",
+              fontWeight: 600,
               background: "var(--card-bg)",
-              border: "1px solid var(--gold-dim, #cbb98f)",
-              boxShadow: "0 2px 8px rgba(110, 82, 16, 0.10)",
-              padding: "0.65rem 1.4rem",
+              border: "1.5px solid var(--gold, #b8860b)",
+              boxShadow: "0 3px 10px rgba(110, 82, 16, 0.22)",
+              padding: "0.7rem 1.4rem",
               textDecoration: "none",
               borderRadius: "10px",
-              fontSize: "0.92rem",
+              fontSize: "0.95rem",
             }}
           >
             {t.label}
