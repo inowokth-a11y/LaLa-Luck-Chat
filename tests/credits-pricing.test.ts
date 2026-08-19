@@ -83,3 +83,11 @@ test("ที่ราคาป้าย (แพ็กเล็กสุด) ก�
     assert.ok(profitMultiplier(r, base) >= profitMultiplier(r, cheapestCreditValueThb()));
   }
 });
+
+test("บัญชีเครดิตไม่จำกัด (แอดมิน — ผู้ใช้สั่ง 10 ส.ค. 2569)", async () => {
+  const { hasUnlimitedCredits, UNLIMITED_BALANCE } = await import("../lib/credits/wallet");
+  assert.ok(hasUnlimitedCredits("98f9445c-7520-43f0-8ae9-1d38b2cc39ab"), "uid แอดมินต้องไม่จำกัด");
+  assert.ok(!hasUnlimitedCredits("00000000-0000-0000-0000-000000000000"), "uid อื่นต้องไม่ติดไปด้วย");
+  assert.ok(!hasUnlimitedCredits(null) && !hasUnlimitedCredits(""), "ไม่มี uid = ไม่จำกัดไม่ได้");
+  assert.ok(UNLIMITED_BALANCE >= 100000, "ยอดโชว์ต้องใหญ่พอไม่มีวันชน");
+});
