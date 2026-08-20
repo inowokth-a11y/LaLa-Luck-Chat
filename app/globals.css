@@ -78,10 +78,55 @@
 
 /* พื้นหินอ่อนของทุกหน้าโทนสว่าง — เขียนซ้ำ 2 ชั้น (specificity 0-2-0) ให้ชนะ shorthand
    `background: var(--marble-bg)` ใน module css ของแต่ละหน้า โดยไม่ต้องไล่แก้ทีละไฟล์ */
+/* 🔴 "ทุกโหมด" (ผู้ใช้เคาะ 10 ส.ค. 2569): พื้นทุกหน้า marble = ลาย triskele น้ำเงิน-ทอง
+   หลักที่ไม่แลก: ตัวหนังสือเนื้อหาต้องอยู่บนพื้นครีม (การ์ด) เสมอ — ตัวแปรสีระดับหน้า
+   เป็นชุด "นอกการ์ด" (ครีม/ทองสว่าง) แล้วรีเซ็ตกลับชุดหินอ่อนภายในพื้นผิวอ่าน (ดูข้างล่าง) */
 .tone-marble.tone-marble {
-  background-color: var(--marble-bg);
-  background-image: var(--marble-texture);
-  background-size: 700px auto;
+  background-color: #0a0e28;
+  background-image: linear-gradient(rgba(8, 14, 40, 0.45), rgba(6, 10, 32, 0.62)),
+    url("/pattern-triskele.jpg");
+  background-size: auto, 420px auto;
+  background-position: center;
+  --ink: #f3e9cf;
+  --ink-dim: #cfc3a2;
+  --gold: #e7c96a;
+  --outer-ink: #f3e9cf;
+  --outer-ink-dim: #cfc3a2;
+  --outer-gold: #e7c96a;
+}
+
+/* พื้นผิวอ่าน (การ์ด/แผง/ฟอร์ม) — กลับเป็นชุดสีหินอ่อนเดิม และบังคับพื้นทึบครีม
+   [class*=] จับชื่อคลาสของ CSS module ที่ถูก hash ด้วย (เช่น profile_panel__ab12) */
+.tone-marble .gold-frame-inner,
+.tone-marble [class*="_panel"],
+.tone-marble [class*="_card"],
+.tone-marble [class*="_result"],
+.tone-marble [class*="_form"],
+.tone-marble [class*="_box"],
+.tone-marble [class*="_bubble"],
+.tone-marble section,
+.tone-marble article,
+.tone-marble form {
+  --ink: #2b2620;
+  --ink-dim: #6b6255;
+  --gold: #b8860b;
+  /* ตัวแปรชุดโทนมืด (--text/--surface จาก :root) รั่วเข้าการ์ดครีม — ต้องรีเซ็ตด้วย
+     (เจอจริง: ปุ่ม login ใช้ var(--text,...) ได้ครีมบนพื้นขาว 10 ส.ค. 2569) */
+  --text: #2b2620;
+  --text-dim: #6b6255;
+  --surface: #fffdf8;
+  color: #2b2620; /* กันสีครีมของระดับหน้า inherit เข้าการ์ด */
+}
+.tone-marble article {
+  background-color: var(--card-bg, #fffdf8);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+.tone-marble section,
+.tone-marble [class*="_panel"],
+.tone-marble [class*="_card"],
+.tone-marble [class*="_result"] {
+  background-color: var(--card-bg, #fffdf8);
 }
 
 /* พื้นน้ำเงิน-ทองลาย triskele (อัตลักษณ์บริษัท INOWOK — ผู้ใช้เลือกทาง "ก" 10 ส.ค. 2569)

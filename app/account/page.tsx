@@ -166,7 +166,7 @@ export default function AccountPage() {
 
   const page: React.CSSProperties = {
     minHeight: "100vh",
-    background: "var(--bg)",
+    
     color: "var(--text, var(--ink))",
     maxWidth: 560,
     margin: "0 auto",

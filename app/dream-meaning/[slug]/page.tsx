@@ -93,7 +93,7 @@ export default async function DreamMeaningPage({ params }: { params: Promise<{ s
   };
 
   return (
-    <main className="tone-marble" style={{ minHeight: "100vh", background: "var(--bg)", padding: "1.2rem 1rem 4rem" }}>
+    <main className="tone-marble" style={{ minHeight: "100vh", padding: "1.2rem 1rem 4rem" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />
       <div style={{ maxWidth: 620, margin: "0 auto" }}>
         <header style={{ textAlign: "center", marginBottom: "1rem" }}>

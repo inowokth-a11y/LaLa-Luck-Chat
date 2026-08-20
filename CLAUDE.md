@@ -1330,6 +1330,25 @@ npx tsc --noEmit && npm test && npm run build   # ควรได้ 413/413
    ข้อความ wuXingScore เพราะชุดนั้นเป็นมุม "เรา↔สิ่งของ" ("บำรุงเรา") ผิดบริบทหน้านี้ (เทสต์ล็อกว่า
    ห้ามมีคำว่า "เรา")
 
+**✅ ธีม triskele ขยายเป็น "ทุกโหมด" (10 ส.ค. 2569 — ผู้ใช้เคาะหลังเห็น 4 หน้าแรก):**
+- **กลไกกลางจุดเดียว**: `.tone-marble.tone-marble` (globals.css) ทาพื้นลายทุกหน้า marble +
+  ตั้งตัวแปรระดับหน้าเป็นชุด "นอกการ์ด" (ครีม/ทองสว่าง) แล้ว **surface reset** คืนชุดหินอ่อน
+  ให้พื้นผิวอ่าน: `.gold-frame-inner / [class*="_panel|_card|_result|_form|_box|_bubble"] /
+  section / article / form` — attribute selector จับชื่อ CSS module ที่ถูก hash ได้
+- **3 กับดัก CSS ที่เจอจริง (สำคัญมาก — จะเจออีกถ้าแตะธีม):**
+  1. หน้าที่ทาพื้น inline `background: "var(--bg)"` ทับคลาสกลาง → ลบออก 8 ไฟล์ (dream-meaning
+     ×2, lucky-number, label, timing, logo, ai, onboarding) · /admin จงใจคงเดิม (แดชบอร์ดภายใน)
+  2. **var ซ้อน var ถูก substitute ณ จุดประกาศ ไม่ใช่จุดใช้**: `--text: var(--ink)` บน main
+     (--ink=ครีม) → ลูกได้ --text ครีมสำเร็จรูป แม้ reset --ink ในการ์ดแล้ว → ต้อง reset
+     --text/--text-dim/--surface เป็นค่าตายตัวใน surface ด้วย
+  3. `color` property ที่ inherit จาก main (ครีม) ไหลเข้าการ์ด → surface ต้องเซ็ต `color` ตรงๆ
+     ไม่ใช่แค่ตัวแปร
+- จุดแก้รายหน้า: /timing (ฟอร์ม+การ์ดวันเป็นครีมทึบ สีในฟอร์มตายตัว) · /chat แก้คำ "engine"
+  หลุดใน UI → "การคำนวณจริงของระบบ" (กฎห้ามศัพท์ภายใน)
+- /compatibility การ์ดเป็นน้ำเงินเข้มตัวครีม (module ไม่ match surface list) — **คงไว้โดยเจตนา**
+  อ่านชัดและเข้าธีม · ตรวจ browser จริง 10 หน้า · บทเรียนย้ำ: **screenshot ตามหลัง DOM —
+  เชื่อ getComputedStyle ก่อนเสมอ**
+
 **✅ ธีมน้ำเงิน-ทองลาย triskele (INOWOK) — ผู้ใช้เลือกทาง "ก" (10 ส.ค. 2569):**
 - **`.bg-triskele`** (globals.css) = พื้นน้ำเงินเข้ม #0a0e28 + ลาย `public/pattern-triskele.jpg`
   (เจนเองด้วย FLUX ~฿0.2 — ไม่ติดลิขสิทธิ์ภาพอ้างอิง INOWOK, 91KB) + ชั้นทึบ 45-62% กดลายให้จาง

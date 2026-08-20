@@ -12,7 +12,7 @@ import { provincesByRegion } from "@/lib/provinces";
 // useSearchParams ต้องอยู่ใน Suspense (Next.js App Router) — ห่อไว้ที่ default export
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={<main className="tone-marble" style={{ minHeight: "100vh", background: "var(--bg)" }} />}>
+    <Suspense fallback={<main className="tone-marble" style={{ minHeight: "100vh" }} />}>
       <OnboardingForm />
     </Suspense>
   );
@@ -98,7 +98,7 @@ function OnboardingForm() {
 
   const wrap: React.CSSProperties = {
     minHeight: "100vh",
-    background: "var(--bg)",
+    
     color: "var(--text, var(--ink))",
     display: "flex",
     flexDirection: "column",
