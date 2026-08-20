@@ -12,8 +12,9 @@
 /* ค่าเริ่มต้น = โทนมืด (color-scheme dark) */
 :root,
 .tone-night {
-  --bg: #0a0714;
-  --bg2: #14101c;
+  /* น้ำเงินเข้มชุดเดียวกับพื้นลาย triskele (เดิม #0a0714/#14101c ม่วงเข้ม — เปลี่ยนตามทาง "ก") */
+  --bg: #080d24;
+  --bg2: #101733;
   --gold: #f2e6c8;
   --gold-dim: #a89870;
   --ink: #ece6da;
@@ -81,6 +82,21 @@
   background-color: var(--marble-bg);
   background-image: var(--marble-texture);
   background-size: 700px auto;
+}
+
+/* พื้นน้ำเงิน-ทองลาย triskele (อัตลักษณ์บริษัท INOWOK — ผู้ใช้เลือกทาง "ก" 10 ส.ค. 2569)
+   ใช้เฉพาะหน้าที่เนื้อหาหลักอยู่ในการ์ด (gold-frame): / /consent /welcome /login
+   🔴 ห้ามใช้กับหน้าอ่านยาว (SEO/ผลดวง) — ตัวหนังสือบนพื้นเข้มล้าตา (มติเดิม §2 ยังอยู่)
+   ตัวหนังสือ "นอกการ์ด" ต้องใช้ --outer-ink/--outer-gold (ตัวแปร --ink ของ marble มีไว้ในการ์ด) */
+.bg-triskele.bg-triskele {
+  background-color: #0a0e28;
+  background-image: linear-gradient(rgba(8, 14, 40, 0.45), rgba(6, 10, 32, 0.62)),
+    url("/pattern-triskele.jpg");
+  background-size: auto, 420px auto;
+  background-position: center;
+  --outer-ink: #f3e9cf;
+  --outer-ink-dim: #cfc3a2;
+  --outer-gold: #e7c96a;
 }
 
 /* กรอบทองแบบภาพอ้างอิง — ห่อสองชั้น: <div class="gold-frame"><div class="gold-frame-inner"> */

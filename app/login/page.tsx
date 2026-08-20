@@ -102,7 +102,6 @@ export default function LoginPage() {
 
   const box: React.CSSProperties = {
     minHeight: "100vh",
-    background: "var(--bg)",
     color: "var(--text, var(--ink))",
     display: "flex",
     flexDirection: "column",
@@ -125,11 +124,14 @@ export default function LoginPage() {
   };
 
   if (!ready) {
-    return <main className="tone-marble" style={box}><p style={{ opacity: 0.7 }}>กำลังโหลด…</p></main>;
+    return <main className="tone-marble bg-triskele" style={box}><p style={{ opacity: 0.7, color: "var(--outer-ink, var(--ink))" }}>กำลังโหลด…</p></main>;
   }
 
   return (
-    <main className="tone-marble" style={box}>
+    <main className="tone-marble bg-triskele" style={box}>
+      {/* การ์ดทองห่อเนื้อหา — พื้นหลังเป็นลายน้ำเงิน (ทาง "ก" 10 ส.ค. 2569) */}
+      <div className="gold-frame" style={{ width: "100%", maxWidth: 400 }}>
+        <div className="gold-frame-inner" style={{ padding: "1.6rem 1.2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.9rem" }}>
       <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--gold)" }}>
         {user && !isGuest ? "บัญชีของคุณ" : isGuest ? "ผูกบัญชีถาวร" : "เข้าสู่ระบบ LaLa Lucky Chat"}
       </h1>
@@ -192,6 +194,8 @@ export default function LoginPage() {
       <p style={{ fontSize: "0.72rem", opacity: 0.6, maxWidth: 340, textAlign: "center", marginTop: "0.5rem" }}>
         ช่วงทดลอง — โปรไฟล์/ดวงยังใช้งานได้โดยไม่ต้องเข้าสู่ระบบ การเข้าสู่ระบบไว้บันทึกผลและเติมเครดิตในอนาคต
       </p>
+        </div>
+      </div>
     </main>
   );
 }

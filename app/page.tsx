@@ -92,7 +92,7 @@ export default function Home() {
 
   return (
     <main
-      className="tone-marble"
+      className="tone-marble bg-triskele"
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -175,7 +175,7 @@ export default function Home() {
           maxWidth: "360px",
         }}
       >
-        <p style={{ fontFamily: "var(--font-sans-thai)", fontSize: "0.8rem", color: "var(--ink-dim)", margin: "0.2rem 0" }}>
+        <p style={{ fontFamily: "var(--font-sans-thai)", fontSize: "0.8rem", color: "var(--outer-ink-dim, var(--ink-dim))", margin: "0.2rem 0" }}>
           หรือสำรวจเครื่องมืออื่นของแม่หมอ
         </p>
         {TOOLS.map((t) => (
@@ -204,13 +204,13 @@ export default function Home() {
       <p style={{ fontFamily: "var(--font-sans-thai)", fontSize: "0.8rem", marginTop: "0.5rem" }}>
         {loggedIn === false && (
           <>
-            <Link href="/login" style={{ color: "var(--gold)", textDecoration: "underline" }}>
+            <Link href="/login" style={{ color: "var(--outer-gold, var(--gold))", textDecoration: "underline" }}>
               เข้าสู่ระบบ / สมัครสมาชิก
             </Link>
             {" · "}
           </>
         )}
-        <Link href="/privacy" style={{ color: "var(--ink-dim)", textDecoration: "underline" }}>
+        <Link href="/privacy" style={{ color: "var(--outer-ink-dim, var(--ink-dim))", textDecoration: "underline" }}>
           นโยบายความเป็นส่วนตัว
         </Link>
       </p>

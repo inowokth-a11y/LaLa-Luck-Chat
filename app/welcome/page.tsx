@@ -84,7 +84,7 @@ export default function WelcomePage() {
 
   return (
     <main
-      className="tone-marble"
+      className="tone-marble bg-triskele"
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -97,11 +97,16 @@ export default function WelcomePage() {
         padding: "2rem 1rem",
       }}
     >
-      <MascotLogo size={190} />
-      <p style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.25rem", color: "var(--gold)" }}>{line}</p>
-      <p className="welcome-dots" style={{ fontFamily: "var(--font-mono), monospace", fontSize: "1.4rem", color: "var(--gold)", letterSpacing: "0.4em" }}>
-        ✦ ✦ ✦
-      </p>
+      {/* ห่อการ์ดทอง — เนื้อหาต้องอยู่บนพื้นครีมเมื่อพื้นหลังเป็นลายน้ำเงิน (ทาง "ก" 10 ส.ค. 2569) */}
+      <div className="gold-frame" style={{ width: "100%", maxWidth: 380 }}>
+        <div className="gold-frame-inner" style={{ padding: "1.8rem 1.2rem", textAlign: "center" }}>
+          <MascotLogo size={170} />
+          <p style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.25rem", color: "var(--gold)" }}>{line}</p>
+          <p className="welcome-dots" style={{ fontFamily: "var(--font-mono), monospace", fontSize: "1.4rem", color: "var(--gold)", letterSpacing: "0.4em" }}>
+            ✦ ✦ ✦
+          </p>
+        </div>
+      </div>
       <style>{`
         .welcome-dots { animation: welcome-pulse 1.2s ease-in-out infinite; }
         @keyframes welcome-pulse { 0%,100% { opacity: .25 } 50% { opacity: 1 } }

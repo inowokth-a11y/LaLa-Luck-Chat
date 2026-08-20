@@ -72,7 +72,7 @@ export default function ConsentPage() {
 
   return (
     <main
-      className="tone-marble"
+      className="tone-marble bg-triskele"
       style={{
         minHeight: "100vh",
         display: "flex",
