@@ -20,6 +20,8 @@ export const FAL_MODELS = {
   logoVector: "fal-ai/recraft/v3/text-to-image",
   /** พื้นหลัง/ลวดลายฉลาก — Recraft V3 (คมกว่า ไม่ค่อยใส่ตัวอักษรมั่ว) · ~฿1.44-2.88 */
   labelArtwork: "fal-ai/recraft/v3/text-to-image",
+  /** face-card: ภาพผู้ใช้ในบทบาทการ์ด — FLUX PuLID (A/B ผ่าน 15 ส.ค. 2569: 7-9 วิ หน้าเหมือน+ฉากตรง) */
+  faceCard: "fal-ai/flux-pulid",
 } as const;
 
 export type LabelOrientation = "landscape" | "portrait" | "square";
@@ -80,6 +82,20 @@ export function falLogoVector(prompt: string): Promise<FalImageResult> {
     prompt,
     style: "vector_illustration",
     image_size: "square_hd",
+  });
+}
+
+/**
+ * face-card (FLUX PuLID) — รูปหน้าอ้างอิงส่งเป็น data URI **ไม่อัปโหลดขึ้นที่ไหนก่อน**
+ * (นโยบาย consent ชีวมิติ: รูปต้นฉบับประมวลผลชั่วขณะ ไม่จัดเก็บ)
+ */
+export function falFaceCard(prompt: string, faceDataUri: string): Promise<FalImageResult> {
+  return falGenerate(FAL_MODELS.faceCard, {
+    prompt,
+    reference_image_url: faceDataUri,
+    image_size: "portrait_4_3",
+    num_images: 1,
+    negative_prompt: "text, letters, numbers, watermark, frame, deformed face, extra fingers",
   });
 }
 

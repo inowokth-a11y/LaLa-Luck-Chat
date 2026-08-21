@@ -7,6 +7,9 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/card/[id]/opengraph-image": ["./assets/**"],
     "/opengraph-image": ["./assets/**"],
+    // face-card: OG หน้าแชร์ส่วนบุคคล + สตอรี่ IG — ใช้ฟอนต์ไทยไฟล์เดียวกัน
+    "/s/[token]/opengraph-image": ["./assets/**"],
+    "/s/[token]/story": ["./assets/**"],
   },
   images: {
     // รูปการ์ด 100 ใบเสิร์ฟจาก Supabase Storage (bucket `cards`, public)

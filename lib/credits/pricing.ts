@@ -63,6 +63,8 @@ export const ACTION_RATES: ActionRate[] = [
     note: "ต้นทุนเดียวกับโลโก้เวกเตอร์ (Recraft V3) จึงเรทเท่ากัน" },
   { key: "vision_motif", label: "อ่านลวดลาย/รูปทรงจากภาพ (AI vision)", costThb: 0.08, credits: 10, category: "logo",
     note: "Haiku 4.5 วัดจริง 30 ก.ค. 2569: ฿0.051 (in 1,084/out 69, ภาพ ~370px) → ตั้ง 0.08 เผื่อภาพเต็ม 768px · แคช hash = ซ้ำฟรี" },
+  { key: "face_card", label: "ภาพฉันในบทบาทการ์ด (FLUX PuLID)", costThb: 1.55, credits: 40, category: "logo",
+    note: "ฟรี 1 ครั้ง/บัญชีถาวร · เจนซ้ำ 40 เครดิต (ผู้ใช้เคาะ) · ⚠️ costThb ประมาณจากเรท fal ~$0.04/ภาพ + vision ตรวจหน้า ฿0.08 — ยังไม่ verify ราคา fal จริง วัดจาก dashboard fal หลังยิงจริง" },
 ];
 
 export interface CreditPackage {

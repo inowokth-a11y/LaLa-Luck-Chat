@@ -1283,7 +1283,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ### คำสั่งเปิดงาน (คัดลอกไปวางในเซสชันใหม่ได้เลย — อัปเดต 10 ส.ค. 2569)
 
 ```
-อ่าน CLAUDE.md §15 บล็อก "✅ โหมดความรักและเนื้อคู่ v1" + คิวเปิดงาน 10 ส.ค. 2569 แล้วรัน health check (tsc + test + build ควรได้ 472) · รายงานสถานะ · แล้วทำต่อข้อ 2 (face-card เฟส 1 ที่เหลือ)
+อ่าน CLAUDE.md §15 บล็อก "✅ face-card เฟส 1" + "✅ โหมดความรักและเนื้อคู่ v1" + คิวเปิดงาน 10 ส.ค. 2569 แล้วรัน health check (tsc + test + build ควรได้ 477) · รายงานสถานะ · แล้วทำต่อข้อ 3 (เอกสารทางเลือกตาราง 9 กลุ่มอักษร→ธาตุ) หรือทวงงานฝั่งผู้ใช้ข้อ 4
 ```
 
 ### ✅ โหมดความรักและเนื้อคู่ v1 — เสร็จ 21 ส.ค. 2569 (คิวข้อ 1 · ผู้ใช้เคาะ 3 เรื่องในเซสชัน)
@@ -1324,6 +1324,48 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 - ⬜ ค้าง: 5 หัวข้อรอเจ้าของตำรา (เอกสารชุดที่ 3 รอผู้ใช้ส่ง) · ราคา "ฟรีครั้งแรก" ใช้ bucket ถาวร
   ต่อบัญชี (ไม่รีเซ็ต) · ภาพยังไม่เก็บลง Storage (URL fal ชั่วคราว — แบบเดียวกับโลโก้ช่วงแรก)
 
+### ✅ face-card เฟส 1 — เสร็จ 21 ส.ค. 2569 (คิวข้อ 2 · ครบทุกชิ้นที่เหลือ)
+
+**ที่ทำ (ต่อยอด commit 2eadbcc ที่มี prompt/ฉาก 100 ใบ + A/B flux-pulid ไว้แล้ว):**
+- **migration 041 (รัน prod แล้ว)**: `face_card_gen_e` (auth_uid FK cascade · image_path ·
+  share_token unique · consent_version) · RLS own-read เท่านั้น เขียนผ่าน service role ·
+  **bucket `face_cards` private สร้างแล้วจริง** (ไม่มี storage policy = service role เท่านั้น
+  ภาพเสิร์ฟผ่าน signed URL) — verify anon: select 0 · insert 42501 · storage list ว่าง
+- `lib/face-card/store.ts` (token 22 ตัว base64url + validator + upload/signed/read/delete) ·
+  `lib/face-card/consent.ts` (**FACE_CONSENT_VERSION 2026-08-21.1** — consent ชีวมิติแยกจุด
+  ติ๊กก่อนอัปโหลดทุกครั้ง) · **ร่างเอกสาร consent ให้รีวิว:
+  `docs/ร่างconsentชีวมิติ_face-card_ส.ค.2569.md`** ⚠️ รอผู้รู้กฎหมายตรวจ (จุดเน้น: fal.ai
+  ต่างประเทศ ม.28-29 · ผู้เยาว์ ม.20 · ควรเพิ่มเข้า /privacy เมื่อเปิดเชิงพาณิชย์)
+- `app/api/face-card/route.ts`: consent → ตรวจไฟล์ (magic bytes ≤2MB) → ล็อกอิน+บัญชีถาวร →
+  **ฟรี 1 ครั้ง/บัญชี (นับแถวจริง ถาวร) → 40 เครดิต** → ตรวจหน้า (Claude vision — infra พังไม่บล็อก)
+  → `falFaceCard()` (fal-ai/flux-pulid, รูปหน้าเป็น data URI ชั่วขณะ **ไม่จัดเก็บ ไม่ผ่าน storage**)
+  → เก็บผลงาน bucket private → หักหลังสำเร็จ · log เก็บแค่ hash ย่อ ไม่มีชีวมิติ
+- **UI ใต้การ์ด /profile**: `FaceCardStudio.tsx` — อัปโหลด+ย่อ ≤1024px ฝั่ง client (ล้าง EXIF ฟรี)
+  + ช่องติ๊ก consent + <details> รายละเอียด + ผลงาน + ปุ่มคัดลอกลิงก์/แชร์/ดาวน์โหลดสตอรี่ + เจนซ้ำ
+- **หน้าแชร์ `/s/<token>`**: แสดงจริงทุกคน (ต่างจาก /card ที่ redirect — ภาพผลงานเล่าไม่จบใน OG)
+  เนื้อหา: ภาพ + ข้อมูลการ์ดสาธารณะ + CTA — ไม่มีข้อมูลส่วนตัวเจ้าของ · noindex + robots.ts
+  disallow /s/ (social crawlers allow) · token ปลอม/ถูกลบ = 404 ทุกเส้นรวม OG
+- **OG เลย์เอาต์ใหม่ตามสเปก**: ซ้าย 3 บรรทัด (เลข+ชื่อ / ต้นแบบ / CTA) ขวาหน้าเต็มครึ่งกรอบ ·
+  ชื่อการ์ดยาว → ตัดวงเล็บอังกฤษ+ลดฟอนต์ (เจอจริง: ชื่อเต็มดัน CTA ล้นกรอบ) · revalidate 86400 ·
+  **สตอรี่ IG 1080×1920** ที่ `/s/<token>/story` (Content-Disposition attachment) ·
+  next.config เพิ่ม outputFileTracingIncludes ทั้งสอง route (บทเรียนฟอนต์หาย 3 ส.ค.)
+- **ลบบัญชี = ลบภาพจริง**: /api/account/delete เรียก `deleteFaceCardImages()` ก่อน deleteUser
+  (ไฟล์ Storage ไม่ผูก FK — cascade ลบแค่แถว) — verify กับไฟล์จริง 2 ไฟล์ → 0 + แชร์ 404
+- pricing: `face_card` 40cr · costThb 1.55 (6.5×) ⚠️ **ประมาณการ — ยังไม่ verify ราคา fal จริง
+  ของ flux-pulid ต้องดูจาก dashboard fal** (ถ้าแพงกว่า ~฿1.69 จะหลุดกฎ 500% ต้องขยับเครดิต)
+- **verify E2E จริงทั้งเส้น (test user + PuLID จริง 2 ครั้ง + cleanup):** ไม่ติ๊ก consent 400 ·
+  เจนแรกฟรี 14.3 วิ ได้ภาพไมดาสสไตล์คิวบิสม์ทอง **หน้าตรงกับรูปอ้างอิงจริง** (ตรวจด้วยตา) ·
+  ครั้ง 2 → 429 · grant 60 → หัก 40 เหลือ 20 ledger ตรง · /s + story + OG 200 ครบ · browser:
+  กล่องขึ้นใต้การ์ด + CTA ล็อกอิน (anon)
+- 🐛 **บทเรียนใหม่ 2 เรื่อง:** (1) **fal คืนไฟล์ PNG ทั้งที่ header บอก jpeg** → data URI ผิด mime
+  ทำ satori พัง "Offset is outside the bounds of the DataView" ตอนวาด OG/สตอรี่ — แก้ด้วย sniff
+  magic bytes เสมอ (`imageBufferToDataUri` ใน app/s/[token]/shared.ts) **ห้ามเชื่อ content-type
+  ของ fal** (2) prompt ตรวจหน้าห้ามใช้คำ "คนจริง" — Haiku ตีความตรงตัวแล้วตอบ false กับภาพที่ดู
+  เป็นภาพวาด/AI (เจอจริงตอน E2E)
+- ⬜ ค้าง: ราคา fal จริงของ flux-pulid (ดู dashboard) · เพิ่มข้อความชีวมิติเข้า /privacy + ขยับ
+  PDPA_VERSION เมื่อเปิดเชิงพาณิชย์ (ตอนนี้ consent แยกจุดครอบอยู่) · ปุ่มแชร์บน /s เอง (ตอนนี้
+  แชร์จาก /profile) · รางวัลแชร์ face-card (ยังใช้รางวัลเดิมของ ShareCard ได้)
+
 ### 🎯 คิวเปิดงาน 10 ส.ค. 2569 (เรียงตามที่ตกลงกับผู้ใช้ — บล็อกนี้คือจุดต่อไม้ล่าสุด)
 
 1. ~~**โหมดความรักและเนื้อคู่**~~ — ✅ **v1 เสร็จ 21 ส.ค. 2569** (ดูบล็อก ✅ ด้านบน) ·
@@ -1337,7 +1379,8 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
    - ไม่มีเวลาเกิด → fallback ชั้นธาตุ (myMatchProfile เดิม) พร้อมบอกตรง · ภาพต้องมีป้าย
      "ภาพจินตนาการจาก AI ไม่ใช่บุคคลจริง" + สุภาพ + ผู้ใหญ่เท่านั้น
    - ⏳ ราคารอผู้ใช้เคาะ: เสนอคำทำนาย 20 เครดิต (หรือฟรีครั้งแรก) · ชุดภาพ 3 รูป 30 เครดิต
-2. **face-card เฟส 1 ที่เหลือ** (ภาพ OG หน้าผู้ใช้): เคาะแล้ว — flux-pulid + สไตล์คิวบิสม์ + ฟรี 1/บัญชีถาวร
+2. ~~**face-card เฟส 1 ที่เหลือ**~~ — ✅ **เสร็จ 21 ส.ค. 2569** (ดูบล็อก ✅ ด้านบน) · งานเดิม:
+   เคาะแล้ว — flux-pulid + สไตล์คิวบิสม์ + ฟรี 1/บัญชีถาวร
    + เจนซ้ำ 40 เครดิต + เก็บถาวร · เหลือ: migration `face_card_gen_e` + bucket private + API อัปโหลด/
    ตรวจหน้า/เจน + **ร่าง consent ชีวมิติให้ผู้ใช้รีวิว** + UI ใต้การ์ด + `/s/<token>` + OG เลย์เอาต์ใหม่
    (ซ้าย 3 บรรทัด ขวาหน้าเต็มครึ่งกรอบ) + สตอรี่ IG 1080×1920 — ดูบล็อก "เฟส 1 ภาพ OG เฉพาะบุคคล"
@@ -1352,7 +1395,7 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 472/472 (21 ส.ค. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 477/477 (21 ส.ค. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 

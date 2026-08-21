@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase/client";
 import styles from "./profile.module.css";
 import FunctionChat from "../_components/FunctionChat";
 import ShareCard from "../_components/ShareCard";
+import FaceCardStudio from "../_components/FaceCardStudio";
 import { useStoredProfile } from "../_components/useStoredProfile";
 
 interface CardRow {
@@ -249,6 +250,8 @@ export default function ProfilePage() {
     
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
       {card && cardId && <ShareCard cardId={cardId} cardName={card.energy_name} figure={card.archetype_figure} />}
+      {/* face-card เฟส 1: ภาพผู้ใช้ในบทบาทการ์ด (ฟรี 1 ครั้ง/บัญชีถาวร · เจนซ้ำ 40 เครดิต) */}
+      {card && cardId && <FaceCardStudio cardId={cardId} cardName={card.energy_name} />}
       {/* guest ได้คำทำนายแล้ว → ชวนผูกบัญชีรับสิทธิ์ฟรีเพิ่ม (ผู้ใช้สั่ง 10 ส.ค. 2569:
           "ทำนายฟรีก่อน แล้วค่อยล็อกอินเพื่อรับสิทธิ์เพิ่ม") — linkIdentity เก็บข้อมูลเดิมไว้ครบ */}
       {card && isGuest && (
