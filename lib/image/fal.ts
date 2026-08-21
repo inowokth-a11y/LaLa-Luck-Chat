@@ -55,6 +55,25 @@ export function falLogoPreview(prompt: string): Promise<FalImageResult> {
   return falGenerate(FAL_MODELS.logoPreview, { prompt, image_size: "square_hd", num_images: 1 });
 }
 
+/** ภาพเนื้อคู่ (FLUX schnell) — หลายรูปในคำขอเดียว คืนทุกรูป (ต่างจาก falGenerate ที่คืนรูปแรก) */
+export async function falSoulmateImages(prompt: string, count = 3): Promise<FalImageResult[]> {
+  const key = process.env.FAL_KEY;
+  if (!key) throw new Error("ยังไม่ได้ตั้ง FAL_KEY ใน env");
+  const res = await fetch(`https://fal.run/${FAL_MODELS.logoPreview}`, {
+    method: "POST",
+    headers: { Authorization: `Key ${key}`, "content-type": "application/json" },
+    body: JSON.stringify({ prompt, image_size: "portrait_4_3", num_images: count }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`fal ${res.status}: ${detail.slice(0, 300)}`);
+  }
+  const data = (await res.json()) as { images?: { url?: string; content_type?: string; width?: number; height?: number }[] };
+  const imgs = (data.images ?? []).filter((i): i is { url: string; content_type?: string; width?: number; height?: number } => Boolean(i?.url));
+  if (!imgs.length) throw new Error("fal ไม่ได้คืน URL ภาพ");
+  return imgs.map((i) => ({ url: i.url, contentType: i.content_type ?? "image/png", width: i.width, height: i.height }));
+}
+
 /** โลโก้เวกเตอร์ (Recraft V3, สไตล์เวกเตอร์) — ใช้เชิงพาณิชย์ได้ */
 export function falLogoVector(prompt: string): Promise<FalImageResult> {
   return falGenerate(FAL_MODELS.logoVector, {

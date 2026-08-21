@@ -4,7 +4,7 @@
 // (summary ≤ MEMORY_SUMMARY_MAX + เหตุการณ์ล่าสุด ≤ RECENT_EVENTS × EVENT_LINE_MAX)
 // ไม่ว่าผู้ใช้จะคุยมานานแค่ไหน — ประวัติดิบโตได้เรื่อยๆ แต่ prompt ไม่โต
 
-export type HistoryKind = "chat" | "dream" | "oracle";
+export type HistoryKind = "chat" | "dream" | "oracle" | "soulmate";
 
 export interface HistoryContent {
   /** คำถาม/ความฝันของผู้ใช้ (ตัดสั้นแล้ว) */
@@ -34,7 +34,7 @@ export function truncate(s: string, max: number): string {
 
 /** แปลงเหตุการณ์เป็นบรรทัดเดียวแบบกระชับ (ใช้ทั้งใน prompt และให้ตัวสรุปอ่าน) */
 export function compactEvent(kind: HistoryKind, content: HistoryContent, when?: string): string {
-  const label = kind === "dream" ? "ฝัน" : kind === "oracle" ? "เสี่ยงทาย" : "ถาม";
+  const label = kind === "dream" ? "ฝัน" : kind === "oracle" ? "เสี่ยงทาย" : kind === "soulmate" ? "ดูเนื้อคู่" : "ถาม";
   const parts = [
     content.tag ? `[${content.tag}]` : null,
     content.q ? `${label}: ${content.q}` : label,

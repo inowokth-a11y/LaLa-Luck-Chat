@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/ai", priority: 0.7 }, // SEO เฟส 1: คลัสเตอร์ "ดูดวง ai"
     { path: "/fortune", priority: 0.9 },
     { path: "/dream", priority: 0.9 },
+    { path: "/soulmate", priority: 0.8 }, // โหมดเนื้อคู่ (Logic 17 v1 — 21 ส.ค. 2569)
     { path: "/dream-meaning", priority: 0.95 }, // SEO เฟส 2: hub "ทำนายฝัน" (274k/เดือน KD 23)
     { path: "/oracle", priority: 0.8 },
     { path: "/chat", priority: 0.8 },

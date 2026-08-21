@@ -45,6 +45,12 @@ export const ACTION_RATES: ActionRate[] = [
   // ---- Oracle: หมวดแยก ----
   { key: "oracle", label: "เสี่ยงทายวงแหวนคู่", costThb: 0.76, credits: 20, category: "oracle" },
 
+  // ---- เนื้อคู่ (Logic 17 v1 — ผู้ใช้เคาะราคา 21 ส.ค. 2569: ฟรีครั้งแรก แล้ว 20 เครดิต) ----
+  { key: "soulmate", label: "คำทำนายเนื้อคู่", costThb: 0.5, credits: 20, category: "chat",
+    note: "engine ฿0 (ลัคนา→ราศีที่ 7 + ข.2) + narrator ~฿0.3-0.5 · ฟรีครั้งแรกผ่าน bucket logic:17" },
+  { key: "soulmate_images", label: "ชุดภาพเนื้อคู่ 3 รูป (FLUX)", costThb: 0.66, credits: 30, category: "logo",
+    note: "FLUX schnell ฿0.22×3 · ภาพจินตนาการจาก AI มีป้ายกำกับบังคับ ไม่ใช่บุคคลจริง" },
+
   // ---- ฝัน ----
   { key: "dream", label: "ทำนายฝัน", costThb: 0.69, credits: 20, category: "dream",
     note: "คิดตามต้นทุนแคช · AI-1 ที่ปลุกครั้งแรกถือเป็นต้นทุนสร้างคลัง (แคชถาวร)" },

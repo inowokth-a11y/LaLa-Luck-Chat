@@ -8,14 +8,16 @@
 /** จำนวนครั้งทดลองฟรีต่อ 1 พิธี ต่อบัญชี — ผู้ใช้ตัดสิน 6 ส.ค. 2569: ฝัน 1 ครั้ง (เดิม 2 —
  *  ต้นทุนสูงสุดของระบบ ปลุก AI-1 ได้ ฿7.46) · เสี่ยงทาย/อื่นๆ คง 2 */
 export const FREE_QUESTIONS_PER_LOGIC = 2;
-const FREE_OVERRIDES: Record<number, number> = { 4: 1 };
+// 4: ฝันฟรี 1 ครั้ง (ต้นทุน AI-1 สูงสุด — ผู้ใช้ตัดสิน 6 ส.ค. 2569)
+// 17: เนื้อคู่ฟรี 1 ครั้ง แล้วครั้งต่อไป 20 เครดิต (ผู้ใช้ตัดสิน 21 ส.ค. 2569)
+const FREE_OVERRIDES: Record<number, number> = { 4: 1, 17: 1 };
 
 export function freeLimitForLogic(logicId: number): number {
   return FREE_OVERRIDES[logicId] ?? FREE_QUESTIONS_PER_LOGIC;
 }
 
 /** Logic ที่เปิดให้ถามได้ — ต้องตรงกับหน้าที่มีจริง */
-export const CHAT_ENABLED_LOGICS: readonly number[] = [1, 4, 7, 8, 16, 20, 21];
+export const CHAT_ENABLED_LOGICS: readonly number[] = [1, 4, 7, 8, 16, 17, 20, 21];
 
 export const CHAT_LOGIC_NAMES: Record<number, string> = {
   1: "โปรไฟล์พลังงาน",
@@ -23,6 +25,7 @@ export const CHAT_LOGIC_NAMES: Record<number, string> = {
   7: "ฮวงจุ้ย",
   8: "ดวงของฉัน",
   16: "ดูแลสุขภาวะ",
+  17: "ความรักและเนื้อคู่",
   20: "ข่ายความสัมพันธ์",
   21: "เสี่ยงทาย",
 };

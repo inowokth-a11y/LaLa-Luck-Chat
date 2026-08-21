@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 
 export interface GenerationLogEntry {
   authUid: string;
-  kind: "logo_preview" | "logo_vector" | "label_artwork";
+  kind: "logo_preview" | "logo_vector" | "label_artwork" | "soulmate_image";
   imageUrl: string | null;
   stored: boolean;
   prompt?: string;
