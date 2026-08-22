@@ -5,6 +5,9 @@ import assert from "node:assert/strict";
 import {
   FREE_NETWORK_PARTS,
   MAX_NETWORK_PARTS,
+  personSeedFromBirthDate,
+  startDateOmen,
+  START_OMEN_CAVEAT,
   birthPowerNumber,
   parseRefInput,
   partAspects,
@@ -16,6 +19,7 @@ import {
 } from "../lib/engine/network-holistic";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../lib/engine/number-aspects";
 import { wuXingScore } from "../lib/engine/element";
+import { checkDayKalaYoke } from "../lib/engine/kalayoke";
 
 test("birthPowerNumber — BirthPower ล้วน ผ่าน reduceTo99 (นิยามเลขตัวตน §4 ข้อ 1)", () => {
   // 1986-10-07: digitSum(7)=7 + digitSum(10)=1 + digitSum(1986)=24 → 32
@@ -93,4 +97,58 @@ test("holisticAdvice — caveat บังคับครบ 2 ตัว + พิ
 test("ขีดจำกัดข่าย (ผู้ใช้เคาะ 22 ส.ค. 2569): ฟรี 2 · สูงสุด 10 · เรทเครดิตมีจริงใน pricing", () => {
   assert.equal(FREE_NETWORK_PARTS, 2);
   assert.equal(MAX_NETWORK_PARTS, 10);
+});
+
+test("personSeedFromBirthDate — ธาตุบุคคลจากสูตรคนตัวจริง · พ.ศ./ปีเสีย = null", () => {
+  const s = personSeedFromBirthDate("1986-10-07");
+  assert.ok(s);
+  assert.ok(["Fire", "Earth", "Wood", "Water"].includes(s!.dominant));
+  assert.equal(personSeedFromBirthDate("2530-01-01"), null); // พ.ศ. — ห้ามเงียบ
+  assert.equal(personSeedFromBirthDate("15/03/1990"), null); // รูปแบบผิด
+});
+
+test("startDateOmen — wiring ตรง checkDayKalaYoke + ขอบเขต จ.ศ. 16 เม.ย. + เฟรมนุ่มเมื่อร้าย", () => {
+  // เทียบกับ engine กาลโยคตรงๆ (wiring test — สูตร verify แล้วในเทสต์ของ kalayoke เอง)
+  const o = startDateOmen("2026-08-22");
+  assert.ok(o);
+  const expected = checkDayKalaYoke(o!.dayTh, o!.cs).kala_yoke_hits;
+  assert.deepEqual(
+    [...o!.good, ...o!.bad].sort(),
+    expected.map((h) => h.type).sort()
+  );
+  // ขอบเขตปี จ.ศ.: 15 เม.ย. ใช้ปีก่อน · 16 เม.ย. ใช้ปีใหม่ (ต่างกัน 1 เสมอ)
+  const before = startDateOmen("2026-04-15")!;
+  const after = startDateOmen("2026-04-16")!;
+  assert.equal(after.cs - before.cs, 1);
+  // เฟรมนุ่ม: โน้ตของวันร้ายต้องมีหลัก "ไม่ได้ร้ายทั้งวัน" — หาวันร้ายจริงในปีหนึ่งมาทดสอบ
+  let foundBad = false;
+  for (let d = 1; d <= 14 && !foundBad; d++) {
+    const om = startDateOmen(`2026-06-${String(d).padStart(2, "0")}`)!;
+    if (om.tone === "bad") {
+      foundBad = true;
+      assert.ok(om.note.includes("ไม่ได้ร้ายทั้งวัน"), "วันร้ายต้องเฟรมนุ่มตามหลักตำรา");
+    }
+  }
+  // ให้เวลา → ได้คำตัดสินรวมชั้นยาม (จากตัวรวมที่มีเทสต์แล้ว)
+  const withTime = startDateOmen("2026-08-22", "09:30")!;
+  assert.ok(typeof withTime.timeVerdict === "string" && withTime.timeVerdict!.length > 0);
+  assert.equal(startDateOmen("2026-08-22")!.timeVerdict, null);
+});
+
+test("holisticAdvice — omen ดีเข้าจุดแข็ง · ร้ายเข้าระวัง · มี omen = caveat กาลโยคติดมา", () => {
+  const asp = numberAspects("47");
+  const base: HolisticPart = { label: "บ้าน", icon: "🏠", aspects: asp, chemistry: null, element: null };
+  const goodOmen = { dateISO: "x", dayTh: "จันทร์", cs: 1388, good: ["ธงชัย"], bad: [], tone: "good" as const, note: "n", timeVerdict: null };
+  const badOmen = { dateISO: "x", dayTh: "อังคาร", cs: 1388, good: [], bad: ["อุบาทว์"], tone: "bad" as const, note: "วันร้ายไม่ได้ร้ายทั้งวัน", timeVerdict: null };
+  const parts: HolisticPart[] = [
+    { ...base, label: "รถ", omen: goodOmen },
+    { ...base, label: "บ้าน", omen: badOmen },
+  ];
+  const adv = holisticAdvice(parts, analyzeCoherence(parts), null);
+  assert.ok(adv.strengths.some((s) => s.includes("ธงชัย")), "omen ดีต้องเข้าจุดแข็ง");
+  assert.ok(adv.cautions.some((s) => s.includes("อุบาทว์")), "omen ร้ายต้องเข้าข้อควรระวัง");
+  assert.ok(adv.caveats.includes(START_OMEN_CAVEAT), "มี omen ต้องมี caveat กาลโยค");
+  // ไม่มี omen = ไม่แบก caveat กาลโยคเกินจำเป็น
+  const advNoOmen = holisticAdvice([base], analyzeCoherence([base]), null);
+  assert.ok(!advNoOmen.caveats.includes(START_OMEN_CAVEAT));
 });

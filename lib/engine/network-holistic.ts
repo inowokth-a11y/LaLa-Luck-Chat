@@ -18,9 +18,17 @@ import {
   type AspectKey,
   type NumberAspectsResult,
 } from "./number-aspects";
-import { digitSum, reduceTo99 } from "./card-id";
-import { THAI_LABEL_5, type Element5, type WuXingResult } from "./element";
+import { digitSum, reduceTo99, thaiDayOfWeek } from "./card-id";
+import {
+  calculateElementSeed,
+  THAI_LABEL_5,
+  type Element5,
+  type ElementSeedResult,
+  type WuXingResult,
+} from "./element";
 import { ELEMENT_TO_COLORS } from "./fengshui";
+import { checkDayKalaYoke, checkCombinedAuspiciousTime } from "./kalayoke";
+import { kalaYokeCsForDate, TIMING_CAVEAT } from "./timing";
 
 // ---------------------------------------------------------------------------
 // ขีดจำกัดข่าย (ผู้ใช้เคาะ 22 ส.ค. 2569): ฟรี 2 สิ่งรอบตัว · สูงสุด 10 · เกิน 2 = 20 เครดิต/ครั้ง
@@ -40,6 +48,95 @@ export function birthPowerNumber(birthDate: string): number {
   if (!m) throw new Error(`birthDate ต้องเป็นรูปแบบ YYYY-MM-DD (ได้รับ: ${birthDate})`);
   return reduceTo99(digitSum(Number(m[3])) + digitSum(Number(m[2])) + digitSum(Number(m[1])));
 }
+
+// ---------------------------------------------------------------------------
+// บุคคลในข่ายจากวันเกิด (ผู้ใช้เคาะ 22 ส.ค. 2569) — คนใช้สูตรคนตัวจริง ไม่ใช่เลข:
+// ธาตุจาก calculateElementSeed (DAY_ELEMENT verify แล้ว + ลี่ชุน) · คะแนน 5 ด้านจาก
+// "เลขตัวตน" ของเขา (BirthPower→00-99 — วิธีเดียวกับส่วนตนเองเป๊ะ ไม่มีสูตรใหม่)
+// ---------------------------------------------------------------------------
+
+const ZODIAC_ANIMALS = [
+  "ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง",
+  "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน",
+];
+const zodiacAnimalFromYear = (yearAd: number) => ZODIAC_ANIMALS[(((yearAd - 2020) % 12) + 12) % 12];
+
+/** ตรวจรูปแบบ+ช่วงปีของวันที่ (กัน พ.ศ./ปีเสีย — บทเรียน data-quality §5.1) */
+function parseISODate(dateISO: string): { y: number; m: number; d: number } | null {
+  const mt = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateISO);
+  if (!mt) return null;
+  const [y, m, d] = [Number(mt[1]), Number(mt[2]), Number(mt[3])];
+  const nowY = new Date().getUTCFullYear();
+  if (y < 1900 || y > nowY + 1 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  return { y, m, d };
+}
+
+/** ธาตุ+seed ของบุคคลจากวันเกิด — null เมื่อวันที่ไม่ถูกต้อง (พ.ศ./นอกช่วง) */
+export function personSeedFromBirthDate(birthDate: string): ElementSeedResult | null {
+  const p = parseISODate(birthDate);
+  if (!p || p.y > new Date().getUTCFullYear()) return null;
+  return calculateElementSeed({
+    day_of_week: thaiDayOfWeek(birthDate),
+    birth_month: p.m,
+    birth_year_ad: p.y,
+    birth_day: p.d,
+    zodiac_year_animal: zodiacAnimalFromYear(p.y),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// จังหวะเริ่มต้นของวัตถุ/สถานที่ (วันออกรถ/ขึ้นบ้าน/เปิดกิจการ) — กาลโยคย้อนหลัง
+// สูตรจริงทั้งหมด: checkDayKalaYoke (verify กับวิกิพีเดีย) + ขอบเขตปี จ.ศ. 16 เม.ย. ·
+// ให้เวลา = เพิ่มชั้นยาม (checkCombinedAuspiciousTime — ตัวรวมที่มีเทสต์แล้ว)
+// 🔴 ผลร้ายย้อนหลังต้องเฟรมนุ่ม + จบด้วยทางแก้เสมอ (หลักตำราเอง: "ไม่ได้วินาศทั้งวัน" §3.6)
+// ---------------------------------------------------------------------------
+
+export type OmenTone = "good" | "bad" | "mixed" | "neutral";
+
+export interface StartOmen {
+  dateISO: string;
+  dayTh: string;
+  /** จ.ศ. ที่ใช้ตัดสิน (เก็บไว้ตามรอย — ขอบเขต 16 เม.ย.) */
+  cs: number;
+  good: string[]; // ธงชัย/อธิบดี ที่ตรง
+  bad: string[]; // อุบาทว์/โลกาวินาศ ที่ตรง
+  tone: OmenTone;
+  note: string;
+  /** คำตัดสินรวมเมื่อทราบเวลา (ยามกาลโยค+อุบากอง) — null เมื่อไม่ได้ให้เวลา */
+  timeVerdict: string | null;
+}
+
+export function startDateOmen(dateISO: string, timeHHMM?: string | null): StartOmen | null {
+  const p = parseISODate(dateISO);
+  if (!p) return null;
+  const dayTh = thaiDayOfWeek(dateISO);
+  const cs = kalaYokeCsForDate(p.y, p.m, p.d);
+  const hits = checkDayKalaYoke(dayTh, cs).kala_yoke_hits;
+  const good = hits.filter((h) => h.valence === "ดี").map((h) => h.type);
+  const bad = hits.filter((h) => h.valence === "ร้าย").map((h) => h.type);
+  const tone: OmenTone = good.length && bad.length ? "mixed" : good.length ? "good" : bad.length ? "bad" : "neutral";
+
+  let timeVerdict: string | null = null;
+  const tm = timeHHMM ? /^(\d{2}):(\d{2})$/.exec(timeHHMM) : null;
+  if (tm) {
+    const combined = checkCombinedAuspiciousTime(dayTh, { hour: Number(tm[1]), minute: Number(tm[2]) }, cs);
+    timeVerdict = combined.combined_verdict;
+  }
+
+  const note =
+    tone === "good"
+      ? `เริ่มต้นวัน${good.join("/")}ของปีนั้น — ฤกษ์ดีสำหรับสิ่งของ/สถานที่ตามกาลโยค`
+      : tone === "bad"
+        ? `ตรงวัน${bad.join("/")}ของปีนั้น — ตำราชี้เองว่าวันร้ายไม่ได้ร้ายทั้งวัน (ขึ้นกับยาม) เสริมสมดุลด้วยธาตุ/สีช่วยได้ ไม่ต้องกังวลเกินเหตุ`
+        : tone === "mixed"
+          ? `วันนั้นมีทั้งฤกษ์ดี (${good.join("/")}) และร้าย (${bad.join("/")}) — ตำราให้ตัดสินที่ยาม${tm ? "" : " ซึ่งต้องทราบเวลา"}`
+          : "ไม่ตรงทั้งวันดีและวันร้ายของกาลโยคปีนั้น — ถือเป็นกลาง";
+
+  return { dateISO, dayTh, cs, good, bad, tone, note, timeVerdict };
+}
+
+/** caveat กาลโยคบังคับเมื่อมีการตรวจจังหวะเริ่มต้น (นักโหราศาสตร์ใหญ่บางท่านเลิกใช้ — §3.6) */
+export const START_OMEN_CAVEAT = TIMING_CAVEAT;
 
 // ---------------------------------------------------------------------------
 // แยกเลข/อักษรจากช่องเลขอ้างอิง (รองรับ "จง 6266" · เบอร์ 0 นำหน้า · บ้านเลขที่)
@@ -80,6 +177,10 @@ export interface HolisticPart {
   /** เคมีธาตุกับผู้ใช้ — null สำหรับส่วน "ตนเอง" (ไม่เทียบกับตัวเอง) */
   chemistry: WuXingResult | null;
   element: Element5 | null;
+  /** จังหวะเริ่มต้น (กาลโยคของวันออกรถ/ขึ้นบ้าน ฯลฯ) — เฉพาะวัตถุที่ให้วันที่มา */
+  omen?: StartOmen | null;
+  /** ธาตุที่บุคคลนี้ขาด (เฉพาะส่วนที่เป็นคน — จาก ElementSeed ของเขา) */
+  personMissing?: string[] | null;
 }
 
 export type CoherenceTone = "strong" | "caution" | "neutral";
@@ -218,5 +319,19 @@ export function holisticAdvice(
     tips.push("ไม่มีด้านใดฉุดข่ายลงชัดเจน — จุดที่คะแนนกลางๆ พัฒนาได้ด้วยการเลือกใช้ส่วนที่เด่นด้านนั้นให้บ่อยขึ้น");
   }
 
-  return { strengths, cautions, tips, caveats: [NUMBER_ASPECTS_CAVEAT, HOLISTIC_CAVEAT] };
+  // --- จังหวะเริ่มต้น (กาลโยคย้อนหลัง) — ดีเข้าจุดแข็ง · ร้ายเข้าระวังแบบเฟรมนุ่ม+ทางแก้ ---
+  let hasOmen = false;
+  for (const p of parts) {
+    if (!p.omen) continue;
+    hasOmen = true;
+    if (p.omen.tone === "good") {
+      strengths.push(`🏁 ${p.icon} ${p.label} เริ่มต้นวัน${p.omen.good.join("/")} — ฤกษ์เริ่มต้นหนุนตามกาลโยค`);
+    } else if (p.omen.tone === "bad") {
+      cautions.push(`🏁 ${p.icon} ${p.label} เริ่มต้นตรงวัน${p.omen.bad.join("/")}ของปีนั้น — ${p.omen.note}`);
+    }
+  }
+
+  const caveats = [NUMBER_ASPECTS_CAVEAT, HOLISTIC_CAVEAT];
+  if (hasOmen) caveats.push(START_OMEN_CAVEAT);
+  return { strengths, cautions, tips, caveats };
 }

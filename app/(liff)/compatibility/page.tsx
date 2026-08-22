@@ -9,7 +9,7 @@
 //    **ห้ามลอกสูตรจาก HTML กลับมา** (CLAUDE.md §5.1)
 // 🔴 ตัวเลขทุกตัวมาจาก engine (numberAspects / wuXingScore / network-holistic) — หน้าห้ามคำนวณเอง
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
@@ -28,6 +28,7 @@ import {
   relationColorVar,
   ENTITY_ICONS,
   ENTITY_LABELS,
+  isPersonType,
   type Entity,
   type EntityType,
 } from "@/lib/engine/compatibility";
@@ -37,6 +38,8 @@ import {
   partAspects,
   analyzeCoherence,
   holisticAdvice,
+  personSeedFromBirthDate,
+  startDateOmen,
   FREE_NETWORK_PARTS,
   MAX_NETWORK_PARTS,
   type HolisticPart,
@@ -94,10 +97,18 @@ interface DraftRow {
   type: EntityType;
   name: string;
   ref: string;
+  /** วันเกิด (เฉพาะประเภทบุคคล — แทนเลขอ้างอิง) */
+  birthDate: string;
+  /** วันเริ่มต้นของวัตถุ (วันออกรถ/ขึ้นบ้าน — ไม่บังคับ) → กาลโยคย้อนหลัง */
+  startDate: string;
+  /** เวลาเริ่มต้น (ไม่บังคับ — มีแล้วเพิ่มชั้นยาม) */
+  startTime: string;
   shared: boolean;
 }
 
-const emptyRow = (id: number): DraftRow => ({ id, type: "house", name: "", ref: "", shared: false });
+const emptyRow = (id: number): DraftRow => ({
+  id, type: "house", name: "", ref: "", birthDate: "", startDate: "", startTime: "", shared: false,
+});
 
 /** ปลดล็อกข่ายใหญ่ (>2 สิ่งรอบตัว) จำต่อเซสชันเบราว์เซอร์ — หักครั้งเดียว ปรับรายการซ้ำไม่หักซ้ำ */
 const UNLOCK_KEY = "kruth_holistic_unlock";
@@ -119,6 +130,12 @@ export default function CompatibilityPage() {
   const [needsLogin, setNeedsLogin] = useState(false);
   const [needsTopup, setNeedsTopup] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
+
+  // คำทำนาย 4 องก์จากอาจารย์ลาลา (22 ส.ค. 2569) — เฉพาะข่ายปลดล็อก (>FREE_NETWORK_PARTS)
+  const [wantNarration, setWantNarration] = useState(false);
+  const [narration, setNarration] = useState<string | null>(null);
+  const [narrLoading, setNarrLoading] = useState(false);
+  const narrKey = useRef<string>("");
 
   // เติมวันเกิดจากบัญชี (กรอกในโหมดอื่นแล้วไม่ต้องกรอกซ้ำ) — เฉพาะช่องที่ยังว่าง
   useEffect(() => {
@@ -168,6 +185,21 @@ export default function CompatibilityPage() {
       },
     ];
     for (const s of scored) {
+      // บุคคล (มีวันเกิด): คะแนน 5 ด้านจาก "เลขตัวตน" ของเขา — วิธีเดียวกับส่วนตนเอง
+      if (s.entity.birthDate) {
+        const pseed = personSeedFromBirthDate(s.entity.birthDate);
+        if (!pseed) continue;
+        const idNum = String(birthPowerNumber(s.entity.birthDate)).padStart(2, "0");
+        parts.push({
+          label: s.entity.name,
+          icon: ENTITY_ICONS[s.entity.type],
+          aspects: partAspects({ digits: idNum, letters: null }, selfElement, selfMissing),
+          chemistry: s.result,
+          element: s.entity.element,
+          personMissing: pseed.missing_th,
+        });
+        continue;
+      }
       const ref = s.entity.ref ? parseRefInput(s.entity.ref) : null;
       if (!ref) continue;
       parts.push({
@@ -176,6 +208,8 @@ export default function CompatibilityPage() {
         aspects: partAspects(ref, selfElement, selfMissing),
         chemistry: s.result,
         element: s.entity.element,
+        // จังหวะเริ่มต้น (กาลโยคย้อนหลัง) — เฉพาะวัตถุที่ให้วันเริ่มต้นมา
+        omen: s.entity.startDate ? startDateOmen(s.entity.startDate, s.entity.startTime ?? null) : null,
       });
     }
     return parts;
@@ -186,6 +220,55 @@ export default function CompatibilityPage() {
     () => (holisticParts.length >= 2 ? holisticAdvice(holisticParts, coherence, selfElement) : null),
     [holisticParts, coherence, selfElement]
   );
+
+  // เรียกอาจารย์ลาลาเรียบเรียง 4 องก์ — ครั้งเดียวต่อชุดผล (guard ด้วย key กันยิงซ้ำ/ยิงรัว)
+  useEffect(() => {
+    if (!wantNarration || !seed || !advice || holisticParts.length < FREE_NETWORK_PARTS + 2) return;
+    const clip = (s: string | null | undefined) => (s ? s.slice(0, 120) : null);
+    const ctx = {
+      ตัวคุณ: { ธาตุเด่น: THAI_LABEL_4[seed.dominant], ธาตุที่ขาด: seed.missing_th },
+      parts: holisticParts.map((p) => ({
+        label: p.label,
+        icon: p.icon,
+        คะแนน5ด้าน: p.aspects.คะแนน,
+        ภาพรวม: p.aspects.ภาพรวม,
+        การ์ดผลรวม: clip(p.aspects.การ์ดผลรวม),
+        ความหมายเลขท้าย: clip(p.aspects.ความหมายเลขท้าย),
+        ธาตุ: p.element ? THAI_LABEL_5[p.element] : null,
+        เคมีกับผู้ใช้: p.chemistry
+          ? { คะแนน: p.chemistry.final_score, ความสัมพันธ์: p.chemistry.relation_th }
+          : null,
+        จังหวะเริ่มต้น: p.omen
+          ? { วัน: p.omen.dayTh, ดี: p.omen.good, ร้าย: p.omen.bad, หมายเหตุ: p.omen.note, ยามเมื่อทราบเวลา: p.omen.timeVerdict }
+          : null,
+        ธาตุที่บุคคลนี้ขาด: p.personMissing ?? null,
+      })),
+      ความสอดคล้องรายด้าน: coherence.map((c) => ({
+        ด้าน: c.labelTh, เฉลี่ย: c.avg, ต่ำสุด: `${c.weakest.label} (${c.min})`, สูงสุด: `${c.strongest.label} (${c.max})`, tone: c.tone,
+      })),
+      จุดแข็ง: advice.strengths,
+      ข้อควรระวัง: advice.cautions,
+      คำแนะนำ: advice.tips,
+      คำเตือนที่ต้องคงไว้: advice.caveats,
+    };
+    const key = JSON.stringify(ctx);
+    if (key === narrKey.current) return;
+    narrKey.current = key;
+    setNarrLoading(true);
+    fetch("/api/holistic", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mode: "narrate", context: ctx }),
+    })
+      .then(async (r) => ({ ok: r.ok, d: await r.json() }))
+      .then(({ ok, d }) => {
+        if (ok && typeof d.reply === "string") setNarration(d.reply);
+      })
+      .catch(() => {
+        /* คำทำนายเรียบเรียงพัง = ผลตัวเลข/เทมเพลตยังครบ — ไม่ทำหน้าพัง */
+      })
+      .finally(() => setNarrLoading(false));
+  }, [wantNarration, seed, advice, holisticParts, coherence]);
 
   /** คำนวณธาตุ+เลขตัวตนจากวันเกิด — คืน seed หรือ null (พร้อม set error) · reuse ทั้งปุ่มแยกและปุ่มรวม */
   function computeSelf(): ElementSeedResult | null {
@@ -262,17 +345,27 @@ export default function CompatibilityPage() {
       return;
     }
 
-    // 2. ตรวจแถว — แถวว่างล้วนข้าม · แถวที่กรอกบางส่วนต้องมีเลขอ้างอิง
-    const drafts: { row: DraftRow; digits: string }[] = [];
+    // 2. ตรวจแถว — แถวว่างล้วนข้าม · วัตถุต้องมีเลขอ้างอิง · บุคคลต้องมีวันเกิด (สูตรคนตัวจริง)
+    const drafts: { row: DraftRow; digits?: string; personElement?: Element5 }[] = [];
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
-      if (!r.name.trim() && !r.ref.trim()) continue; // แถวว่าง — ข้าม
-      const parsed = parseRefInput(r.ref);
-      if (!parsed) {
-        setFormError(`รายการที่ ${i + 1}: กรุณากรอกเลขอ้างอิง 1-10 หลัก เช่น 47 · จง 6266 · 0812345678`);
-        return;
+      if (isPersonType(r.type)) {
+        if (!r.name.trim() && !r.birthDate.trim()) continue; // แถวว่าง — ข้าม
+        const pseed = personSeedFromBirthDate(r.birthDate);
+        if (!pseed) {
+          setFormError(`รายการที่ ${i + 1}: กรุณากรอกวันเกิด (ค.ศ.) ของบุคคลนี้ให้ถูกต้อง`);
+          return;
+        }
+        drafts.push({ row: r, personElement: pseed.dominant as Element5 });
+      } else {
+        if (!r.name.trim() && !r.ref.trim()) continue; // แถวว่าง — ข้าม
+        const parsed = parseRefInput(r.ref);
+        if (!parsed) {
+          setFormError(`รายการที่ ${i + 1}: กรุณากรอกเลขอ้างอิง 1-10 หลัก เช่น 47 · จง 6266 · 0812345678`);
+          return;
+        }
+        drafts.push({ row: r, digits: parsed.digits });
       }
-      drafts.push({ row: r, digits: parsed.digits });
     }
 
     // 3. เกิน 2 สิ่งรอบตัว → ปลดล็อกด้วยเครดิต (จำต่อเซสชัน — ปรับรายการซ้ำไม่หักซ้ำ)
@@ -311,15 +404,30 @@ export default function CompatibilityPage() {
 
     // 4. สร้าง entity ทั้งชุดจากแถว (id เดียวกับแถว — ลบจากผลลัพธ์ = ลบแถวด้วย)
     setEntities(
-      drafts.map(({ row, digits }) => ({
-        id: row.id,
-        name: row.name.trim() || `${ENTITY_LABELS[row.type]} ${row.ref.trim()}`,
-        type: row.type,
-        element: entityElementFromNumber(Number(digits)),
-        shared: row.shared,
-        ref: row.ref.trim(),
-      }))
+      drafts.map(({ row, digits, personElement }) =>
+        personElement
+          ? {
+              id: row.id,
+              name: row.name.trim() || `${ENTITY_LABELS[row.type]}`,
+              type: row.type,
+              element: personElement,
+              shared: row.shared,
+              birthDate: row.birthDate,
+            }
+          : {
+              id: row.id,
+              name: row.name.trim() || `${ENTITY_LABELS[row.type]} ${row.ref.trim()}`,
+              type: row.type,
+              element: entityElementFromNumber(Number(digits)),
+              shared: row.shared,
+              ref: row.ref.trim(),
+              ...(row.startDate ? { startDate: row.startDate, startTime: row.startTime || undefined } : {}),
+            }
+      )
     );
+    // คำทำนายฉบับเรียบเรียง (4 องก์) — เฉพาะข่ายที่ปลดล็อก (>FREE_NETWORK_PARTS)
+    setWantNarration(drafts.length > FREE_NETWORK_PARTS);
+    setNarration(null);
   }
 
   return (
@@ -436,17 +544,53 @@ export default function CompatibilityPage() {
                   />
                 </label>
               </div>
-              <label className={styles.field}>
-                <span>เลขอ้างอิง (บ้านเลขที่ / ทะเบียน / เบอร์โทร — ใส่อักษรป้ายได้)</span>
-                <input
-                  type="text"
-                  inputMode="text"
-                  value={r.ref}
-                  onChange={(e) => updateRow(r.id, { ref: e.target.value })}
-                  placeholder="เช่น 47 · จง 6266 · 0812345678"
-                  className={styles.input}
-                />
-              </label>
+              {isPersonType(r.type) ? (
+                // บุคคล — วันเกิดแทนเลข (สูตรคนตัวจริง: ธาตุจาก ElementSeed + เลขตัวตน 5 ด้าน)
+                <label className={styles.field}>
+                  <span>วันเกิดของเขา (ค.ศ.) — คำนวณธาตุและเลขตัวตนด้วยสูตรบุคคลจริง</span>
+                  <input
+                    type="date"
+                    value={r.birthDate}
+                    onChange={(e) => updateRow(r.id, { birthDate: e.target.value })}
+                    className={styles.input}
+                  />
+                </label>
+              ) : (
+                <>
+                  <label className={styles.field}>
+                    <span>เลขอ้างอิง (บ้านเลขที่ / ทะเบียน / เบอร์โทร — ใส่อักษรป้ายได้)</span>
+                    <input
+                      type="text"
+                      inputMode="text"
+                      value={r.ref}
+                      onChange={(e) => updateRow(r.id, { ref: e.target.value })}
+                      placeholder="เช่น 47 · จง 6266 · 0812345678"
+                      className={styles.input}
+                    />
+                  </label>
+                  <div className={styles.row}>
+                    <label className={styles.field}>
+                      <span>วันเริ่มต้น ถ้าทราบ (วันออกรถ / ขึ้นบ้าน / เปิดกิจการ)</span>
+                      <input
+                        type="date"
+                        value={r.startDate}
+                        onChange={(e) => updateRow(r.id, { startDate: e.target.value })}
+                        className={styles.input}
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>เวลา ถ้าทราบ (เพิ่มชั้นยาม)</span>
+                      <input
+                        type="time"
+                        value={r.startTime}
+                        onChange={(e) => updateRow(r.id, { startTime: e.target.value })}
+                        className={styles.input}
+                        disabled={!r.startDate}
+                      />
+                    </label>
+                  </div>
+                </>
+              )}
               <label className={styles.checkboxRow}>
                 <input
                   type="checkbox"
@@ -611,12 +755,32 @@ export default function CompatibilityPage() {
                     <p className={styles.relation}>{result.relation_th}</p>
                     {part && (
                       <>
-                        <AspectBars aspects={part.aspects} title="คะแนน 5 ด้านของส่วนนี้" />
+                        {part.personMissing && (
+                          <div className={styles.detailRow}>
+                            <span>ธาตุที่เขาขาด</span>
+                            <b>{part.personMissing.length ? part.personMissing.join(", ") : "ครบทั้ง 4"}</b>
+                          </div>
+                        )}
+                        <AspectBars
+                          aspects={part.aspects}
+                          title={part.personMissing ? "คะแนน 5 ด้านจากเลขตัวตนของเขา" : "คะแนน 5 ด้านของส่วนนี้"}
+                        />
+                        {part.omen && (
+                          <p className={styles.partMeta}>
+                            🏁 จังหวะเริ่มต้น (วัน{part.omen.dayTh}): {part.omen.note}
+                            {part.omen.timeVerdict ? ` · เมื่อรวมยาม: ${part.omen.timeVerdict}` : ""}
+                          </p>
+                        )}
                         {part.aspects.การ์ดผลรวม && (
                           <p className={styles.partMeta}>🃏 การ์ดผลรวมเลข: {part.aspects.การ์ดผลรวม}</p>
                         )}
                         {part.aspects.ความหมายเลขท้าย && (
                           <p className={styles.partMeta}>✨ เลขท้าย: {part.aspects.ความหมายเลขท้าย}</p>
+                        )}
+                        {part.personMissing && (
+                          <p className={styles.partMeta} style={{ opacity: 0.8 }}>
+                            อ่านเป็น &quot;ความเข้ากันของพลังงาน&quot; เท่านั้น — ไม่ใช่คำตัดสินตัวบุคคล
+                          </p>
                         )}
                       </>
                     )}
@@ -674,6 +838,22 @@ export default function CompatibilityPage() {
           <p className={styles.note} style={{ marginTop: "0.8rem" }}>
             {advice.caveats.map((c, i) => <span key={i}>⚠️ {c}<br /></span>)}
           </p>
+          {/* upsell เส้นฟรี: ข่าย ≤2 ชิ้นยังไม่มีคำทำนายฉบับเรียบเรียง */}
+          {entities.length > 0 && entities.length <= FREE_NETWORK_PARTS && (
+            <p className={styles.note} style={{ marginTop: "0.6rem" }}>
+              💡 เพิ่มเป็น {FREE_NETWORK_PARTS + 1} รายการขึ้นไป — รับ
+              <b>คำทำนายฉบับเรียบเรียงจากอาจารย์ลาลา</b> (รวมในการปลดล็อก 20 เครดิต)
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* ---- 5. คำทำนายฉบับเรียบเรียง (4 องก์ — เฉพาะข่ายปลดล็อก) ---- */}
+      {(narrLoading || narration) && (
+        <section className={styles.panel}>
+          <h2 className={styles.h2}>5. คำทำนายจากอาจารย์ลาลา</h2>
+          {narrLoading && <p className={styles.note}>🐾 แม่หมอกำลังเรียบเรียงคำทำนายของทั้งข่าย...</p>}
+          {narration && <div className={styles.narration}>{narration}</div>}
         </section>
       )}
 

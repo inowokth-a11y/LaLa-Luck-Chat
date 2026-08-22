@@ -40,8 +40,9 @@ export interface DayRanking {
   bestHour: { range: string; yam: string; meaning: string; score: number };
 }
 
-/** จ.ศ. ที่ใช้ได้จริงของวันนั้น — ปีกาลโยคเปลี่ยน 16 เม.ย. (ก่อนหน้านั้นใช้ปีก่อน) §3.6 */
-function kalaYokeCsForDate(y: number, m: number, d: number): number {
+/** จ.ศ. ที่ใช้ได้จริงของวันนั้น — ปีกาลโยคเปลี่ยน 16 เม.ย. (ก่อนหน้านั้นใช้ปีก่อน) §3.6
+ *  (export ให้ network-holistic ใช้ตรวจ "จังหวะเริ่มต้น" — แหล่งเดียว ห้ามก๊อปสูตร) */
+export function kalaYokeCsForDate(y: number, m: number, d: number): number {
   const afterBoundary = m > 4 || (m === 4 && d >= 16);
   return (afterBoundary ? y : y - 1) - 638; // จ.ศ. = ค.ศ. - 638
 }

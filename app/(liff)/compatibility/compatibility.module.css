@@ -534,3 +534,11 @@
   font-size: 0.88rem;
   text-decoration: none;
 }
+
+/* คำทำนายฉบับเรียบเรียง (4 องก์) — ตัวหนังสือเข้มตายตัวบนการ์ดครีม (บทเรียนคอนทราสต์) */
+.narration {
+  white-space: pre-wrap;
+  line-height: 1.85;
+  font-size: 0.95rem;
+  color: #1d1812;
+}
