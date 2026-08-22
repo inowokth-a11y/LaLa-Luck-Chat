@@ -30,6 +30,7 @@ const TOOLS: { href: string; label: string }[] = [
   { href: "/fengshui", label: "🧭 ฮวงจุ้ย" },
   { href: "/oracle", label: "🎴 เสี่ยงทาย" },
   { href: "/wellness", label: "🥗 อาหาร & กิจกรรมตามธาตุ" },
+  { href: "/logo", label: "🎨 สร้างโลโก้ตามดวง" },
   { href: "/wellbeing", label: "💙 เช็คสุขภาวะ" },
 ];
 

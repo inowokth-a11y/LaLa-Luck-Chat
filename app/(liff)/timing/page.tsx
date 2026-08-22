@@ -4,10 +4,11 @@
 // คำนวณฝั่ง client ล้วน (กาลโยค+อุบากอง) — ฟรี ฿0 ไม่ใช้ AI · โทนสว่างหินอ่อน (§2)
 // 🔴 caveat กาลโยคแสดงทุกครั้ง (§3.6)
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
-import { rankAuspiciousDays, ACTIVITIES, type DayRanking, type Verdict } from "@/lib/engine/timing";
+import { rankAuspiciousDays, ACTIVITIES, ACTIVITY_FIELDS, type DayRanking, type Verdict } from "@/lib/engine/timing";
+import { useStoredProfile } from "../_components/useStoredProfile";
 
 const TH_MONTH = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 function thDate(iso: string, dayTh: string): string {
@@ -28,14 +29,42 @@ const VERDICT: Record<Verdict, { label: string; color: string }> = {
 
 export default function TimingPage() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const { profile } = useStoredProfile();
   const [activityKey, setActivityKey] = useState("open_company");
   const [fromISO, setFromISO] = useState(today);
   const [toISO, setToISO] = useState(() => addDays(new Date(), 30));
 
+  // ช่องเสริมรายหมวด (ผู้ใช้สั่ง 22 ส.ค. 2569) — ทุกช่องไม่บังคับ ใส่แล้วแม่นขึ้น
+  const [birthDate, setBirthDate] = useState("");
+  const [prefilled, setPrefilled] = useState(false);
+  const [partnerBirthDate, setPartnerBirthDate] = useState("");
+  const [refNumber, setRefNumber] = useState("");
+  const [businessName, setBusinessName] = useState("");
+
+  // เติมวันเกิดจากบัญชี (กรอกในโหมดอื่นแล้วไม่ต้องกรอกซ้ำ) — เฉพาะช่องที่ยังว่าง
+  useEffect(() => {
+    if (profile?.birth_date && !birthDate) {
+      setBirthDate(profile.birth_date);
+      setPrefilled(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
+
   const activity = ACTIVITIES.find((a) => a.key === activityKey)!;
+  const fields = ACTIVITY_FIELDS[activityKey] ?? {};
   const { days, caveat } = useMemo(
-    () => rankAuspiciousDays({ fromISO, toISO, emphasis: activity.emphasis }),
-    [fromISO, toISO, activity.emphasis]
+    () =>
+      rankAuspiciousDays({
+        fromISO,
+        toISO,
+        emphasis: activity.emphasis,
+        birthDate: birthDate || null,
+        partnerBirthDate: fields.partnerBirthDate ? partnerBirthDate || null : null,
+        refNumber: fields.refLabel ? refNumber || null : null,
+        refLabel: activityKey === "housewarming" ? "บ้าน" : "รถ",
+        businessName: fields.businessName ? businessName || null : null,
+      }),
+    [fromISO, toISO, activity.emphasis, birthDate, partnerBirthDate, refNumber, businessName, fields.partnerBirthDate, fields.refLabel, fields.businessName, activityKey]
   );
 
   const recommended = days.filter((d) => d.score > 0).slice(0, 12);
@@ -64,6 +93,32 @@ export default function TimingPage() {
         <div style={{ display: "flex", gap: "0.7rem", flexWrap: "wrap" }}>
           <label style={S.field}><span style={S.label}>ตั้งแต่</span><input type="date" value={fromISO} min={today} onChange={(e) => setFromISO(e.target.value)} style={S.input} /></label>
           <label style={S.field}><span style={S.label}>ถึง</span><input type="date" value={toISO} min={fromISO} onChange={(e) => setToISO(e.target.value)} style={S.input} /></label>
+        </div>
+
+        {/* ช่องเสริมรายหมวด — ใส่แล้วรวมชั้นดวงส่วนตัว (กาลกิณี+ธาตุประจำวัน) และธาตุของสิ่งที่เกี่ยวข้อง */}
+        <div style={{ display: "flex", gap: "0.7rem", flexWrap: "wrap" }}>
+          <label style={S.field}>
+            <span style={S.label}>วันเกิดของคุณ ไม่บังคับ — ใส่แล้วเช็คกาลกิณี+ธาตุให้ด้วย{prefilled ? " · ✓ จากบัญชี" : ""}</span>
+            <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} style={S.input} />
+          </label>
+          {fields.partnerBirthDate && (
+            <label style={S.field}>
+              <span style={S.label}>วันเกิดคู่เจรจา (ถ้าทราบ)</span>
+              <input type="date" value={partnerBirthDate} onChange={(e) => setPartnerBirthDate(e.target.value)} style={S.input} />
+            </label>
+          )}
+          {fields.refLabel && (
+            <label style={S.field}>
+              <span style={S.label}>{fields.refLabel} — ไม่บังคับ</span>
+              <input type="text" value={refNumber} onChange={(e) => setRefNumber(e.target.value)} placeholder="เช่น 47 / จง 6266" style={S.input} />
+            </label>
+          )}
+          {fields.businessName && (
+            <label style={S.field}>
+              <span style={S.label}>ชื่อบริษัท/ร้าน (ถ้าตั้งแล้ว) — เช็คธาตุชื่อกับธาตุวัน</span>
+              <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="เช่น รุ่งเรืองการค้า" style={S.input} />
+            </label>
+          )}
         </div>
       </div>
 
@@ -103,6 +158,13 @@ function DayCard({ d }: { d: DayRanking }) {
         {d.goodTypes.length === 0 && d.badTypes.length === 0 && <span style={styles.note}>ไม่มีกาลโยคเด่นในวันนี้</span>}
       </div>
       <span style={styles.note}>🕐 ฤกษ์รายชั่วโมง (อุบากอง): {d.bestHour.range} — {d.bestHour.yam} ({d.bestHour.meaning})</span>
+      {d.personalNotes && d.personalNotes.length > 0 && (
+        <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+          {d.personalNotes.map((n, i) => (
+            <span key={i} style={{ ...styles.note, color: n.startsWith("⚠️") ? "var(--bad,#a83a1e)" : "#4a6b3f" }}>{n}</span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -60,3 +60,49 @@ test("kala yoke — full without lagna (graceful skip)", () => {
     K.full_no_lagna_mon_0900
   );
 });
+
+// ---- ชั้นข้อมูลส่วนตัว/รายหมวด (ผู้ใช้สั่ง 22 ส.ค. 2569) ----
+import { rankAuspiciousDays, ACTIVITY_FIELDS, ACTIVITIES } from "../lib/engine/timing";
+import { kalakiniRuledSigns, getMoonSign } from "../lib/engine/daily";
+
+test("timing personal — ไม่กรอกข้อมูลเสริม = ผลเท่าเดิมเป๊ะ (ไม่มี personalNotes)", () => {
+  const base = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai" });
+  const explicit = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai", birthDate: null, refNumber: "", businessName: null });
+  assert.deepEqual(base, explicit);
+  assert.ok(base.days.every((d) => d.personalNotes === undefined));
+});
+
+test("timing personal — วันเกิดเปิดชั้นกาลกิณี+ธาตุ: notes ตรง engine จริง + caveat บอกชั้นที่รวม", () => {
+  const birthDate = "1986-10-07"; // อังคาร
+  const r = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-10-15", emphasis: "any", birthDate });
+  assert.ok(r.caveat.includes("กาลกิณี"), "caveat ต้องบอกว่ารวมชั้นกาลกิณีแล้ว");
+  assert.ok(r.days.every((d) => Array.isArray(d.personalNotes)));
+  // wiring กาลกิณี: วันที่ engine บอกว่าจันทร์จรเข้าเรือนกาลกิณี ต้องมีโน้ตเตือน (และกลับกัน)
+  const kk = kalakiniRuledSigns("อังคาร")!;
+  assert.ok(kk.signs.length > 0);
+  let checked = 0;
+  for (const d of r.days) {
+    const [y, m, day] = d.dateISO.split("-").map(Number);
+    const moon = getMoonSign({ year: y, month: m, day, hour: 5 });
+    const expectHit = kk.signs.includes(moon);
+    const hasNote = (d.personalNotes ?? []).some((n) => n.includes("กาลกิณี"));
+    assert.equal(hasNote, expectHit, `${d.dateISO} moon=${moon}`);
+    if (expectHit) checked++;
+  }
+  assert.ok(checked > 0, "ช่วง 45 วันต้องมีวันจันทร์จรเข้าเรือนกาลกิณีบ้าง (จันทร์ครบรอบ ~27 วัน)");
+});
+
+test("timing personal — เกิดวันศุกร์ (ราหู) ตรวจกาลกิณีไม่ได้ → ไม่มีโน้ตกาลกิณี + caveat บอกตรง", () => {
+  // 1986-10-10 = วันศุกร์
+  const r = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-30", emphasis: "any", birthDate: "1986-10-10" });
+  assert.ok(r.days.every((d) => !(d.personalNotes ?? []).some((n) => n.includes("กาลกิณี"))));
+  assert.ok(r.caveat.includes("ราหู"));
+});
+
+test("timing personal — ธาตุวัตถุ/ชื่อกิจการเข้าเป็นโน้ต + ACTIVITY_FIELDS ครบทุกหมวด", () => {
+  for (const a of ACTIVITIES) assert.ok(ACTIVITY_FIELDS[a.key] !== undefined, `ไม่มี fields ของ ${a.key}`);
+  const r = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai", refNumber: "จง 6266", refLabel: "รถ" });
+  assert.ok(r.days.some((d) => (d.personalNotes ?? []).some((n) => n.includes("รถ"))), "ต้องมีวันที่ธาตุวันมีผลกับรถ");
+  const rn = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai", businessName: "รุ่งเรือง" });
+  assert.ok(rn.caveat.includes("ตารางกลุ่มอักษร"), "ใช้ธาตุชื่อ → caveat ตารางยังไม่ verify ต้องติดมา");
+});

@@ -41,6 +41,17 @@ export function getKalakiniPlanet(dayOfWeekOrPlanet: string | number): number | 
   return TAKSA_FIXED_ORDER[(idx + 7) % 8];
 }
 
+/**
+ * เรือนของดาวกาลกิณีตามวันเกิด (TS-only wrapper — ไม่แตะสูตร golden parity ใดๆ)
+ * ใช้โดย /timing ตรวจ "จันทร์จรเข้าเรือนกาลกิณี" รายวัน · signs=[] = ราหู (เกิดวันศุกร์
+ * ตรวจไม่ได้ตามข้อจำกัดเดิม §5) · null = วันเกิดไม่รู้จัก
+ */
+export function kalakiniRuledSigns(birthDayOfWeek: string): { planetTh: string; signs: string[] } | null {
+  const planet = getKalakiniPlanet(birthDayOfWeek);
+  if (planet === null) return null;
+  return { planetTh: PLANET_NAME_TH[planet], signs: PLANET_RULED_SIGNS[planet] ?? [] };
+}
+
 export function moonEclipticLongitude(jd: number): number {
   const T = (jd - 2451545.0) / 36525.0;
 
