@@ -9,8 +9,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
 import { useStoredProfile } from "../_components/useStoredProfile";
-import { calculateElementSeed, wuXingScore, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
+import { calculateElementSeed, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
+import { logoImagePrompt } from "@/lib/engine/naming";
+import {
+  teamMemberFromBirthDate,
+  scoreStylesForTeam,
+  directionOwnerAdvice,
+  OFFICE_DIRECTIONS,
+  OFFICE_DIRECTION_HELP,
+  MAX_TEAM_MEMBERS,
+} from "@/lib/engine/logo-team";
+import type { Direction } from "@/lib/engine/fengshui";
 
 // สีตัวอักษรตามธาตุ (เข้มพอ contrast บนพื้นขาว)
 const EL_COLOR: Record<string, string> = { Wood: "#2f5c42", Fire: "#a83a1e", Earth: "#a97c1f", Metal: "#555555", Water: "#1f4d63" };
@@ -107,6 +117,12 @@ export default function LogoPage() {
   const [brand, setBrand] = useState("");
   const [style, setStyle] = useState<Element5 | null>(null); // ธาตุสไตล์ที่เลือก
   const [extra, setExtra] = useState("");
+  // ทีมเจ้าของ+หุ้นส่วน + ทิศสำนักงาน (ผู้ใช้เคาะ 22 ส.ค. 2569) — ทุกช่องไม่บังคับ
+  const [ownerBirth, setOwnerBirth] = useState("");
+  const [ownerPrefilled, setOwnerPrefilled] = useState(false);
+  const [partners, setPartners] = useState<string[]>([]);
+  const [direction, setDirection] = useState<"" | Direction>("");
+  const [copied, setCopied] = useState(false);
   const [variant, setVariant] = useState<Variant>("preview");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
@@ -126,12 +142,41 @@ export default function LogoPage() {
       .catch(() => setComposed(null));
   }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ดีฟอลต์สไตล์ = ธาตุประจำตัว (กลมกลืนที่สุด) · คะแนนแต่ละธาตุเทียบกับธาตุเรา (ฟรี)
-  const chosen = style ?? me?.dominant ?? "Earth";
-  const scores = useMemo(() => {
-    if (!me) return null;
-    return Object.fromEntries(ELEMENTS.map((e) => [e, wuXingScore(me.dominant, e, me.missing).final_score])) as Record<Element5, number>;
-  }, [me]);
+  // เติมวันเกิดเจ้าของจากบัญชี (กรอกในโหมดอื่นแล้วไม่ต้องกรอกซ้ำ) — เฉพาะตอนช่องยังว่าง
+  useEffect(() => {
+    if (profile?.birth_date && !ownerBirth) {
+      setOwnerBirth(profile.birth_date);
+      setOwnerPrefilled(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
+
+  // ทีม: เจ้าของ + หุ้นส่วน (สูตรคนจริง) — แถวที่วันเกิดไม่ถูกต้องถูกข้าม ไม่เดา
+  const team = useMemo(() => {
+    const members = [
+      teamMemberFromBirthDate("เจ้าของ", ownerBirth || null),
+      ...partners.map((p, i) => teamMemberFromBirthDate(`หุ้นส่วน ${i + 1}`, p || null)),
+    ].filter((m): m is NonNullable<typeof m> => m !== null);
+    return scoreStylesForTeam({ members, brandName: brand, direction: direction || null });
+  }, [ownerBirth, partners, brand, direction]);
+  const owner = useMemo(() => teamMemberFromBirthDate("เจ้าของ", ownerBirth || null), [ownerBirth]);
+
+  // ดีฟอลต์สไตล์ = สไตล์แนะนำของทีม → ธาตุเจ้าของ → Earth
+  const chosen = style ?? team.recommended ?? me?.dominant ?? "Earth";
+  const chosenFit = team.fits.find((f) => f.style === chosen) ?? null;
+  // prompt สด — ตัวเดียวกับที่ /api/logo ใช้ (logoImagePrompt) คัดลอกไปใช้กับ AI อื่นได้
+  const promptPreview = useMemo(
+    () => logoImagePrompt(chosen, brand.trim() || "YourBrand", extra.trim() || null),
+    [chosen, brand, extra]
+  );
+
+  async function copyPrompt() {
+    try {
+      await navigator.clipboard.writeText(promptPreview);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch { /* คัดลอกไม่ได้ — ผู้ใช้เลือกข้อความเองได้ */ }
+  }
 
   async function generate() {
     if (!brand.trim() || busy) return;
@@ -169,26 +214,106 @@ export default function LogoPage() {
 
       <div style={S.form}>
         <input style={S.input} value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="ชื่อแบรนด์ เช่น Lala Coffee" maxLength={60} disabled={busy} />
+        {team.brandElement && (
+          <span style={S.note}>ธาตุจากชื่อแบรนด์: <strong>{THAI_LABEL_5[team.brandElement]}</strong> (ตารางกลุ่มอักษร — รอเจ้าของสูตรยืนยัน)</span>
+        )}
 
-        {/* เลือกสไตล์ธาตุ + คะแนนความเข้ากัน (ฟรี) */}
+        {/* ทีมเจ้าของ + หุ้นส่วน (ไม่บังคับ) — คะแนนสไตล์คิดแบบทั้งทีม */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <label>
+            <span style={S.label}>วันเกิดเจ้าของกิจการ ไม่บังคับ — ใช้คำนวณธาตุ{ownerPrefilled ? " · ✓ จากบัญชี" : ""}</span>
+            <input type="date" style={S.input} value={ownerBirth} onChange={(e) => setOwnerBirth(e.target.value)} disabled={busy} />
+          </label>
+          {partners.map((p, i) => (
+            <label key={i} style={{ display: "flex", gap: "0.4rem", alignItems: "flex-end" }}>
+              <span style={{ flex: 1 }}>
+                <span style={S.label}>วันเกิดหุ้นส่วน {i + 1}</span>
+                <input
+                  type="date"
+                  style={{ ...S.input, width: "100%" }}
+                  value={p}
+                  onChange={(e) => setPartners((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))}
+                  disabled={busy}
+                />
+              </span>
+              <button type="button" style={S.rmBtn} onClick={() => setPartners((prev) => prev.filter((_, j) => j !== i))} aria-label={`ลบหุ้นส่วน ${i + 1}`}>✕</button>
+            </label>
+          ))}
+          {partners.length < MAX_TEAM_MEMBERS - 1 && (
+            <button type="button" style={S.addBtn} onClick={() => setPartners((prev) => (prev.length < MAX_TEAM_MEMBERS - 1 ? [...prev, ""] : prev))} disabled={busy}>
+              ➕ เพิ่มหุ้นส่วน (สไตล์ที่แนะนำจะเกื้อหนุนทุกคน)
+            </button>
+          )}
+        </div>
+
+        {/* ทิศสำนักงาน/หน้าร้าน (ไม่บังคับ — Logic 7) + วิธีดูทิศ */}
         <div>
-          <span style={S.label}>สไตล์ตามธาตุ {me && <span style={S.note}>(ธาตุคุณ: {THAI_LABEL_5[me.dominant]})</span>}</span>
+          <span style={S.label}>ทิศที่หน้าร้าน/สำนักงานหันไป (ไม่บังคับ)</span>
+          <select style={S.input} value={direction} onChange={(e) => setDirection(e.target.value as "" | Direction)} disabled={busy}>
+            <option value="">— ไม่ระบุ —</option>
+            {OFFICE_DIRECTIONS.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+          <details style={{ marginTop: "0.3rem" }}>
+            <summary style={{ ...S.note, cursor: "pointer" }}>ไม่แน่ใจว่าหันทิศไหน? วิธีดูทิศ</summary>
+            <ul style={{ ...S.note, paddingLeft: "1.1rem", marginTop: "0.3rem" }}>
+              {OFFICE_DIRECTION_HELP.map((h, i) => <li key={i}>{h}</li>)}
+            </ul>
+          </details>
+          {direction && owner && (
+            <p style={{ ...S.note, marginTop: "0.3rem" }}>🧭 {directionOwnerAdvice(owner.dominant, owner.missing, direction)}</p>
+          )}
+        </div>
+
+        {/* เลือกสไตล์ธาตุ + คะแนนแบบทีม (ฟรี ฿0) */}
+        <div>
+          <span style={S.label}>
+            สไตล์ตามธาตุ {owner && <span style={S.note}>(ธาตุเจ้าของ: {THAI_LABEL_5[owner.dominant]})</span>}
+          </span>
           <div style={S.elGrid}>
             {ELEMENTS.map((el) => {
-              const sc = scores?.[el];
-              const b = sc !== undefined ? harmonyBadge(sc) : null;
+              const fit = team.fits.find((f) => f.style === el)!;
+              const b = fit.teamMin !== null ? harmonyBadge(fit.teamMin) : null;
               const active = chosen === el;
+              const isRec = team.recommended === el;
               return (
                 <button key={el} type="button" onClick={() => setStyle(el)} style={{ ...S.elChip, ...(active ? S.elActive : {}) }}>
-                  <strong>{THAI_LABEL_5[el]}</strong>
+                  <strong>{isRec ? "⭐ " : ""}{THAI_LABEL_5[el]}</strong>
                   {b && <span style={{ fontSize: "0.68rem", color: active ? "inherit" : b.color }}>{b.emoji} {b.text}</span>}
                 </button>
               );
             })}
           </div>
+          {chosenFit && (chosenFit.members.length > 0 || chosenFit.brandScore !== null || chosenFit.directionScore !== null) && (
+            <p style={{ ...S.note, marginTop: "0.4rem" }}>
+              สไตล์{THAI_LABEL_5[chosen]}:{" "}
+              {chosenFit.members.map((m) => `${m.label} ${m.score > 0 ? "+" : ""}${m.score}${m.productiveClash ? " (ยา)" : ""}`).join(" · ")}
+              {chosenFit.brandScore !== null ? ` · ชื่อแบรนด์ ${chosenFit.brandScore > 0 ? "+" : ""}${chosenFit.brandScore}` : ""}
+              {chosenFit.directionScore !== null ? ` · ทิศ ${chosenFit.directionScore > 0 ? "+" : ""}${chosenFit.directionScore}` : ""}
+            </p>
+          )}
+          {team.caveats.length > 0 && (
+            <p style={{ ...S.note, marginTop: "0.3rem" }}>{team.caveats.map((c, i) => <span key={i}>⚠️ {c}<br /></span>)}</p>
+          )}
         </div>
 
         <textarea style={S.textarea} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="ความต้องการเพิ่มเติม (ไม่บังคับ) เช่น มีรูปแก้วกาแฟ, สไตล์มินิมอล, โทนอบอุ่น" maxLength={200} rows={2} disabled={busy} />
+
+        {/* Prompt สด — คัดลอกไปใช้กับ AI อื่นได้ (ผู้ใช้ขอ 22 ส.ค. 2569) */}
+        <details style={{ border: "1px dashed var(--gold-dim,#a89870)", borderRadius: 8, padding: "0.6rem 0.8rem" }}>
+          <summary style={{ ...S.note, cursor: "pointer", fontWeight: 600 }}>📋 ดู Prompt สำหรับสร้างภาพโลโก้นี้ (คัดลอกไปใช้ที่อื่นได้)</summary>
+          <p style={{ ...S.note, marginTop: "0.4rem" }}>
+            นี่คือ prompt เดียวกับที่ระบบใช้สร้างภาพ — คัดลอกไปวางใน AI สร้างภาพเจ้าอื่น
+            (เช่น ChatGPT, Gemini, Midjourney, Canva) เพื่อสร้างโลโก้ด้วยตัวเองได้เลย
+          </p>
+          <p style={{ ...S.note, marginTop: "0.4rem", fontFamily: "var(--font-mono)", background: "color-mix(in srgb,var(--gold) 8%,transparent)", padding: "0.5rem 0.7rem", borderRadius: 6, userSelect: "all", wordBreak: "break-word" }}>
+            {promptPreview}
+          </p>
+          <button type="button" style={{ ...S.addBtn, marginTop: "0.4rem" }} onClick={copyPrompt}>
+            {copied ? "✓ คัดลอกแล้ว" : "📋 คัดลอก Prompt"}
+          </button>
+        </details>
 
         <div style={{ display: "flex", gap: "0.5rem" }}>
           {(["preview", "vector"] as Variant[]).map((v) => (
@@ -260,9 +385,9 @@ const styles: Record<string, React.CSSProperties> = {
   textarea: { fontFamily: "var(--font-sans-thai)", fontSize: "0.9rem", padding: "0.6rem 0.9rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "var(--surface,transparent)", color: "var(--text,var(--ink))", resize: "vertical" },
   elGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(88px,1fr))", gap: "0.4rem" },
   elChip: { display: "flex", flexDirection: "column", gap: "0.15rem", alignItems: "center", padding: "0.5rem 0.3rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "transparent", color: "var(--text,var(--ink))", cursor: "pointer", fontSize: "0.85rem" },
-  elActive: { background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", borderColor: "var(--gold)" },
+  elActive: { background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", border: "1px solid var(--gold)" },
   chip: { flex: 1, fontFamily: "var(--font-sans-thai)", fontSize: "0.82rem", padding: "0.55rem", borderRadius: 999, border: "1px solid var(--gold-dim,#a89870)", background: "transparent", color: "var(--text,var(--ink))", cursor: "pointer" },
-  chipActive: { background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", borderColor: "var(--gold)", fontWeight: 600 },
+  chipActive: { background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", border: "1px solid var(--gold)", fontWeight: 600 },
   gen: { fontFamily: "var(--font-sans-thai)", fontWeight: 600, fontSize: "0.95rem", padding: "0.75rem", borderRadius: 8, border: "none", background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", cursor: "pointer" },
   note: { fontSize: "0.76rem", color: "var(--text-dim,var(--ink-dim))", lineHeight: 1.5 },
   err: { color: "var(--bad,#a83a1e)", fontSize: "0.88rem" },
@@ -270,4 +395,6 @@ const styles: Record<string, React.CSSProperties> = {
   img: { width: "100%", maxWidth: 320, aspectRatio: "1", objectFit: "contain", borderRadius: 8, background: "#fff" },
   meta: { fontSize: "0.85rem", color: "var(--text-dim,var(--ink-dim))", textAlign: "center" },
   download: { fontFamily: "var(--font-sans-thai)", fontWeight: 600, fontSize: "0.9rem", color: "var(--marble-bg,#f4f0e6)", background: "var(--gold)", padding: "0.6rem 1.4rem", borderRadius: 8, textDecoration: "none" },
+  addBtn: { fontFamily: "var(--font-sans-thai)", fontSize: "0.82rem", fontWeight: 600, padding: "0.5rem 0.9rem", borderRadius: 8, border: "1.5px dashed var(--gold)", background: "transparent", color: "var(--gold)", cursor: "pointer", alignSelf: "flex-start" },
+  rmBtn: { fontFamily: "var(--font-sans-thai)", fontSize: "0.9rem", padding: "0.55rem 0.8rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "transparent", color: "var(--bad,#a83a1e)", cursor: "pointer" },
 };
