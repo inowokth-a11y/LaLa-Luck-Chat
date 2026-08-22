@@ -415,3 +415,73 @@
   margin-top: 0.2rem;
   line-height: 1.6;
 }
+
+/* ---- กาง/พับผลลัพธ์ (ผู้ใช้ขอ 22 ส.ค. 2569) — <details> พื้นเมือง + แอคคอร์เดียนรายส่วน ---- */
+.fold {
+  margin-top: 0.8rem;
+}
+.fold > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #6e5210;
+  padding: 0.4rem 0.15rem;
+}
+.fold > summary::-webkit-details-marker {
+  display: none;
+}
+.fold > summary::before {
+  content: "▸ ";
+  font-size: 0.8em;
+}
+.fold[open] > summary::before {
+  content: "▾ ";
+}
+
+.accItem {
+  border: 1px solid var(--marble-vein);
+  border-left: 3px solid var(--gold);
+  background: var(--marble-bg);
+  margin-top: 0.6rem;
+}
+.accHeadRow {
+  display: flex;
+  align-items: center;
+}
+.accHead {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #1d1812;
+  text-align: left;
+}
+.accChev {
+  color: #6e5210;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+.accTitle {
+  flex: 1;
+  font-weight: 700;
+  min-width: 0;
+}
+.accScore {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6e5210;
+  flex-shrink: 0;
+}
+.accBody {
+  padding: 0 0.9rem 0.9rem;
+  border-top: 1px dashed var(--marble-vein);
+}

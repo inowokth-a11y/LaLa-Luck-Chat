@@ -91,7 +91,8 @@ export default function CompatibilityPage() {
 
   const [entities, setEntities] = useState<Entity[]>([]);
   const [nextId, setNextId] = useState(1);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  // กาง/พับผลรายส่วน (ผู้ใช้ขอ 22 ส.ค. 2569) — id ของส่วนที่กางอยู่
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   const [entType, setEntType] = useState<EntityType>("house");
   const [entName, setEntName] = useState("");
@@ -110,7 +111,15 @@ export default function CompatibilityPage() {
     () => (selfElement ? aggregateScore(entities, selfElement, selfMissing) : null),
     [entities, selfElement, selfMissing]
   );
-  const selected = scored.find((s) => s.entity.id === selectedId) ?? null;
+  /** สลับกาง/พับ · forceOpen = คลิกจากแผนผัง (เปิดเสมอ ไม่สลับปิด) */
+  function toggleExpand(id: number, forceOpen = false) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (forceOpen || !next.has(id)) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   // ---- โหมดองค์รวม: คะแนน 5 ด้านของทุกส่วน (ตนเอง = เลขตัวตนจาก BirthPower) ----
   const selfNumberStr = useMemo(() => {
@@ -148,10 +157,6 @@ export default function CompatibilityPage() {
     () => (holisticParts.length >= 2 ? holisticAdvice(holisticParts, coherence, selfElement) : null),
     [holisticParts, coherence, selfElement]
   );
-
-  const selectedPart = selected
-    ? holisticParts.find((p) => p.label === selected.entity.name) ?? null
-    : null;
 
   function calcSelf(e: React.FormEvent) {
     e.preventDefault();
@@ -211,7 +216,11 @@ export default function CompatibilityPage() {
 
   function removeEntity(id: number) {
     setEntities((prev) => prev.filter((x) => x.id !== id));
-    if (selectedId === id) setSelectedId(null);
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   }
 
   return (
@@ -270,7 +279,10 @@ export default function CompatibilityPage() {
               (Productive&nbsp;Clash)
             </p>
             {holisticParts[0] && (
-              <AspectBars aspects={holisticParts[0].aspects} title={`คะแนน 5 ด้านของ ${holisticParts[0].label}`} />
+              <details className={styles.fold} open>
+                <summary>คะแนน 5 ด้านของ {holisticParts[0].label}</summary>
+                <AspectBars aspects={holisticParts[0].aspects} />
+              </details>
             )}
           </div>
         )}
@@ -337,6 +349,8 @@ export default function CompatibilityPage() {
         <section className={styles.panel}>
           <h2 className={styles.h2}>3. คะแนนรายส่วน & เคมีธาตุ</h2>
 
+          <details className={styles.fold} open>
+            <summary>🕸 แผนผังเคมีธาตุ & คะแนนรวมของข่าย</summary>
           {aggregate && (
             <div className={styles.aggBox}>
               <div className={styles.aggScore} data-tone={aggregate.tone}>
@@ -366,10 +380,10 @@ export default function CompatibilityPage() {
                 <g
                   key={entity.id}
                   className={styles.node}
-                  onClick={() => setSelectedId(entity.id)}
+                  onClick={() => toggleExpand(entity.id, true)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && setSelectedId(entity.id)}
+                  onKeyDown={(e) => e.key === "Enter" && toggleExpand(entity.id, true)}
                 >
                   <line
                     x1={CX}
@@ -409,71 +423,70 @@ export default function CompatibilityPage() {
           {entities.length === 0 && (
             <p className={styles.empty}>ยังไม่มีสิ่งรอบตัวในข่าย — เพิ่มจากข้อ 2 ด้านบน</p>
           )}
+          </details>
 
-          {selected && (
-            <div className={styles.detail}>
-              <h3 className={styles.detailTitle}>
-                {ENTITY_ICONS[selected.entity.type]} {selected.entity.name}
-              </h3>
-              <div className={styles.detailRow}>
-                <span>ธาตุ</span>
-                <b>{THAI_LABEL_5[selected.entity.element]}</b>
-              </div>
-              <div className={styles.detailRow}>
-                <span>เคมีธาตุกับคุณ</span>
-                <b className="num">
-                  {selected.result.final_score > 0 ? "+" : ""}
-                  {selected.result.final_score}
-                </b>
-              </div>
-              <p className={styles.relation}>{selected.result.relation_th}</p>
-              {selectedPart && (
-                <>
-                  <AspectBars aspects={selectedPart.aspects} title="คะแนน 5 ด้านของส่วนนี้" />
-                  {selectedPart.aspects.การ์ดผลรวม && (
-                    <p className={styles.partMeta}>🃏 การ์ดผลรวมเลข: {selectedPart.aspects.การ์ดผลรวม}</p>
-                  )}
-                  {selectedPart.aspects.ความหมายเลขท้าย && (
-                    <p className={styles.partMeta}>✨ เลขท้าย: {selectedPart.aspects.ความหมายเลขท้าย}</p>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {entities.length > 0 && (
-            <ul className={styles.list}>
-              {scored.map(({ entity, result }) => {
-                const part = holisticParts.find((p) => p.label === entity.name);
-                return (
-                  <li key={entity.id} className={styles.listItem}>
-                    <button
-                      type="button"
-                      className={styles.listMain}
-                      onClick={() => setSelectedId(entity.id)}
-                    >
-                      <span>
-                        {ENTITY_ICONS[entity.type]} {entity.name}
-                        {part ? ` · ${part.aspects.ภาพรวม}/10` : ""}
-                      </span>
-                      <span className="num" style={{ color: relationColorVar(result) }}>
+          {/* แอคคอร์เดียนรายส่วน — กาง/พับผลทำนายของแต่ละส่วน (คลิกโหนดในแผนผังก็เปิดได้) */}
+          {scored.map(({ entity, result }) => {
+            const part = holisticParts.find((p) => p.label === entity.name);
+            const open = expanded.has(entity.id);
+            return (
+              <div key={entity.id} className={styles.accItem}>
+                <div className={styles.accHeadRow}>
+                  <button
+                    type="button"
+                    className={styles.accHead}
+                    onClick={() => toggleExpand(entity.id)}
+                    aria-expanded={open}
+                  >
+                    <span className={styles.accChev}>{open ? "▾" : "▸"}</span>
+                    <span className={styles.accTitle}>
+                      {ENTITY_ICONS[entity.type]} {entity.name}
+                    </span>
+                    {part && <span className={styles.accScore}>{part.aspects.ภาพรวม}/10</span>}
+                    <span className="num" style={{ color: relationColorVar(result), fontWeight: 700 }}>
+                      {result.final_score > 0 ? "+" : ""}
+                      {result.final_score}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => removeEntity(entity.id)}
+                    aria-label={`ลบ ${entity.name}`}
+                  >
+                    ✕
+                  </button>
+                </div>
+                {open && (
+                  <div className={styles.accBody}>
+                    <div className={styles.detailRow}>
+                      <span>ธาตุ</span>
+                      <b>{THAI_LABEL_5[entity.element]}</b>
+                    </div>
+                    <div className={styles.detailRow}>
+                      <span>เคมีธาตุกับคุณ</span>
+                      <b className="num">
                         {result.final_score > 0 ? "+" : ""}
                         {result.final_score}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.removeBtn}
-                      onClick={() => removeEntity(entity.id)}
-                      aria-label={`ลบ ${entity.name}`}
-                    >
-                      ✕
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                      </b>
+                    </div>
+                    <p className={styles.relation}>{result.relation_th}</p>
+                    {part && (
+                      <>
+                        <AspectBars aspects={part.aspects} title="คะแนน 5 ด้านของส่วนนี้" />
+                        {part.aspects.การ์ดผลรวม && (
+                          <p className={styles.partMeta}>🃏 การ์ดผลรวมเลข: {part.aspects.การ์ดผลรวม}</p>
+                        )}
+                        {part.aspects.ความหมายเลขท้าย && (
+                          <p className={styles.partMeta}>✨ เลขท้าย: {part.aspects.ความหมายเลขท้าย}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </section>
       )}
 
@@ -481,41 +494,44 @@ export default function CompatibilityPage() {
       {advice && (
         <section className={styles.panel}>
           <h2 className={styles.h2}>4. ความสอดคล้องทั้งข่าย (5 ด้าน)</h2>
-          {coherence.map((c) => (
-            <div key={c.key} className={styles.coRow}>
-              <span className={styles.coLabel}>{c.labelTh}</span>
-              <span className={styles.coChip} data-tone={c.tone}>
-                {c.tone === "strong" ? "✅ หนุนกันทั้งข่าย" : c.tone === "caution" ? "⚠️ มีจุดต้องดู" : "· กลางๆ"}
-              </span>
-              <span className={styles.coDetail}>
-                เฉลี่ย {c.avg} · สูงสุด {c.strongest.label} ({c.max}) · ต่ำสุด {c.weakest.label} ({c.min})
-              </span>
-            </div>
-          ))}
+          <details className={styles.fold} open>
+            <summary>📊 ตารางความสอดคล้องรายด้าน</summary>
+            {coherence.map((c) => (
+              <div key={c.key} className={styles.coRow}>
+                <span className={styles.coLabel}>{c.labelTh}</span>
+                <span className={styles.coChip} data-tone={c.tone}>
+                  {c.tone === "strong" ? "✅ หนุนกันทั้งข่าย" : c.tone === "caution" ? "⚠️ มีจุดต้องดู" : "· กลางๆ"}
+                </span>
+                <span className={styles.coDetail}>
+                  เฉลี่ย {c.avg} · สูงสุด {c.strongest.label} ({c.max}) · ต่ำสุด {c.weakest.label} ({c.min})
+                </span>
+              </div>
+            ))}
+          </details>
 
           {advice.strengths.length > 0 && (
-            <>
-              <h3 className={styles.adviceH}>✅ จุดแข็งที่ช่วยส่งเสริม</h3>
+            <details className={styles.fold} open>
+              <summary>✅ จุดแข็งที่ช่วยส่งเสริม ({advice.strengths.length})</summary>
               <ul className={styles.adviceList}>
                 {advice.strengths.map((s, i) => <li key={i}>{s}</li>)}
               </ul>
-            </>
+            </details>
           )}
           {advice.cautions.length > 0 && (
-            <>
-              <h3 className={styles.adviceH}>⚠️ ข้อควรระวัง</h3>
+            <details className={styles.fold} open>
+              <summary>⚠️ ข้อควรระวัง ({advice.cautions.length})</summary>
               <ul className={styles.adviceList}>
                 {advice.cautions.map((s, i) => <li key={i}>{s}</li>)}
               </ul>
-            </>
+            </details>
           )}
           {advice.tips.length > 0 && (
-            <>
-              <h3 className={styles.adviceH}>💡 ข้อแนะนำอื่น</h3>
+            <details className={styles.fold} open>
+              <summary>💡 ข้อแนะนำอื่น ({advice.tips.length})</summary>
               <ul className={styles.adviceList}>
                 {advice.tips.map((s, i) => <li key={i}>{s}</li>)}
               </ul>
-            </>
+            </details>
           )}
           <p className={styles.note} style={{ marginTop: "0.8rem" }}>
             {advice.caveats.map((c, i) => <span key={i}>⚠️ {c}<br /></span>)}
