@@ -1,12 +1,13 @@
 "use client";
 
-// Logic 20 — ข่ายความสัมพันธ์หลาย entity
-// พอร์ตจาก legacy-artifacts/compatibility_dashboard.html
-// โทน: ☀️ สว่างหินอ่อน (.tone-marble) ตาม CLAUDE.md §2 — หน้านี้เป็น "ข้อมูล/ผลลัพธ์ถาวร"
+// Logic 20 — "ทำนายแบบองค์รวม" (ยกเครื่อง 22 ส.ค. 2569 ตามคำสั่งผู้ใช้ + เปลี่ยนชื่อโหมด)
+// เพิ่มหลายส่วนพร้อมกัน (ตนเอง · บ้าน · ทะเบียนรถ · โทรศัพท์ · เพื่อนร่วมงาน ฯลฯ)
+// → คะแนน 5 ด้านของแต่ละส่วน → ความสอดคล้องทั้งข่าย → จุดแข็ง/ข้อควรระวัง/คำแนะนำ (฿0 ล้วน)
 //
 // ⚠️ HTML ต้นฉบับมีสำเนาสูตรของตัวเองที่ล้าสมัย (DAY_ELEMENT บั๊ก B2, ไม่มีลี่ชุน B1)
 //    หน้านี้เรียก calculateElementSeed() ตัวจริงจาก lib/engine/element.ts เท่านั้น
 //    **ห้ามลอกสูตรจาก HTML กลับมา** (CLAUDE.md §5.1)
+// 🔴 ตัวเลขทุกตัวมาจาก engine (numberAspects / wuXingScore / network-holistic) — หน้าห้ามคำนวณเอง
 
 import { useMemo, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
@@ -28,6 +29,15 @@ import {
   type Entity,
   type EntityType,
 } from "@/lib/engine/compatibility";
+import {
+  birthPowerNumber,
+  parseRefInput,
+  partAspects,
+  analyzeCoherence,
+  holisticAdvice,
+  type HolisticPart,
+} from "@/lib/engine/network-holistic";
+import type { NumberAspectsResult } from "@/lib/engine/number-aspects";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./compatibility.module.css";
 import FunctionChat from "../_components/FunctionChat";
@@ -44,6 +54,35 @@ function zodiacAnimalFromYear(yearAd: number): string {
 const CX = 160;
 const CY = 160;
 const RADIUS = 118;
+
+/** แถบคะแนน 5 ด้าน — ตัวเลขมาจาก engine ล้วน component แค่วาด */
+function AspectBars({ aspects, title }: { aspects: NumberAspectsResult; title?: string }) {
+  return (
+    <div className={styles.aspectBox}>
+      {title && <div className={styles.aspectTitle}>{title}</div>}
+      {Object.entries(aspects.คะแนน).map(([label, score]) => (
+        <div key={label} className={styles.aspectRow}>
+          <span className={styles.aspectLabel}>{label}</span>
+          <span className={styles.aspectTrack}>
+            <span
+              className={styles.aspectFill}
+              data-tone={score >= 7 ? "good" : score <= 4 ? "bad" : undefined}
+              style={{ width: `${score * 10}%`, display: "block" }}
+            />
+          </span>
+          <span className={styles.aspectScore}>{score}/10</span>
+        </div>
+      ))}
+      <div className={styles.aspectRow}>
+        <span className={styles.aspectLabel} style={{ fontWeight: 700 }}>ภาพรวม</span>
+        <span className={styles.aspectTrack}>
+          <span className={styles.aspectFill} style={{ width: `${aspects.ภาพรวม * 10}%`, display: "block" }} />
+        </span>
+        <span className={styles.aspectScore}>{aspects.ภาพรวม}/10</span>
+      </div>
+    </div>
+  );
+}
 
 export default function CompatibilityPage() {
   const [birthDate, setBirthDate] = useState("");
@@ -72,6 +111,47 @@ export default function CompatibilityPage() {
     [entities, selfElement, selfMissing]
   );
   const selected = scored.find((s) => s.entity.id === selectedId) ?? null;
+
+  // ---- โหมดองค์รวม: คะแนน 5 ด้านของทุกส่วน (ตนเอง = เลขตัวตนจาก BirthPower) ----
+  const selfNumberStr = useMemo(() => {
+    if (!seed || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
+    return String(birthPowerNumber(birthDate)).padStart(2, "0");
+  }, [seed, birthDate]);
+
+  const holisticParts = useMemo<HolisticPart[]>(() => {
+    if (!seed || !selfElement || !selfNumberStr) return [];
+    const parts: HolisticPart[] = [
+      {
+        label: `ตัวคุณ (เลขตัวตน ${selfNumberStr})`,
+        icon: "👤",
+        aspects: partAspects({ digits: selfNumberStr, letters: null }, selfElement, selfMissing),
+        chemistry: null,
+        element: null,
+      },
+    ];
+    for (const s of scored) {
+      const ref = s.entity.ref ? parseRefInput(s.entity.ref) : null;
+      if (!ref) continue;
+      parts.push({
+        label: s.entity.name,
+        icon: ENTITY_ICONS[s.entity.type],
+        aspects: partAspects(ref, selfElement, selfMissing),
+        chemistry: s.result,
+        element: s.entity.element,
+      });
+    }
+    return parts;
+  }, [seed, selfElement, selfMissing, selfNumberStr, scored]);
+
+  const coherence = useMemo(() => analyzeCoherence(holisticParts), [holisticParts]);
+  const advice = useMemo(
+    () => (holisticParts.length >= 2 ? holisticAdvice(holisticParts, coherence, selfElement) : null),
+    [holisticParts, coherence, selfElement]
+  );
+
+  const selectedPart = selected
+    ? holisticParts.find((p) => p.label === selected.entity.name) ?? null
+    : null;
 
   function calcSelf(e: React.FormEvent) {
     e.preventDefault();
@@ -103,18 +183,25 @@ export default function CompatibilityPage() {
     e.preventDefault();
     setEntError(null);
     const name = entName.trim();
-    const num = Number(entNumber);
     if (!name) {
       setEntError("กรุณาตั้งชื่อสิ่งที่จะเพิ่ม");
       return;
     }
-    if (!entNumber.trim() || !Number.isFinite(num)) {
-      setEntError("กรุณากรอกเลขอ้างอิง (บ้านเลขที่ / เลขทะเบียน / เลขที่จดทะเบียน)");
+    const ref = parseRefInput(entNumber);
+    if (!ref) {
+      setEntError("กรุณากรอกเลขอ้างอิง 1-10 หลัก เช่น 47 · จง 6266 · 0812345678");
       return;
     }
     setEntities((prev) => [
       ...prev,
-      { id: nextId, name, type: entType, element: entityElementFromNumber(num), shared: entShared },
+      {
+        id: nextId,
+        name,
+        type: entType,
+        element: entityElementFromNumber(Number(ref.digits)),
+        shared: entShared,
+        ref: entNumber.trim(),
+      },
     ]);
     setNextId((n) => n + 1);
     setEntName("");
@@ -131,17 +218,17 @@ export default function CompatibilityPage() {
     <div className={`tone-marble ${styles.page}`}>
       <header className={styles.header}>
         <div style={{ textAlign: "center" }}><MascotLogo size={84} /></div>
-        <h1>ข่ายความสัมพันธ์</h1>
+        <h1>ทำนายแบบองค์รวม</h1>
         <p className={styles.sub}>
-          ดูว่าธาตุของคุณเข้ากับบ้าน รถ องค์กร และคนรอบตัวอย่างไร
+          บ้าน · ทะเบียนรถ · โทรศัพท์ · เพื่อนร่วมงาน — ดูคะแนน 5 ด้านของแต่ละส่วน
           <br />
-          คำนวณจากธาตุจริง ไม่ใช่การเดา
+          แล้วดูความสอดคล้องของทั้งชีวิตคุณ · คำนวณจากเลขศาสตร์และธาตุจริง ไม่ใช่การเดา
         </p>
       </header>
 
       {/* ---- 1. ธาตุของคุณ ---- */}
       <section className={styles.panel}>
-        <h2 className={styles.h2}>1. ธาตุของคุณ</h2>
+        <h2 className={styles.h2}>1. ตัวคุณ</h2>
         <form onSubmit={calcSelf}>
           <label className={styles.field}>
             <span>วันเกิด (ค.ศ.)</span>
@@ -155,7 +242,7 @@ export default function CompatibilityPage() {
           </label>
           {seedError && <p className={styles.error}>{seedError}</p>}
           <button type="submit" className={styles.btn}>
-            คำนวณธาตุของฉัน
+            คำนวณธาตุและเลขตัวตนของฉัน
           </button>
         </form>
 
@@ -182,13 +269,16 @@ export default function CompatibilityPage() {
               ธาตุที่ขาดไม่ใช่จุดอ่อนเสมอไป — สิ่งรอบตัวที่เป็นธาตุนั้นอาจกลายเป็น “ยา” ได้
               (Productive&nbsp;Clash)
             </p>
+            {holisticParts[0] && (
+              <AspectBars aspects={holisticParts[0].aspects} title={`คะแนน 5 ด้านของ ${holisticParts[0].label}`} />
+            )}
           </div>
         )}
       </section>
 
       {/* ---- 2. เพิ่มสิ่งรอบตัว ---- */}
       <section className={styles.panel}>
-        <h2 className={styles.h2}>2. เพิ่มสิ่งรอบตัว</h2>
+        <h2 className={styles.h2}>2. เพิ่มสิ่งรอบตัว (เพิ่มได้หลายรายการ)</h2>
         <form onSubmit={addEntity}>
           <div className={styles.row}>
             <label className={styles.field}>
@@ -211,18 +301,19 @@ export default function CompatibilityPage() {
                 type="text"
                 value={entName}
                 onChange={(e) => setEntName(e.target.value)}
-                placeholder="บ้านหลังใหม่"
+                placeholder="เช่น บ้านหลังใหม่ / รถคันเก่ง"
                 className={styles.input}
               />
             </label>
           </div>
           <label className={styles.field}>
-            <span>เลขอ้างอิง</span>
+            <span>เลขอ้างอิง (บ้านเลขที่ / ทะเบียน / เบอร์โทร — ใส่อักษรป้ายได้)</span>
             <input
-              type="number"
+              type="text"
+              inputMode="text"
               value={entNumber}
               onChange={(e) => setEntNumber(e.target.value)}
-              placeholder="เช่น 47 (บ้านเลขที่) หรือ 82 (เลขทะเบียน)"
+              placeholder="เช่น 47 · จง 6266 · 0812345678"
               className={styles.input}
             />
           </label>
@@ -241,10 +332,10 @@ export default function CompatibilityPage() {
         </form>
       </section>
 
-      {/* ---- 3. ผลลัพธ์ ---- */}
+      {/* ---- 3. คะแนนรายส่วน + แผนผังธาตุ ---- */}
       {seed && (
         <section className={styles.panel}>
-          <h2 className={styles.h2}>3. ภาพรวม</h2>
+          <h2 className={styles.h2}>3. คะแนนรายส่วน & เคมีธาตุ</h2>
 
           {aggregate && (
             <div className={styles.aggBox}>
@@ -329,55 +420,130 @@ export default function CompatibilityPage() {
                 <b>{THAI_LABEL_5[selected.entity.element]}</b>
               </div>
               <div className={styles.detailRow}>
-                <span>คะแนนดิบ</span>
-                <b className="num">{selected.result.raw_score}</b>
-              </div>
-              <div className={styles.detailRow}>
-                <span>คะแนนสุทธิ</span>
+                <span>เคมีธาตุกับคุณ</span>
                 <b className="num">
                   {selected.result.final_score > 0 ? "+" : ""}
                   {selected.result.final_score}
                 </b>
               </div>
               <p className={styles.relation}>{selected.result.relation_th}</p>
+              {selectedPart && (
+                <>
+                  <AspectBars aspects={selectedPart.aspects} title="คะแนน 5 ด้านของส่วนนี้" />
+                  {selectedPart.aspects.การ์ดผลรวม && (
+                    <p className={styles.partMeta}>🃏 การ์ดผลรวมเลข: {selectedPart.aspects.การ์ดผลรวม}</p>
+                  )}
+                  {selectedPart.aspects.ความหมายเลขท้าย && (
+                    <p className={styles.partMeta}>✨ เลขท้าย: {selectedPart.aspects.ความหมายเลขท้าย}</p>
+                  )}
+                </>
+              )}
             </div>
           )}
 
           {entities.length > 0 && (
             <ul className={styles.list}>
-              {scored.map(({ entity, result }) => (
-                <li key={entity.id} className={styles.listItem}>
-                  <button
-                    type="button"
-                    className={styles.listMain}
-                    onClick={() => setSelectedId(entity.id)}
-                  >
-                    <span>
-                      {ENTITY_ICONS[entity.type]} {entity.name}
-                    </span>
-                    <span className="num" style={{ color: relationColorVar(result) }}>
-                      {result.final_score > 0 ? "+" : ""}
-                      {result.final_score}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.removeBtn}
-                    onClick={() => removeEntity(entity.id)}
-                    aria-label={`ลบ ${entity.name}`}
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
+              {scored.map(({ entity, result }) => {
+                const part = holisticParts.find((p) => p.label === entity.name);
+                return (
+                  <li key={entity.id} className={styles.listItem}>
+                    <button
+                      type="button"
+                      className={styles.listMain}
+                      onClick={() => setSelectedId(entity.id)}
+                    >
+                      <span>
+                        {ENTITY_ICONS[entity.type]} {entity.name}
+                        {part ? ` · ${part.aspects.ภาพรวม}/10` : ""}
+                      </span>
+                      <span className="num" style={{ color: relationColorVar(result) }}>
+                        {result.final_score > 0 ? "+" : ""}
+                        {result.final_score}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.removeBtn}
+                      onClick={() => removeEntity(entity.id)}
+                      aria-label={`ลบ ${entity.name}`}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
       )}
-    
-      {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
-      <FunctionChat logicId={20} context={seed ? { ธาตุของฉัน: seed, สิ่งรอบตัว: scored, ภาพรวม: aggregate } : null} placeholder="เช่น ควรแก้ตรงไหนก่อนดี" />
 
+      {/* ---- 4. ความสอดคล้องทั้งข่าย + คำแนะนำ ---- */}
+      {advice && (
+        <section className={styles.panel}>
+          <h2 className={styles.h2}>4. ความสอดคล้องทั้งข่าย (5 ด้าน)</h2>
+          {coherence.map((c) => (
+            <div key={c.key} className={styles.coRow}>
+              <span className={styles.coLabel}>{c.labelTh}</span>
+              <span className={styles.coChip} data-tone={c.tone}>
+                {c.tone === "strong" ? "✅ หนุนกันทั้งข่าย" : c.tone === "caution" ? "⚠️ มีจุดต้องดู" : "· กลางๆ"}
+              </span>
+              <span className={styles.coDetail}>
+                เฉลี่ย {c.avg} · สูงสุด {c.strongest.label} ({c.max}) · ต่ำสุด {c.weakest.label} ({c.min})
+              </span>
+            </div>
+          ))}
+
+          {advice.strengths.length > 0 && (
+            <>
+              <h3 className={styles.adviceH}>✅ จุดแข็งที่ช่วยส่งเสริม</h3>
+              <ul className={styles.adviceList}>
+                {advice.strengths.map((s, i) => <li key={i}>{s}</li>)}
+              </ul>
+            </>
+          )}
+          {advice.cautions.length > 0 && (
+            <>
+              <h3 className={styles.adviceH}>⚠️ ข้อควรระวัง</h3>
+              <ul className={styles.adviceList}>
+                {advice.cautions.map((s, i) => <li key={i}>{s}</li>)}
+              </ul>
+            </>
+          )}
+          {advice.tips.length > 0 && (
+            <>
+              <h3 className={styles.adviceH}>💡 ข้อแนะนำอื่น</h3>
+              <ul className={styles.adviceList}>
+                {advice.tips.map((s, i) => <li key={i}>{s}</li>)}
+              </ul>
+            </>
+          )}
+          <p className={styles.note} style={{ marginTop: "0.8rem" }}>
+            {advice.caveats.map((c, i) => <span key={i}>⚠️ {c}<br /></span>)}
+          </p>
+        </section>
+      )}
+
+      {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
+      <FunctionChat
+        logicId={20}
+        context={
+          seed
+            ? {
+                ธาตุของฉัน: seed,
+                ส่วนในข่าย: holisticParts.map((p) => ({
+                  ส่วน: `${p.icon} ${p.label}`,
+                  คะแนน5ด้าน: p.aspects.คะแนน,
+                  ภาพรวม: p.aspects.ภาพรวม,
+                  เคมีธาตุ: p.chemistry?.relation_th ?? "—",
+                })),
+                ความสอดคล้อง: coherence.map((c) => ({ ด้าน: c.labelTh, เฉลี่ย: c.avg, ต่ำสุด: `${c.weakest.label} ${c.min}` })),
+                คำแนะนำ: advice,
+                คะแนนรวมข่ายธาตุ: aggregate,
+              }
+            : null
+        }
+        placeholder="เช่น ควรแก้ตรงไหนก่อนดี"
+      />
     </div>
   );
 }

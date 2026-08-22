@@ -22,10 +22,9 @@ const GENDER_OPTIONS = [
 const TOOLS: { href: string; label: string }[] = [
   { href: "/dream", label: "🌙 ทำนายฝัน" },
   { href: "/soulmate", label: "💞 ความรักและเนื้อคู่" },
-  { href: "/lucky-number", label: "🔢 ดูดวงทะเบียนรถ-เบอร์โทร" },
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา ลักกี้ (วิเคราะห์อิสระ)" },
   { href: "/fortune", label: "✨ ดวงของฉัน" },
-  { href: "/compatibility", label: "🤝 ข่ายความสัมพันธ์" },
+  { href: "/compatibility", label: "🤝 ทำนายแบบองค์รวม บ้าน-ทะเบียนรถ-เบอร์โทร" },
   { href: "/fengshui", label: "🧭 ฮวงจุ้ย" },
   { href: "/oracle", label: "🎴 เสี่ยงทาย" },
   { href: "/wellness", label: "🥗 อาหาร & กิจกรรมตามธาตุ" },

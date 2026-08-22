@@ -304,3 +304,114 @@
     gap: 0;
   }
 }
+
+/* ---- คะแนน 5 ด้าน (โหมดองค์รวม 22 ส.ค. 2569) ----
+   🔴 สีตัวหนังสือตายตัวเข้มเสมอ — บทเรียน /lucky-number: ป้ายบนการ์ดจางจนอ่านไม่ได้บนธีม triskele */
+.aspectBox {
+  margin-top: 0.9rem;
+}
+.aspectTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #6e5210;
+  margin-bottom: 0.4rem;
+}
+.aspectRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.18rem 0;
+}
+.aspectLabel {
+  flex: 0 0 8.2rem;
+  font-size: 0.82rem;
+  color: #1d1812;
+}
+.aspectTrack {
+  flex: 1;
+  height: 7px;
+  background: var(--marble-vein);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.aspectFill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 4px;
+}
+.aspectFill[data-tone="good"] { background: var(--good, #2e7d32); }
+.aspectFill[data-tone="bad"] { background: var(--bad, #b3261e); }
+.aspectScore {
+  flex: 0 0 3.2rem;
+  text-align: right;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1d1812;
+}
+
+/* ---- ความสอดคล้องทั้งข่าย ---- */
+.coRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed var(--marble-vein);
+  flex-wrap: wrap;
+}
+.coLabel {
+  flex: 0 0 8.2rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1d1812;
+}
+.coChip {
+  font-size: 0.72rem;
+  padding: 0.14rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.coChip[data-tone="strong"] { background: rgba(46,125,50,0.14); color: #2e7d32; }
+.coChip[data-tone="caution"] { background: rgba(179,38,30,0.12); color: #b3261e; }
+.coChip[data-tone="neutral"] { background: rgba(110,82,16,0.12); color: #6e5210; }
+.coDetail {
+  flex: 1;
+  min-width: 12rem;
+  font-size: 0.78rem;
+  color: #5c5344;
+}
+
+.adviceH {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1rem 0 0.35rem;
+  color: #6e5210;
+}
+.adviceList {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  color: #1d1812;
+  line-height: 1.7;
+}
+.partCard {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  background: var(--marble-bg);
+  border-left: 3px solid var(--gold);
+}
+.partHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1d1812;
+}
+.partMeta {
+  font-size: 0.78rem;
+  color: #5c5344;
+  margin-top: 0.2rem;
+  line-height: 1.6;
+}

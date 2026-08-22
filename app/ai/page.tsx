@@ -45,8 +45,8 @@ export default function AiFortunePage() {
           <h2 style={h2}>ลองพิสูจน์เองได้เลย (ฟรี)</h2>
           <p>
             ที่นี่ให้ลองแบบไม่ต้องเชื่อคำโฆษณา:{" "}
-            <Link href="/lucky-number" style={{ color: "var(--gold)", fontWeight: 700 }}>
-              ดูดวงทะเบียนรถ/เบอร์โทร — คะแนน 5 ด้านทันที
+            <Link href="/compatibility" style={{ color: "var(--gold)", fontWeight: 700 }}>
+              ทำนายแบบองค์รวม — บ้าน ทะเบียนรถ เบอร์โทร คะแนน 5 ด้านทันที
             </Link>{" "}
             หรือ{" "}
             <Link href="/" style={{ color: "var(--gold)", fontWeight: 700 }}>

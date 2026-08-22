@@ -14,11 +14,12 @@
 import { wuXingScore, type Element5, type WuXingResult } from "./element";
 import { artifactElement } from "./numerology";
 
-export type EntityType = "house" | "vehicle" | "colleague" | "romantic" | "company";
+export type EntityType = "house" | "vehicle" | "phone" | "colleague" | "romantic" | "company";
 
 export const ENTITY_ICONS: Record<EntityType, string> = {
   house: "🏠",
   vehicle: "🚗",
+  phone: "📱",
   colleague: "🧑‍🤝‍🧑",
   romantic: "💞",
   company: "🏢",
@@ -26,7 +27,8 @@ export const ENTITY_ICONS: Record<EntityType, string> = {
 
 export const ENTITY_LABELS: Record<EntityType, string> = {
   house: "บ้าน/ที่อยู่",
-  vehicle: "ยานพาหนะ",
+  vehicle: "ทะเบียนรถ",
+  phone: "เบอร์โทรศัพท์",
   colleague: "เพื่อนร่วมงาน",
   romantic: "คู่รัก",
   company: "องค์กร/บริษัท",
@@ -39,6 +41,8 @@ export interface Entity {
   element: Element5;
   /** อยู่ในบริบทเดียวกันทุกวัน (บ้านที่อยู่จริง/รถที่ขับเอง) → ถ่วงน้ำหนักมากกว่า */
   shared: boolean;
+  /** เลขอ้างอิงดิบตามที่ผู้ใช้พิมพ์ (เช่น "จง 6266" / "0812345678") — โหมดองค์รวมใช้คิดคะแนน 5 ด้าน */
+  ref?: string;
 }
 
 /**

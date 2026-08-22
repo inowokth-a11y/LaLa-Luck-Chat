@@ -8,7 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const pages: { path: string; priority: number }[] = [
     { path: "/", priority: 1 },
     { path: "/profile", priority: 0.9 },
-    { path: "/lucky-number", priority: 0.9 }, // SEO เฟส 1: ดูดวงทะเบียนรถ (KD 2)
     { path: "/ai", priority: 0.7 }, // SEO เฟส 1: คลัสเตอร์ "ดูดวง ai"
     { path: "/fortune", priority: 0.9 },
     { path: "/dream", priority: 0.9 },
@@ -16,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/dream-meaning", priority: 0.95 }, // SEO เฟส 2: hub "ทำนายฝัน" (274k/เดือน KD 23)
     { path: "/oracle", priority: 0.8 },
     { path: "/chat", priority: 0.8 },
-    { path: "/compatibility", priority: 0.7 },
+    { path: "/compatibility", priority: 0.9 }, // ทำนายแบบองค์รวม (รับช่วงคีย์เวิร์ดทะเบียนรถ/เบอร์จาก /lucky-number ที่ 301 มา)
     { path: "/fengshui", priority: 0.7 },
     { path: "/timing", priority: 0.7 },
     { path: "/wellness", priority: 0.6 },

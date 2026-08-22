@@ -34,7 +34,7 @@ export const ACTION_RATES: ActionRate[] = [
   // ---- ฟรี: ต้นทุน ฿0 (ไม่ใช้ AI) — แม่เหล็กดึงผู้ใช้ ----
   { key: "profile", label: "โปรไฟล์พลังงาน", costThb: 0, credits: 0, category: "free" },
   { key: "fortune", label: "ดวงของฉัน", costThb: 0, credits: 0, category: "free" },
-  { key: "compatibility", label: "ข่ายความสัมพันธ์", costThb: 0, credits: 0, category: "free" },
+  { key: "compatibility", label: "ทำนายแบบองค์รวม", costThb: 0, credits: 0, category: "free" },
   { key: "fengshui", label: "ฮวงจุ้ย", costThb: 0, credits: 0, category: "free" },
   { key: "naming_text", label: "ตั้งชื่อ/คำ prompt โลโก้ (ข้อความ)", costThb: 0, credits: 0, category: "free", note: "engine ล้วน ไม่ใช้ AI" },
 

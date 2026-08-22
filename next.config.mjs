@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // /lucky-number ถูกยุบเข้าโหมด "ทำนายแบบองค์รวม" (/compatibility) — ผู้ใช้สั่ง 22 ส.ค. 2569
+  // 301 ถาวรเพื่อรักษาลิงก์เดิม/อันดับที่เคยได้ (หน้าเคยอยู่ใน sitemap + GSC)
+  async redirects() {
+    return [{ source: "/lucky-number", destination: "/compatibility", permanent: true }];
+  },
   // 🔴 บังคับ pack ฟอนต์ไทยเข้า lambda ของ route ที่วาดรูป OG — การ trace อัตโนมัติเคยหลุด
   // บน Vercel (ENOENT /var/task/assets/NotoSansThai-SemiBold.ttf → OG การ์ด 500 ทั้งที่ local ปกติ
   // เจอจริง 3 ส.ค. 2569) อย่าพึ่ง trace อัตโนมัติกับไฟล์ asset ที่อ่านด้วย fs อีก
