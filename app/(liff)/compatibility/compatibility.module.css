@@ -485,3 +485,52 @@
   padding: 0 0.9rem 0.9rem;
   border-top: 1px dashed var(--marble-vein);
 }
+
+/* ---- ฟอร์มหลายแถว (ผู้ใช้ขอ 22 ส.ค. 2569): เพิ่มสิ่งรอบตัวได้สูงสุด 10 ---- */
+.draftRow {
+  border: 1px solid var(--marble-vein);
+  border-left: 3px solid var(--gold);
+  background: var(--marble-bg);
+  padding: 0.8rem 0.9rem 0.6rem;
+  margin-bottom: 0.8rem;
+}
+.draftRowHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.draftRowNo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6e5210;
+}
+.addRowBtn {
+  display: block;
+  width: 100%;
+  padding: 0.55rem;
+  margin-bottom: 0.9rem;
+  background: transparent;
+  color: #6e5210;
+  border: 1.5px dashed var(--gold);
+  border-radius: 3px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.addRowBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ctaLink {
+  display: inline-block;
+  margin: 0.2rem 0 0.7rem;
+  padding: 0.5rem 1rem;
+  background: var(--gold);
+  color: var(--card-bg);
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+}

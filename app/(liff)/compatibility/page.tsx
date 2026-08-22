@@ -9,8 +9,10 @@
 //    **ห้ามลอกสูตรจาก HTML กลับมา** (CLAUDE.md §5.1)
 // 🔴 ตัวเลขทุกตัวมาจาก engine (numberAspects / wuXingScore / network-holistic) — หน้าห้ามคำนวณเอง
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
+import { useStoredProfile } from "../_components/useStoredProfile";
+import { syncAuthStatus } from "@/app/_components/AuthStatus";
 import {
   calculateElementSeed,
   THAI_LABEL_4,
@@ -35,6 +37,8 @@ import {
   partAspects,
   analyzeCoherence,
   holisticAdvice,
+  FREE_NETWORK_PARTS,
+  MAX_NETWORK_PARTS,
   type HolisticPart,
 } from "@/lib/engine/network-holistic";
 import type { NumberAspectsResult } from "@/lib/engine/number-aspects";
@@ -84,21 +88,46 @@ function AspectBars({ aspects, title }: { aspects: NumberAspectsResult; title?: 
   );
 }
 
+/** แถวกรอกในฟอร์ม (ยังไม่คำนวณ) — กด "รับคำทำนายในภาพรวม" ถึงจะกลายเป็น entity */
+interface DraftRow {
+  id: number;
+  type: EntityType;
+  name: string;
+  ref: string;
+  shared: boolean;
+}
+
+const emptyRow = (id: number): DraftRow => ({ id, type: "house", name: "", ref: "", shared: false });
+
+/** ปลดล็อกข่ายใหญ่ (>2 สิ่งรอบตัว) จำต่อเซสชันเบราว์เซอร์ — หักครั้งเดียว ปรับรายการซ้ำไม่หักซ้ำ */
+const UNLOCK_KEY = "kruth_holistic_unlock";
+
 export default function CompatibilityPage() {
+  const { profile } = useStoredProfile();
   const [birthDate, setBirthDate] = useState("");
+  const [prefilled, setPrefilled] = useState(false);
   const [seed, setSeed] = useState<ElementSeedResult | null>(null);
   const [seedError, setSeedError] = useState<string | null>(null);
 
   const [entities, setEntities] = useState<Entity[]>([]);
-  const [nextId, setNextId] = useState(1);
   // กาง/พับผลรายส่วน (ผู้ใช้ขอ 22 ส.ค. 2569) — id ของส่วนที่กางอยู่
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
-  const [entType, setEntType] = useState<EntityType>("house");
-  const [entName, setEntName] = useState("");
-  const [entNumber, setEntNumber] = useState("");
-  const [entShared, setEntShared] = useState(false);
-  const [entError, setEntError] = useState<string | null>(null);
+  // ฟอร์มหลายแถว (ผู้ใช้ขอ 22 ส.ค. 2569): เพิ่มช่องได้สูงสุด MAX_NETWORK_PARTS
+  const [rows, setRows] = useState<DraftRow[]>([emptyRow(1)]);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [needsTopup, setNeedsTopup] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+
+  // เติมวันเกิดจากบัญชี (กรอกในโหมดอื่นแล้วไม่ต้องกรอกซ้ำ) — เฉพาะช่องที่ยังว่าง
+  useEffect(() => {
+    if (profile?.birth_date && !birthDate) {
+      setBirthDate(profile.birth_date);
+      setPrefilled(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
 
   const selfElement = (seed?.dominant ?? null) as Element5 | null;
   const selfMissing = useMemo(() => (seed?.missing ?? []) as Element5[], [seed]);
@@ -158,60 +187,53 @@ export default function CompatibilityPage() {
     [holisticParts, coherence, selfElement]
   );
 
-  function calcSelf(e: React.FormEvent) {
-    e.preventDefault();
+  /** คำนวณธาตุ+เลขตัวตนจากวันเกิด — คืน seed หรือ null (พร้อม set error) · reuse ทั้งปุ่มแยกและปุ่มรวม */
+  function computeSelf(): ElementSeedResult | null {
     setSeedError(null);
     const year = Number(birthDate.slice(0, 4));
     const month = Number(birthDate.slice(5, 7));
     const day = Number(birthDate.slice(8, 10));
     if (!year || !month || !day) {
       setSeedError("กรุณากรอกวันเกิดให้ครบ");
-      return;
+      return null;
     }
     // normalization layer: ข้อมูลจริงของ Platform D มี พ.ศ. ปนอยู่ (CLAUDE.md §8)
     if (year > 2400) {
       setSeedError("กรุณากรอกเป็น ค.ศ. (เช่น 1995) ไม่ใช่ พ.ศ.");
-      return;
+      return null;
     }
-    setSeed(
-      calculateElementSeed({
-        day_of_week: thaiDayOfWeek(birthDate),
-        birth_month: month,
-        birth_year_ad: year,
-        birth_day: day,
-        zodiac_year_animal: zodiacAnimalFromYear(year),
-      })
-    );
+    const s = calculateElementSeed({
+      day_of_week: thaiDayOfWeek(birthDate),
+      birth_month: month,
+      birth_year_ad: year,
+      birth_day: day,
+      zodiac_year_animal: zodiacAnimalFromYear(year),
+    });
+    setSeed(s);
+    return s;
   }
 
-  function addEntity(e: React.FormEvent) {
+  function calcSelf(e: React.FormEvent) {
     e.preventDefault();
-    setEntError(null);
-    const name = entName.trim();
-    if (!name) {
-      setEntError("กรุณาตั้งชื่อสิ่งที่จะเพิ่ม");
-      return;
-    }
-    const ref = parseRefInput(entNumber);
-    if (!ref) {
-      setEntError("กรุณากรอกเลขอ้างอิง 1-10 หลัก เช่น 47 · จง 6266 · 0812345678");
-      return;
-    }
-    setEntities((prev) => [
-      ...prev,
-      {
-        id: nextId,
-        name,
-        type: entType,
-        element: entityElementFromNumber(Number(ref.digits)),
-        shared: entShared,
-        ref: entNumber.trim(),
-      },
-    ]);
-    setNextId((n) => n + 1);
-    setEntName("");
-    setEntNumber("");
-    setEntShared(false);
+    computeSelf();
+  }
+
+  // ---- ฟอร์มหลายแถว ----
+  function updateRow(id: number, patch: Partial<DraftRow>) {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  }
+  function addRow() {
+    // 🔴 เช็คเพดาน + ออก id ภายใน functional update เท่านั้น — เช็คจาก state นอก closure
+    //    โดนกดรัวใน tick เดียวทะลุเพดานได้ (เจอจริงตอนทดสอบ: 12 คลิกรวด → 15 แถว id ซ้ำ)
+    setRows((prev) => {
+      if (prev.length >= MAX_NETWORK_PARTS) return prev;
+      const id = Math.max(0, ...prev.map((r) => r.id)) + 1;
+      return [...prev, emptyRow(id)];
+    });
+  }
+  function removeRow(id: number) {
+    setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev.map(() => emptyRow(id))));
+    removeEntity(id);
   }
 
   function removeEntity(id: number) {
@@ -221,6 +243,83 @@ export default function CompatibilityPage() {
       next.delete(id);
       return next;
     });
+  }
+
+  /**
+   * ปุ่มหลัก "รับคำทำนายในภาพรวม" — คำนวณตัวคุณให้อัตโนมัติถ้ายังไม่ได้กด แล้วคำนวณทุกส่วน
+   * ฟรี ≤FREE_NETWORK_PARTS สิ่งรอบตัว · เกิน = ปลดล็อกผ่าน /api/holistic (20 เครดิต ครั้งเดียว/เซสชัน)
+   */
+  async function getReading(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    setNeedsLogin(false);
+    setNeedsTopup(false);
+
+    // 1. ตัวคุณ — ยังไม่คำนวณ = คำนวณให้เลย (ผู้ใช้สั่ง: กดปุ่มเดียวจบ)
+    const s = seed ?? computeSelf();
+    if (!s) {
+      setFormError("กรุณากรอกวันเกิดในข้อ 1 ให้ถูกต้องก่อนค่ะ");
+      return;
+    }
+
+    // 2. ตรวจแถว — แถวว่างล้วนข้าม · แถวที่กรอกบางส่วนต้องมีเลขอ้างอิง
+    const drafts: { row: DraftRow; digits: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r.name.trim() && !r.ref.trim()) continue; // แถวว่าง — ข้าม
+      const parsed = parseRefInput(r.ref);
+      if (!parsed) {
+        setFormError(`รายการที่ ${i + 1}: กรุณากรอกเลขอ้างอิง 1-10 หลัก เช่น 47 · จง 6266 · 0812345678`);
+        return;
+      }
+      drafts.push({ row: r, digits: parsed.digits });
+    }
+
+    // 3. เกิน 2 สิ่งรอบตัว → ปลดล็อกด้วยเครดิต (จำต่อเซสชัน — ปรับรายการซ้ำไม่หักซ้ำ)
+    if (drafts.length > FREE_NETWORK_PARTS && sessionStorage.getItem(UNLOCK_KEY) !== "1") {
+      setUnlocking(true);
+      try {
+        const r = await fetch("/api/holistic", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ count: drafts.length }),
+        });
+        const d = await r.json();
+        if (r.status === 401) {
+          setNeedsLogin(true);
+          setFormError(d.error ?? "กรุณาเข้าสู่ระบบก่อนค่ะ");
+          return;
+        }
+        if (r.status === 429) {
+          setNeedsTopup(true);
+          setFormError(d.message ?? "เครดิตไม่พอค่ะ");
+          return;
+        }
+        if (!r.ok) {
+          setFormError(d.error ?? "เกิดข้อผิดพลาด ลองใหม่อีกครั้งค่ะ");
+          return;
+        }
+        sessionStorage.setItem(UNLOCK_KEY, "1");
+        syncAuthStatus();
+      } catch {
+        setFormError("เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งค่ะ");
+        return;
+      } finally {
+        setUnlocking(false);
+      }
+    }
+
+    // 4. สร้าง entity ทั้งชุดจากแถว (id เดียวกับแถว — ลบจากผลลัพธ์ = ลบแถวด้วย)
+    setEntities(
+      drafts.map(({ row, digits }) => ({
+        id: row.id,
+        name: row.name.trim() || `${ENTITY_LABELS[row.type]} ${row.ref.trim()}`,
+        type: row.type,
+        element: entityElementFromNumber(Number(digits)),
+        shared: row.shared,
+        ref: row.ref.trim(),
+      }))
+    );
   }
 
   return (
@@ -240,7 +339,7 @@ export default function CompatibilityPage() {
         <h2 className={styles.h2}>1. ตัวคุณ</h2>
         <form onSubmit={calcSelf}>
           <label className={styles.field}>
-            <span>วันเกิด (ค.ศ.)</span>
+            <span>วันเกิด (ค.ศ.){prefilled ? " · ✓ เติมข้อมูลจากบัญชีของคุณ" : ""}</span>
             <input
               type="date"
               value={birthDate}
@@ -288,58 +387,97 @@ export default function CompatibilityPage() {
         )}
       </section>
 
-      {/* ---- 2. เพิ่มสิ่งรอบตัว ---- */}
+      {/* ---- 2. เพิ่มสิ่งรอบตัว (หลายแถว — ผู้ใช้ขอ 22 ส.ค. 2569) ---- */}
       <section className={styles.panel}>
         <h2 className={styles.h2}>2. เพิ่มสิ่งรอบตัว (เพิ่มได้หลายรายการ)</h2>
-        <form onSubmit={addEntity}>
-          <div className={styles.row}>
-            <label className={styles.field}>
-              <span>ประเภท</span>
-              <select
-                value={entType}
-                onChange={(e) => setEntType(e.target.value as EntityType)}
-                className={styles.input}
-              >
-                {(Object.keys(ENTITY_LABELS) as EntityType[]).map((t) => (
-                  <option key={t} value={t}>
-                    {ENTITY_ICONS[t]} {ENTITY_LABELS[t]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={styles.field}>
-              <span>ชื่อเรียก</span>
-              <input
-                type="text"
-                value={entName}
-                onChange={(e) => setEntName(e.target.value)}
-                placeholder="เช่น บ้านหลังใหม่ / รถคันเก่ง"
-                className={styles.input}
-              />
-            </label>
-          </div>
-          <label className={styles.field}>
-            <span>เลขอ้างอิง (บ้านเลขที่ / ทะเบียน / เบอร์โทร — ใส่อักษรป้ายได้)</span>
-            <input
-              type="text"
-              inputMode="text"
-              value={entNumber}
-              onChange={(e) => setEntNumber(e.target.value)}
-              placeholder="เช่น 47 · จง 6266 · 0812345678"
-              className={styles.input}
-            />
-          </label>
-          <label className={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              checked={entShared}
-              onChange={(e) => setEntShared(e.target.checked)}
-            />
-            <span>อยู่กับสิ่งนี้ทุกวัน (ให้น้ำหนักมากขึ้น 1.5 เท่า)</span>
-          </label>
-          {entError && <p className={styles.error}>{entError}</p>}
-          <button type="submit" className={styles.btn} disabled={!seed}>
-            {seed ? "เพิ่มเข้าข่าย" : "คำนวณธาตุของคุณก่อน"}
+        <p className={styles.note} style={{ marginTop: 0 }}>
+          ฟรี {FREE_NETWORK_PARTS} รายการแรก · เกินนั้นใช้ 20 เครดิต/ครั้ง (สูงสุด {MAX_NETWORK_PARTS} รายการ
+          — หักครั้งเดียว ปรับรายการแล้วทำนายซ้ำได้)
+        </p>
+        <form onSubmit={getReading}>
+          {rows.map((r, i) => (
+            <div key={r.id} className={styles.draftRow}>
+              <div className={styles.draftRowHead}>
+                <span className={styles.draftRowNo}>รายการที่ {i + 1}</span>
+                {rows.length > 1 && (
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => removeRow(r.id)}
+                    aria-label={`ลบรายการที่ ${i + 1}`}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className={styles.row}>
+                <label className={styles.field}>
+                  <span>ประเภท</span>
+                  <select
+                    value={r.type}
+                    onChange={(e) => updateRow(r.id, { type: e.target.value as EntityType })}
+                    className={styles.input}
+                  >
+                    {(Object.keys(ENTITY_LABELS) as EntityType[]).map((t) => (
+                      <option key={t} value={t}>
+                        {ENTITY_ICONS[t]} {ENTITY_LABELS[t]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.field}>
+                  <span>ชื่อเรียก (ไม่บังคับ)</span>
+                  <input
+                    type="text"
+                    value={r.name}
+                    onChange={(e) => updateRow(r.id, { name: e.target.value })}
+                    placeholder="เช่น บ้านหลังใหม่ / รถคันเก่ง"
+                    className={styles.input}
+                  />
+                </label>
+              </div>
+              <label className={styles.field}>
+                <span>เลขอ้างอิง (บ้านเลขที่ / ทะเบียน / เบอร์โทร — ใส่อักษรป้ายได้)</span>
+                <input
+                  type="text"
+                  inputMode="text"
+                  value={r.ref}
+                  onChange={(e) => updateRow(r.id, { ref: e.target.value })}
+                  placeholder="เช่น 47 · จง 6266 · 0812345678"
+                  className={styles.input}
+                />
+              </label>
+              <label className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={r.shared}
+                  onChange={(e) => updateRow(r.id, { shared: e.target.checked })}
+                />
+                <span>อยู่กับสิ่งนี้ทุกวัน (ให้น้ำหนักมากขึ้น 1.5 เท่า)</span>
+              </label>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className={styles.addRowBtn}
+            onClick={addRow}
+            disabled={rows.length >= MAX_NETWORK_PARTS}
+          >
+            {rows.length >= MAX_NETWORK_PARTS
+              ? `ครบ ${MAX_NETWORK_PARTS} รายการแล้ว`
+              : "➕ เพิ่มข้อมูลสิ่งรอบตัว"}
+          </button>
+
+          {formError && <p className={styles.error}>{formError}</p>}
+          {needsLogin && (
+            <a href="/login?next=/compatibility" className={styles.ctaLink}>เข้าสู่ระบบ / ผูกบัญชี →</a>
+          )}
+          {needsTopup && (
+            <a href="/account" className={styles.ctaLink}>⭐ เติมเครดิต →</a>
+          )}
+          <button type="submit" className={styles.btn} disabled={unlocking}>
+            {unlocking ? "กำลังปลดล็อก..." : "🔮 รับคำทำนายในภาพรวม"}
           </button>
         </form>
       </section>
@@ -451,7 +589,7 @@ export default function CompatibilityPage() {
                   <button
                     type="button"
                     className={styles.removeBtn}
-                    onClick={() => removeEntity(entity.id)}
+                    onClick={() => removeRow(entity.id)}
                     aria-label={`ลบ ${entity.name}`}
                   >
                     ✕

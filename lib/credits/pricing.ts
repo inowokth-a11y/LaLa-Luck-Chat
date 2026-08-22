@@ -45,6 +45,10 @@ export const ACTION_RATES: ActionRate[] = [
   // ---- Oracle: หมวดแยก ----
   { key: "oracle", label: "เสี่ยงทายวงแหวนคู่", costThb: 0.76, credits: 20, category: "oracle" },
 
+  // ---- ทำนายแบบองค์รวม (Logic 20 — ผู้ใช้เคาะ 22 ส.ค. 2569: ฟรี 2 สิ่งรอบตัว · เกิน = คิดต่อครั้ง) ----
+  { key: "holistic_network", label: "ทำนายแบบองค์รวม เกิน 2 สิ่งรอบตัว (สูงสุด 10)", costThb: 0, credits: 20, category: "oracle",
+    note: "engine ฿0 ล้วน (ขายมูลค่า ไม่ใช่ต้นทุน) · หักครั้งเดียวต่อเซสชันเบราว์เซอร์ — ปรับรายการแล้วทำนายซ้ำไม่หักซ้ำ" },
+
   // ---- เนื้อคู่ (Logic 17 v1 — ผู้ใช้เคาะราคา 21 ส.ค. 2569: ฟรีครั้งแรก แล้ว 20 เครดิต) ----
   { key: "soulmate", label: "คำทำนายเนื้อคู่", costThb: 0.5, credits: 20, category: "chat",
     note: "engine ฿0 (ลัคนา→ราศีที่ 7 + ข.2) + narrator ~฿0.3-0.5 · ฟรีครั้งแรกผ่าน bucket logic:17" },

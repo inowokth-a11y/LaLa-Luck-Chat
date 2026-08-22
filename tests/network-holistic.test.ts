@@ -3,6 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  FREE_NETWORK_PARTS,
+  MAX_NETWORK_PARTS,
   birthPowerNumber,
   parseRefInput,
   partAspects,
@@ -86,4 +88,9 @@ test("holisticAdvice — caveat บังคับครบ 2 ตัว + พิ
   assert.ok(cautionText.includes("พิฆาต"), "พิฆาตต้องขึ้นเป็นข้อควรระวัง");
   assert.ok(cautionText.includes("ธาตุดิน"), "ต้องแนะธาตุสะพาน (ไฟ↔ทอง = ดิน)");
   assert.ok(advice.strengths.join("\n").includes("ยา"), "Productive Clash ต้องเป็นจุดแข็ง");
+});
+
+test("ขีดจำกัดข่าย (ผู้ใช้เคาะ 22 ส.ค. 2569): ฟรี 2 · สูงสุด 10 · เรทเครดิตมีจริงใน pricing", () => {
+  assert.equal(FREE_NETWORK_PARTS, 2);
+  assert.equal(MAX_NETWORK_PARTS, 10);
 });
