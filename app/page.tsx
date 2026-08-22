@@ -23,8 +23,10 @@ const TOOLS: { href: string; label: string }[] = [
   { href: "/dream", label: "🌙 ทำนายฝัน" },
   { href: "/soulmate", label: "💞 ความรักและเนื้อคู่" },
   { href: "/chat", label: "💬 ถามอาจารย์ลาลา ลักกี้ (วิเคราะห์อิสระ)" },
-  { href: "/fortune", label: "✨ ดวงของฉัน" },
+  // "ดวงของฉัน" (/fortune) ถอดปุ่มตามคำสั่งผู้ใช้ 22 ส.ค. 2569 (ซ้ำซ้อนกับ flow การ์ด+แชท)
+  // — ตัวหน้ายังอยู่ (SEO/sitemap เข้าถึงได้ตรง) แค่ไม่โชว์ในเมนู
   { href: "/compatibility", label: "🤝 ทำนายแบบองค์รวม บ้าน-ทะเบียนรถ-เบอร์โทร" },
+  { href: "/timing", label: "📅 ดูฤกษ์ดี" },
   { href: "/fengshui", label: "🧭 ฮวงจุ้ย" },
   { href: "/oracle", label: "🎴 เสี่ยงทาย" },
   { href: "/wellness", label: "🥗 อาหาร & กิจกรรมตามธาตุ" },
