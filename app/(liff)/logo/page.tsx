@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { calculateElementSeed, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
-import { logoImagePrompt } from "@/lib/engine/naming";
+import { logoImagePrompt, logoExternalPrompt } from "@/lib/engine/naming";
 import {
   teamMemberFromBirthDate,
   scoreStylesForTeam,
@@ -164,8 +164,13 @@ export default function LogoPage() {
   // ดีฟอลต์สไตล์ = สไตล์แนะนำของทีม → ธาตุเจ้าของ → Earth
   const chosen = style ?? team.recommended ?? me?.dominant ?? "Earth";
   const chosenFit = team.fits.find((f) => f.style === chosen) ?? null;
-  // prompt สด — ตัวเดียวกับที่ /api/logo ใช้ (logoImagePrompt) คัดลอกไปใช้กับ AI อื่นได้
+  // prompt สำหรับคัดลอกไปใช้ภายนอก — เวอร์ชันดีไซน์เต็ม+หลายสี+มีชื่อแบรนด์ (ผู้ใช้รายงาน 23 ส.ค.
+  // 2569 ว่าตัวภายในเรียบเกิน/สีเดียว/ไม่มีตัวอักษร — ตัวภายในจงใจเป็นแบบนั้นเพื่อ font-overlay)
   const promptPreview = useMemo(
+    () => logoExternalPrompt(chosen, brand.trim() || "YourBrand", extra.trim() || null),
+    [chosen, brand, extra]
+  );
+  const internalPrompt = useMemo(
     () => logoImagePrompt(chosen, brand.trim() || "YourBrand", extra.trim() || null),
     [chosen, brand, extra]
   );
@@ -304,8 +309,9 @@ export default function LogoPage() {
         <details style={{ border: "1px dashed var(--gold-dim,#a89870)", borderRadius: 8, padding: "0.6rem 0.8rem" }}>
           <summary style={{ ...S.note, cursor: "pointer", fontWeight: 600 }}>📋 ดู Prompt สำหรับสร้างภาพโลโก้นี้ (คัดลอกไปใช้ที่อื่นได้)</summary>
           <p style={{ ...S.note, marginTop: "0.4rem" }}>
-            นี่คือ prompt เดียวกับที่ระบบใช้สร้างภาพ — คัดลอกไปวางใน AI สร้างภาพเจ้าอื่น
-            (เช่น ChatGPT, Gemini, Midjourney, Canva) เพื่อสร้างโลโก้ด้วยตัวเองได้เลย
+            คัดลอกไปวางใน AI สร้างภาพเจ้าอื่น (เช่น ChatGPT, Gemini, Midjourney, Canva)
+            เพื่อสร้างโลโก้ด้วยตัวเองได้เลย — เวอร์ชันนี้ปรับสำหรับใช้ภายนอก:
+            ดีไซน์มีมิติ · พาเลตหลายสีตามธาตุ · ใส่ชื่อแบรนด์ในภาพ
           </p>
           <p style={{ ...S.note, marginTop: "0.4rem", fontFamily: "var(--font-mono)", background: "color-mix(in srgb,var(--gold) 8%,transparent)", padding: "0.5rem 0.7rem", borderRadius: 6, userSelect: "all", wordBreak: "break-word" }}>
             {promptPreview}
@@ -313,6 +319,14 @@ export default function LogoPage() {
           <button type="button" style={{ ...S.addBtn, marginTop: "0.4rem" }} onClick={copyPrompt}>
             {copied ? "✓ คัดลอกแล้ว" : "📋 คัดลอก Prompt"}
           </button>
+          <p style={{ ...S.note, marginTop: "0.4rem" }}>
+            💡 ชื่อไทยใน AI ภายนอกอาจสะกดเพี้ยน — พิมพ์สั่งให้แก้การสะกดได้ หรือบอกให้ทำแบบไม่มีตัวอักษรแล้วเติมชื่อเองทีหลัง
+            (ระบบของเราแก้ปัญหานี้ด้วยการวางชื่อทับด้วยฟอนต์ไทยจริง จึงสะกดถูกเสมอ)
+          </p>
+          <details style={{ marginTop: "0.4rem" }}>
+            <summary style={{ ...S.note, cursor: "pointer" }}>ดูเวอร์ชันที่ระบบใช้สร้างจริง (ไอคอนล้วน ไม่มีตัวอักษร)</summary>
+            <p style={{ ...S.note, marginTop: "0.3rem", fontFamily: "var(--font-mono)", wordBreak: "break-word", userSelect: "all" }}>{internalPrompt}</p>
+          </details>
         </details>
 
         <div style={{ display: "flex", gap: "0.5rem" }}>

@@ -148,6 +148,40 @@ const LOGO_STYLE_EN: Record<string, { shape: string; color: string; mood: string
   Water: { shape: "smooth flowing wave-like curves", color: "blue", mood: "flexible, deep" },
 };
 
+/**
+ * พาเลตต์หลายสีตามธาตุ (สีหลัก + สีรอง + สีเน้น) — สำหรับ prompt เวอร์ชันภายนอกเท่านั้น
+ * pipeline ภายในยังใช้สีเดียว (LOGO_STYLE_EN) เพราะ FLUX schnell คุมง่ายกว่า + ผ่านการยิงจริงแล้ว
+ */
+const LOGO_PALETTE_EN: Record<string, string> = {
+  Wood: "fresh green as the main color with warm cream and gold accents",
+  Fire: "warm red-orange as the main color with deep crimson and golden yellow accents",
+  Earth: "golden brown as the main color with terracotta and cream accents",
+  Metal: "silver-grey as the main color with white and champagne gold accents",
+  Water: "deep blue as the main color with turquoise and soft white accents",
+};
+
+/**
+ * prompt สำหรับ "นำไปใช้กับ AI ภายนอก" (ChatGPT/Gemini/Midjourney ฯลฯ — ผู้ใช้รายงาน 23 ส.ค. 2569:
+ * ตัวภายในเรียบเกิน+สีเดียว+ห้ามตัวอักษร) — เวอร์ชันนี้จงใจต่างจาก logoImagePrompt 3 จุด:
+ * ดีไซน์มีมิติ/รายละเอียด · พาเลตหลายสีตามธาตุ · **ใส่ชื่อแบรนด์เป็นตัวอักษรในภาพ**
+ * (AI ภายนอกไม่มี font-overlay ของเรา — GPT/Gemini เรนเดอร์ตัวอักษรได้เอง แม้ไทยอาจสะกดเพี้ยนบ้าง
+ * → UI มีคำแนะนำให้สั่งแก้/ขอแบบไม่มีตัวอักษรแทน) · 🔴 ห้ามเอาเวอร์ชันนี้ไปยิง fal — ตัวใน
+ * pipeline ต้อง no-text เพื่อวางชื่อไทยด้วยฟอนต์จริง (สะกดถูก 100%)
+ */
+export function logoExternalPrompt(element: string, brandName: string, extra?: string | null): string {
+  const s = LOGO_STYLE_EN[element] ?? LOGO_STYLE_EN.Earth;
+  const palette = LOGO_PALETTE_EN[element] ?? LOGO_PALETTE_EN.Earth;
+  const clean = (extra ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, 200);
+  return (
+    `Design a modern professional logo for a brand named "${brandName}". ` +
+    `The main symbol uses ${s.shape}, with rich layered details, subtle gradients and gentle depth (not flat, not overly minimalist). ` +
+    `Color palette: ${palette}. Mood: ${s.mood}. ` +
+    `Include the brand name "${brandName}" in clean elegant typography below the symbol, spelled exactly as written. ` +
+    `Balanced centered composition, soft light background, premium brand identity style, high resolution` +
+    (clean ? `. Additional requirements: ${clean}` : "")
+  );
+}
+
 /** prompt อังกฤษล้วนสำหรับ fal · extra = ความต้องการเพิ่มเติมของผู้ใช้ (คุมความยาว/บรรทัดแล้ว) */
 export function logoImagePrompt(element: string, brandName: string, extra?: string | null): string {
   const s = LOGO_STYLE_EN[element] ?? LOGO_STYLE_EN.Earth;

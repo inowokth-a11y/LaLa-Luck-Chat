@@ -80,3 +80,23 @@ test("ทิศ 8 ตัว (ไม่มี 'กลาง') + วิธีด�
   assert.ok(help.includes("เข็มทิศ") && help.includes("Google Maps") && help.includes("ประตู"));
   assert.equal(LOGO_STYLES.length, 5);
 });
+
+// ---- prompt ภายนอก (23 ส.ค. 2569 — feedback ผู้ใช้: ตัวภายในเรียบเกิน/สีเดียว/ห้ามตัวอักษร) ----
+import { logoExternalPrompt, logoImagePrompt } from "../lib/engine/naming";
+
+test("logoExternalPrompt — มีชื่อแบรนด์เป็นตัวอักษร + หลายสี + ไม่แบน · ตัวภายในยัง no-text เหมือนเดิม", () => {
+  const ext = logoExternalPrompt("Fire", "รุ่งเรืองกาแฟ", "มีรูปแก้วกาแฟ");
+  assert.ok(ext.includes('brand name "รุ่งเรืองกาแฟ"'), "ต้องสั่งใส่ชื่อแบรนด์ในภาพ");
+  assert.ok(/typography/i.test(ext), "ต้องมีคำสั่งตัวอักษร");
+  assert.ok(!/no text|no letters/i.test(ext), "เวอร์ชันภายนอกห้ามแบนตัวอักษร");
+  assert.ok(/accents/i.test(ext), "ต้องเป็นพาเลตหลายสี (มีสีเน้น)");
+  assert.ok(/not flat|layered|depth/i.test(ext), "ต้องกันดีไซน์เรียบเกิน");
+  assert.ok(ext.includes("มีรูปแก้วกาแฟ"), "extra requirements ต้องติดไป");
+  // ตัวภายใน (fal pipeline) ต้องไม่เปลี่ยน — no-text เพื่อ font-overlay ไทยสะกดถูก
+  const internal = logoImagePrompt("Fire", "รุ่งเรืองกาแฟ");
+  assert.ok(/no text/i.test(internal) && /minimalist/i.test(internal));
+  // ทุกธาตุมีพาเลตของตัวเอง (fallback ไม่พัง)
+  for (const el of ["Wood", "Fire", "Earth", "Metal", "Water", "Unknown"]) {
+    assert.ok(logoExternalPrompt(el, "X").length > 100);
+  }
+});
