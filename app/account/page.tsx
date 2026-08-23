@@ -175,11 +175,12 @@ export default function AccountPage() {
     flexDirection: "column",
     gap: "1.1rem",
   };
+  // 🔴 ห้ามทาพื้น inline บนการ์ด — inline ชนะกฎพื้นครีมกลางของ .tone-marble (กับดัก triskele
+  // ที่จดไว้ 10 ส.ค. 2569) เคยเป็น color-mix โปร่งใส → ลายพื้นทะลุการ์ด อ่านไม่ออก (ผู้ใช้ทัก 23 ส.ค.)
   const card: React.CSSProperties = {
     border: "1px solid var(--gold-dim, #a89870)",
     borderRadius: 8,
     padding: "1rem 1.2rem",
-    background: "color-mix(in srgb, var(--gold) 5%, transparent)",
   };
   const btn: React.CSSProperties = {
     fontFamily: "var(--font-sans-thai)",
@@ -191,7 +192,7 @@ export default function AccountPage() {
     cursor: "pointer",
     border: "1px solid var(--gold-dim, #a89870)",
     color: "var(--text, var(--ink))",
-    background: "transparent",
+    background: "var(--surface, #fffdf8)",
   };
 
   if (!ready || !view) {
@@ -203,7 +204,7 @@ export default function AccountPage() {
 
   return (
     <main className="tone-marble" style={page}>
-      <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--gold)", margin: 0 }}>บัญชีของฉัน</h1>
+      <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.7rem", color: "var(--outer-gold, var(--gold))", margin: 0 }}>บัญชีของฉัน</h1>
 
       <section style={card}>
         <Row label="เข้าสู่ระบบด้วย" value={view.provider ? PROVIDER_LABEL[view.provider] ?? view.provider : "—"} />

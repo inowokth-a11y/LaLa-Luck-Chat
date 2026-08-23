@@ -281,7 +281,14 @@ export async function POST(req: Request) {
       }
       const cost = creditCost("soulmate_images");
       const balance = await getCreditBalance(userId);
-      const charge = decideCharge({ freeRemaining: 0, loggedIn: true, balance, cost, freeLaunch: freeLaunchMode() });
+      // ฟรี 1 ครั้ง/บัญชีถาวร (ผู้ใช้เคาะ 23 ส.ค. 2569) — นับแถวจริงใน soulmate_gen_e
+      // (แพทเทิร์นเดียวกับ face-card: นับของที่เคยสร้างจริง ไม่รีเซ็ต ล้าง cookie ไม่ช่วย)
+      const { count: genCount } = await createServiceClient()
+        .from("soulmate_gen_e")
+        .select("id", { count: "exact", head: true })
+        .eq("auth_uid", userId);
+      const freeRemaining = (genCount ?? 0) > 0 ? 0 : 1;
+      const charge = decideCharge({ freeRemaining, loggedIn: true, balance, cost, freeLaunch: freeLaunchMode() });
       if (charge.mode === "denied") {
         return NextResponse.json(
           { quotaExceeded: true, message: chargeDeniedMessage(charge), credits: charge.balance, creditCost: charge.cost },

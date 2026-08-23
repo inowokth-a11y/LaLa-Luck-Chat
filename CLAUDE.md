@@ -1510,6 +1510,13 @@ wuXingScore ดู §5) ให้สลับเป็น `wuXingScore(dominant,
 - **verify E2E จริง:** FLUX 5.4 วิ ได้คอลลาจคนเดียวกัน 4 ช่อง (ลุคเกาหลี โทนอบอุ่นตรงธาตุไฟ ชุดสุภาพ)
   · captions 3 · /sm + story + OG 200 · หัก 30cr ledger ตรง · cleanup · เทสต์ 504 · build ผ่าน
 - injection-safe เดิมคงอยู่: look นอก preset → default ไทย (เทสต์ล็อก)
+- **ภาพเนื้อคู่ฟรี 1 ครั้ง/บัญชี (ผู้ใช้เคาะ 23 ส.ค. 2569):** นับแถวจริง soulmate_gen_e
+  (ถาวร — แพทเทิร์นเดียว face-card) → ครั้งถัดไป 30cr · E2E: เครดิต 0 ครั้งแรกได้ฟรี →
+  ครั้งสอง 429 → เติม 30 หักจริง ledger ตรง · copy หน้า/ปุ่ม "ฟรีครั้งแรก"
+- **หน้า /account อ่านไม่ออกบนธีม triskele — แก้แล้ว (ผู้ใช้ส่ง screenshot 23 ส.ค. 2569):**
+  ต้นเหตุคือกับดัก #1 เดิมเป๊ะ — การ์ดทาพื้น inline `color-mix(...transparent)` ทับกฎพื้นครีมกลาง
+  → ลบ inline background ให้ .tone-marble section จัดการ (ครีมทึบ+ตัวเข้ม) · ปุ่มพื้น --surface ·
+  h1 นอกการ์ดใช้ --outer-gold · ตรวจ browser ด้วย session จริง: ทุก section ครีม #fffdf8 ตัวเข้ม
 - **เก็บตกตามผู้ใช้ทัก (23 ส.ค. 2569):** ① promptEn นรลักษณ์ครบวลีรูปร่างทั้ง 5 ธาตุ (Water เพิ่ม
   soft curvy figure — มีน้ำมีนวล · เทสต์ล็อก /build|figure|waist|shoulders/) + caption ภาพ 1 โชว์
   "ใบหน้า... · รูปร่าง..." ครบ ② OG /sm + สตอรี่แยกบรรทัด "🧬 แนวโน้มรูปลักษณ์" (เดิมตัดที่ 120

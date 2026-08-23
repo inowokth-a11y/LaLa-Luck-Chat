@@ -326,7 +326,7 @@ export default function SoulmatePage() {
           <div style={{ marginTop: "1.4rem" }}>
             <h2 className={styles.h2}>ภาพจินตนาการเนื้อคู่</h2>
             <p className={styles.note} style={{ marginTop: 0 }}>
-              AI วาดจากบุคลิก ธาตุ และรูปร่างตามนรลักษณ์ที่คำนวณ (คอลลาจ 1 รูป 4 มุม · 30 เครดิต) — เป็นภาพจินตนาการเท่านั้น
+              AI วาดจากบุคลิก ธาตุ และรูปร่างตามนรลักษณ์ที่คำนวณ (คอลลาจ 1 รูป 4 มุม · ฟรีครั้งแรก แล้วครั้งละ 30 เครดิต) — เป็นภาพจินตนาการเท่านั้น
               ไม่ใช่บุคคลจริง และไม่ได้มาจากตำรา
             </p>
             {/* สัญชาติ/สไตล์ลุค (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง ·
@@ -347,7 +347,7 @@ export default function SoulmatePage() {
             {imgError && <p className={styles.error}>{imgError}</p>}
             {!images.length && (
               <button type="button" className={styles.ctaBtn} onClick={generateImages} disabled={imgLoading}>
-                {imgLoading ? "กำลังวาดภาพ... (~15 วินาที)" : "🎨 สร้างภาพเนื้อคู่ (คอลลาจ 4 มุม · 30 เครดิต)"}
+                {imgLoading ? "กำลังวาดภาพ... (~15 วินาที)" : "🎨 สร้างภาพเนื้อคู่ (คอลลาจ 4 มุม · ฟรีครั้งแรก)"}
               </button>
             )}
             {images.length > 0 && (
