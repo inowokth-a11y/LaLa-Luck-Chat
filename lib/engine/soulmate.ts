@@ -231,6 +231,27 @@ export function soulmateChemistry(
   };
 }
 
+/** ชั้นเสริมธาตุจากชื่อผู้ใช้ ↔ ธาตุคู่ (ผู้ใช้เคาะ 23 ส.ค. 2569) —
+ *  ตารางกลุ่มอักษร→ธาตุยังรอเจ้าของสูตรยืนยัน จึงเป็นชั้นเสริมพร้อม NAME_TABLE_CAVEAT เสมอ
+ *  ไม่ใช่แกนหลักของคำทำนาย (แกนหลัก = ลัคนา/ภพปัตนิ + ธาตุจากวันเกิด ตามตำรา) */
+export interface OwnNameLayer {
+  elementTh: string;
+  fit: WuXingResult;
+}
+
+function buildOwnNameLayer(
+  ownName: string | null | undefined,
+  partnerElement: Element5,
+  userMissing: Element5[]
+): OwnNameLayer | null {
+  const nm = ownName?.trim();
+  if (!nm) return null;
+  const el = nameElement(nm);
+  if (!el) return null;
+  // มุมเดียวกับเคมีหลัก: ธาตุ(จากชื่อ)ของเรา ↔ ธาตุคู่ · ธาตุที่เราขาด = Productive Clash ได้
+  return { elementTh: THAI_LABEL_5[el], fit: wuXingScore(el, partnerElement, [...userMissing]) };
+}
+
 export interface SoulmateReading {
   mode: "lagna";
   lagnaSign: ZodiacSign;
@@ -240,6 +261,8 @@ export interface SoulmateReading {
   chemistry: SoulmateChemistry;
   /** แนวโน้มรูปลักษณ์จากธาตุของราศีคู่ — ตาราง ค.1 นรลักษณ์กายา (ตำราจริง) */
   appearance: Physiognomy;
+  /** ธาตุจากชื่อผู้ใช้ ↔ ธาตุคู่ (ชั้นเสริม ⚠️) — null เมื่อไม่ให้ชื่อ/อ่านธาตุไม่ได้ */
+  nameLayer: OwnNameLayer | null;
   caveats: string[];
 }
 
@@ -247,10 +270,12 @@ export interface SoulmateReading {
 export function soulmateReading(
   lagnaSign: ZodiacSign,
   userDominant: Element5,
-  userMissing: Element5[]
+  userMissing: Element5[],
+  ownName?: string | null
 ): SoulmateReading {
   const seventh = seventhSign(lagnaSign);
   const partner = ZODIAC_TRAITS[seventh];
+  const nameLayer = buildOwnNameLayer(ownName, partner.element, userMissing);
   return {
     mode: "lagna",
     lagnaSign,
@@ -259,7 +284,8 @@ export function soulmateReading(
     rulers: partner.rulerIds.map((id) => PLANET_MEANINGS[id]),
     chemistry: soulmateChemistry(userDominant, partner.element, userMissing),
     appearance: PHYSIOGNOMY_BY_ELEMENT[partner.element],
-    caveats: [SOULMATE_CAVEAT, APPEARANCE_CAVEAT, SOULMATE_SCOPE_NOTE],
+    nameLayer,
+    caveats: [SOULMATE_CAVEAT, APPEARANCE_CAVEAT, ...(nameLayer ? [NAME_TABLE_CAVEAT] : []), SOULMATE_SCOPE_NOTE],
   };
 }
 
@@ -270,6 +296,8 @@ export interface SoulmateElementReading {
   supportDirections: Direction[];
   /** แนวโน้มรูปลักษณ์จากธาตุคู่อันดับ 1 — ตาราง ค.1 */
   appearance: Physiognomy;
+  /** ธาตุจากชื่อผู้ใช้ ↔ ธาตุคู่อันดับ 1 (ชั้นเสริม ⚠️) */
+  nameLayer: OwnNameLayer | null;
   caveats: string[];
 }
 
@@ -280,15 +308,18 @@ export const SOULMATE_NO_TIME_NOTE =
 
 export function soulmateElementReading(
   userDominant: Element5,
-  userMissing: Element5[]
+  userMissing: Element5[],
+  ownName?: string | null
 ): SoulmateElementReading {
   const c = soulmateChemistry(userDominant, userDominant, userMissing);
+  const nameLayer = buildOwnNameLayer(ownName, c.rankedElements[0].element, userMissing);
   return {
     mode: "element",
     rankedElements: c.rankedElements,
     supportDirections: c.supportDirections,
     appearance: PHYSIOGNOMY_BY_ELEMENT[c.rankedElements[0].element],
-    caveats: [SOULMATE_NO_TIME_NOTE, SOULMATE_CAVEAT, APPEARANCE_CAVEAT, SOULMATE_SCOPE_NOTE],
+    nameLayer,
+    caveats: [SOULMATE_NO_TIME_NOTE, SOULMATE_CAVEAT, APPEARANCE_CAVEAT, ...(nameLayer ? [NAME_TABLE_CAVEAT] : []), SOULMATE_SCOPE_NOTE],
   };
 }
 

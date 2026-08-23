@@ -235,3 +235,26 @@ test("คอลลาจรูปเดียวหลายอิริยา�
   const def = soulmateCollagePrompt({ gender: "male", element: "Earth", look: null });
   assert.equal(evil, def, "look นอก preset ต้องเท่ากับ default ไทย");
 });
+
+import { nameElement as nameElementFn } from "../lib/engine/naming";
+
+test("ชั้นเสริมธาตุจากชื่อผู้ใช้ — มีชื่อ = nameLayer + NAME_TABLE_CAVEAT · ไม่มีชื่อ = null ไม่แตะ caveat เดิม", () => {
+  // ไม่มีชื่อ → เหมือนเดิมทุกอย่าง (backward compatible)
+  const base = soulmateReading("กันย์", "Fire", ["Water"]);
+  assert.equal(base.nameLayer, null);
+  assert.ok(!base.caveats.includes(NAME_TABLE_CAVEAT));
+  // มีชื่อ → ธาตุชื่อจาก engine จริง (Logic 19) + fit จาก wuXingScore มุมเดียวกับเคมีหลัก
+  const withName = soulmateReading("กันย์", "Fire", ["Water"], "สมชาย รักดี");
+  assert.ok(withName.nameLayer, "ต้องมี nameLayer เมื่อให้ชื่อ");
+  const expectEl = nameElementFn("สมชาย รักดี");
+  assert.ok(expectEl, "ชื่อทดสอบต้องอ่านธาตุได้");
+  const expectFit = wuXingScore(expectEl!, withName.partner.element, ["Water"]);
+  assert.deepEqual(withName.nameLayer!.fit, expectFit, "fit ต้องตรง wuXingScore ตัวจริง");
+  assert.ok(withName.caveats.includes(NAME_TABLE_CAVEAT), "caveat ตารางอักษรต้องติดมาเสมอ");
+  // โหมดธาตุ (ไม่มีเวลาเกิด) ก็ได้ชั้นนี้เช่นกัน
+  const el = soulmateElementReading("Fire", ["Water"], "สมชาย รักดี");
+  assert.ok(el.nameLayer);
+  assert.ok(el.caveats.includes(NAME_TABLE_CAVEAT));
+  // ชื่อว่าง/ช่องว่างล้วน → null
+  assert.equal(soulmateReading("กันย์", "Fire", ["Water"], "   ").nameLayer, null);
+});

@@ -27,6 +27,7 @@ interface ReadingResponse {
     rankedElements?: { thai: string; score: number; relation: string }[];
     supportDirections?: string[];
     appearance?: { faceTh: string; bodyTh: string };
+    nameLayer?: { elementTh: string; fit: { relation_th: string; final_score: number } } | null;
     caveats: string[];
   };
   error?: string;
@@ -58,6 +59,7 @@ export default function SoulmatePage() {
   const [birthTime, setBirthTime] = useState("");
   const [province, setProvince] = useState("bangkok");
   const [partnerGender, setPartnerGender] = useState("");
+  const [ownName, setOwnName] = useState("");
   const [prefilled, setPrefilled] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -93,6 +95,8 @@ export default function SoulmatePage() {
       setPrefilled(true);
     }
     if (profile.birth_time && !birthTime) setBirthTime(profile.birth_time.slice(0, 5));
+    const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+    if (fullName && !ownName) setOwnName(fullName);
     if (profile.birth_province) setProvince(profile.birth_province);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
@@ -121,6 +125,7 @@ export default function SoulmatePage() {
           birthTime: birthTime || undefined,
           province: birthTime ? province : undefined,
           partnerGender,
+          name: ownName.trim() || undefined,
         }),
       });
       const data = (await r.json()) as ReadingResponse;
@@ -262,6 +267,10 @@ export default function SoulmatePage() {
             </label>
           )}
           <label className={styles.field}>
+            <span>ชื่อ-นามสกุลของคุณ (ไม่บังคับ — ชั้นเสริมธาตุจากชื่อ){profile?.first_name ? " · ✓ เติมจากบัญชี" : ""}</span>
+            <input type="text" className={styles.input} value={ownName} onChange={(e) => setOwnName(e.target.value)} placeholder="เช่น สมชาย รักดี" maxLength={100} />
+          </label>
+          <label className={styles.field}>
             <span>เพศคู่ที่สนใจ (ระบบจะไม่เดาให้)</span>
             <select className={styles.input} value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)} required>
               <option value="">— เลือก —</option>
@@ -316,6 +325,12 @@ export default function SoulmatePage() {
                   <span>ใบหน้า{reading.appearance.faceTh} · รูปร่าง{reading.appearance.bodyTh}</span>
                 </div>
               )}
+            </div>
+          )}
+          {reading?.nameLayer && (
+            <div className={styles.factRow} style={{ marginBottom: "0.8rem" }}>
+              <span className={styles.factLabel}>ธาตุจากชื่อคุณ↔ธาตุคู่ ⚠️</span>
+              <span>ธาตุ{reading.nameLayer.elementTh} · {reading.nameLayer.fit.relation_th} ({reading.nameLayer.fit.final_score >= 0 ? "+" : ""}{reading.nameLayer.fit.final_score})</span>
             </div>
           )}
           <div className={styles.reply}>{res.reply}</div>

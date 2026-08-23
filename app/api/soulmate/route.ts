@@ -95,6 +95,8 @@ interface SoulmateBody {
   partnerBirthTime?: string;
   partnerProvince?: string;
   partnerName?: string;
+  /** ชื่อ-นามสกุลของผู้ใช้เอง (ไม่บังคับ) — ชั้นเสริมธาตุจากชื่อ · คำนวณชั่วขณะ ไม่จัดเก็บเพิ่ม */
+  name?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;
@@ -158,9 +160,10 @@ export async function POST(req: Request) {
 
     // ---- คำนวณ engine ฿0 (ใช้ร่วมทั้งสองโหมด) ----
     const lagna = body.birthTime && body.province ? lagnaFrom(body.birthDate!, body.birthTime, body.province) : null;
+    const ownName = typeof body.name === "string" ? body.name.trim().slice(0, 100) : null;
     const reading = lagna
-      ? soulmateReading(lagna, profile.dominant, profile.missing)
-      : soulmateElementReading(profile.dominant, profile.missing);
+      ? soulmateReading(lagna, profile.dominant, profile.missing, ownName)
+      : soulmateElementReading(profile.dominant, profile.missing, ownName);
     // ธาตุของ "คู่" สำหรับโทนภาพ: ชั้นลัคนา = ธาตุราศีที่ 7 · ชั้นธาตุ = ธาตุอันดับ 1 ที่เกื้อหนุน
     const partnerElement: Element5 =
       reading.mode === "lagna" ? reading.partner.element : reading.rankedElements[0].element;
@@ -409,6 +412,15 @@ export async function POST(req: Request) {
               ทิศที่เกื้อหนุน: reading.supportDirections,
               แนวโน้มรูปลักษณ์ตามนรลักษณ์_ค1: { ใบหน้า: reading.appearance.faceTh, รูปร่าง: reading.appearance.bodyTh },
             }),
+        ...(reading.nameLayer
+          ? {
+              ธาตุจากชื่อผู้ใช้_ชั้นเสริม: {
+                ธาตุ: reading.nameLayer.elementTh,
+                คะแนน: reading.nameLayer.fit.final_score,
+                ความสัมพันธ์: reading.nameLayer.fit.relation_th,
+              },
+            }
+          : {}),
         คำเตือนที่ต้องแสดงครบ: reading.caveats,
       },
       null,
