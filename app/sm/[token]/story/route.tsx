@@ -23,7 +23,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
     ]);
     if (!artBuf) return new Response(null, { status: 404 });
     const artUri = imageBufferToDataUri(artBuf);
-    const caption = thaiSoftWrap(stripCjkForSatori(data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง").slice(0, 130));
+    const cap0 = stripCjkForSatori(data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง");
+    const [traitsPart, lookPart] = cap0.split(" · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ");
+    const caption = thaiSoftWrap(traitsPart.slice(0, 110));
+    const lookLine = lookPart ? thaiSoftWrap(lookPart.slice(0, 140)) : null;
 
     const img = new ImageResponse(
       (
@@ -51,7 +54,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
           >
             <div style={{ display: "flex", width: "100%", height: 1230 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={artUri} width={984} height={1230} style={{ objectFit: "cover", width: "100%", height: "100%" }} alt="" />
+              <img src={artUri} width={984} height={1230} style={{ objectFit: "cover", objectPosition: "center top", width: "100%", height: "100%" }} alt="" />
             </div>
             <div
               style={{
@@ -67,9 +70,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
               <div style={{ display: "flex", fontSize: 58, color: "#96700a", fontWeight: 700, lineHeight: 1.2 }}>
                 เนื้อคู่ตามดวงของฉัน ✨
               </div>
-              <div style={{ display: "flex", fontSize: 30, color: "#2b2620", marginTop: 12, lineHeight: 1.5 }}>
+              <div style={{ display: "flex", fontSize: 29, color: "#2b2620", marginTop: 12, lineHeight: 1.45 }}>
                 {caption}
               </div>
+              {lookLine && (
+                <div style={{ display: "flex", fontSize: 25, color: "#5a4a2a", marginTop: 8, lineHeight: 1.45 }}>
+                  🧬 {lookLine}
+                </div>
+              )}
               <div style={{ display: "flex", fontSize: 26, color: "#6b6255", marginTop: 12 }}>
                 🎨 ภาพจินตนาการจาก AI — ไม่ใช่บุคคลจริง
               </div>

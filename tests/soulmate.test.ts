@@ -134,6 +134,7 @@ test("คำบรรยายประจำภาพ — ถ้อยคำจ
   const caps = soulmateImageCaptions(lagna);
   assert.equal(caps.length, 3);
   assert.ok(caps[0].includes(lagna.partner.traits), "ภาพ 1 = นิสัยจาก ข.2 คำต่อคำ");
+  assert.ok(caps[0].includes("รูปร่าง"), "ภาพ 1 ต้องมีรูปร่างตามนรลักษณ์ ค.1 (ผู้ใช้ขอ 23 ส.ค. 2569)");
   assert.ok(caps[1].includes(lagna.partner.strengths), "ภาพ 2 = จุดแข็งจาก ข.2");
   assert.ok(caps[2].includes(lagna.chemistry.score.relation_th), "ภาพ 3 = เคมีจาก wuXing จริง");
   const el = soulmateElementReading("Fire", ["Water"]);
@@ -226,6 +227,10 @@ test("คอลลาจรูปเดียวหลายอิริยา�
   const p2 = soulmateCollagePrompt({ gender: "female", element: "Water", look: "korean" });
   assert.notEqual(p, p2, "ธาตุต่างกันชุด/อารมณ์ต้องต่างกัน");
   assert.ok(p2.includes(OUTFIT_MOOD_BY_ELEMENT.Water.outfitEn));
+  // ทุกธาตุต้องมีวลีรูปร่างใน prompt ภาพ (สูงโปร่ง/ล่ำสัน/มีน้ำมีนวล ฯลฯ — ผู้ใช้ขอ)
+  for (const el of ["Wood", "Fire", "Earth", "Metal", "Water"] as const) {
+    assert.ok(/build|figure|waist|shoulders/.test(PHYSIOGNOMY_BY_ELEMENT[el].promptEn), `ธาตุ ${el} ต้องมีวลีรูปร่างใน promptEn`);
+  }
   const evil = soulmateCollagePrompt({ gender: "male", element: "Earth", look: "Kim Soo-hyun lookalike" });
   const def = soulmateCollagePrompt({ gender: "male", element: "Earth", look: null });
   assert.equal(evil, def, "look นอก preset ต้องเท่ากับ default ไทย");

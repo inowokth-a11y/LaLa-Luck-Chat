@@ -180,7 +180,7 @@ export const PHYSIOGNOMY_BY_ELEMENT: Record<Element5, Physiognomy> = {
   Water: {
     faceTh: "ใบหน้ากลม, อูม, มีเนื้อเยอะ, หน้ากว้าง, คางสั้น",
     bodyTh: "ท้วม, มีเนื้อ",
-    promptEn: "soft round full face with gentle plump friendly features",
+    promptEn: "soft round full face with gentle plump friendly features, soft gently curvy figure with radiant supple skin",
   },
 };
 
@@ -438,8 +438,9 @@ export function soulmateCollagePrompt(opts: {
   const om = OUTFIT_MOOD_BY_ELEMENT[opts.element];
   return (
     `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} shown in four different poses and camera angles arranged in a 2x2 grid — ` +
-    `front close-up portrait smiling, side profile view, seated relaxed pose, standing with arms crossed. ` +
+    `front close-up portrait smiling, side profile view, seated relaxed pose, full-body standing pose with arms crossed showing the body build. ` +
     `Each panel shows that person completely alone, exactly one person per panel, never two people together. ` +
+    `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
     `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
     `${phys.promptEn}, ${look}, modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
@@ -454,7 +455,7 @@ export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElement
     const dirs = reading.chemistry.supportDirections.slice(0, 3).join("/");
     const phys = PHYSIOGNOMY_BY_ELEMENT[p.element];
     return [
-      `นิสัยเด่นของคู่: ${p.traits} (ราศี${reading.seventhSign} · ธาตุ${THAI_LABEL_5[p.element]}) · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ใบหน้า${phys.faceTh}`,
+      `นิสัยเด่นของคู่: ${p.traits} (ราศี${reading.seventhSign} · ธาตุ${THAI_LABEL_5[p.element]}) · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ใบหน้า${phys.faceTh} · รูปร่าง${phys.bodyTh}`,
       `จุดแข็งเมื่ออยู่ด้วยกัน: ${p.strengths}`,
       `เคมีธาตุ: ${reading.chemistry.score.relation_th}${dirs ? ` · พลังเกื้อหนุนอยู่ทางทิศ${dirs}` : ""}`,
     ];

@@ -40,7 +40,12 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
       readSoulmateImage(data.image_paths[0]),
     ]);
     const artUri = artBuf ? imageBufferToDataUri(artBuf) : null;
-    const caption = thaiSoftWrap(truncateAtWord(stripCjkForSatori(data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง"), 120));
+    // caption[0] = "นิสัยเด่นของคู่: ... · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ใบหน้า... · รูปร่าง..."
+    // แยกเป็น 2 บรรทัดให้เห็นรูปลักษณ์ครบ (ผู้ใช้ทัก 23 ส.ค. 2569 — เดิมตัดที่ 120 รูปลักษณ์หายทั้งท่อน)
+    const cap0 = stripCjkForSatori(data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง");
+    const [traitsPart, lookPart] = cap0.split(" · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ");
+    const caption = thaiSoftWrap(truncateAtWord(traitsPart, 105));
+    const lookLine = lookPart ? thaiSoftWrap(truncateAtWord(lookPart, 135)) : null;
 
     return new ImageResponse(
       (
@@ -68,7 +73,12 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
               <div style={{ display: "flex", fontSize: 50, color: "#96700a", fontWeight: 700, lineHeight: 1.25 }}>
                 เนื้อคู่ตามดวงของฉัน ✨
               </div>
-              <div style={{ display: "flex", fontSize: 26, color: "#2b2620", lineHeight: 1.55 }}>{caption}</div>
+              <div style={{ display: "flex", fontSize: 25, color: "#2b2620", lineHeight: 1.5 }}>{caption}</div>
+              {lookLine && (
+                <div style={{ display: "flex", fontSize: 22, color: "#5a4a2a", lineHeight: 1.5 }}>
+                  🧬 แนวโน้มรูปลักษณ์: {lookLine}
+                </div>
+              )}
               <div
                 style={{
                   display: "flex",
@@ -92,7 +102,7 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
             {artUri && (
               <div style={{ display: "flex", width: 500, height: "100%" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={artUri} width={500} height={582} style={{ objectFit: "cover", width: "100%", height: "100%" }} alt="" />
+                <img src={artUri} width={500} height={582} style={{ objectFit: "cover", objectPosition: "center top", width: "100%", height: "100%" }} alt="" />
               </div>
             )}
           </div>
