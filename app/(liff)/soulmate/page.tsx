@@ -34,6 +34,21 @@ interface ReadingResponse {
   credits?: number | null;
 }
 
+interface MatchResponse {
+  reply?: string;
+  match?: {
+    partner: { dominantTh: string; missingTh: string[]; identityNumber: string };
+    chemistry: { final_score: number; relation_th: string };
+    coherence: { labelTh: string; avg: number; min: number; max: number; tone: string; weakest: { label: string; score: number }; strongest: { label: string; score: number } }[];
+    patni: { userSeventh: string; partnerLagna: string; match: boolean } | null;
+    nameLayer: { elementTh: string; fit: { relation_th: string; final_score: number } } | null;
+    advice: { strengths: string[]; cautions: string[]; tips: string[] };
+    caveats: string[];
+  };
+  error?: string;
+  message?: string;
+}
+
 export default function SoulmatePage() {
   const { profile } = useStoredProfile();
   const [birthDate, setBirthDate] = useState("");
@@ -54,6 +69,15 @@ export default function SoulmatePage() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState<string | null>(null);
+
+  // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
+  const [pBirthDate, setPBirthDate] = useState("");
+  const [pBirthTime, setPBirthTime] = useState("");
+  const [pProvince, setPProvince] = useState("bangkok");
+  const [pName, setPName] = useState("");
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [matchRes, setMatchRes] = useState<MatchResponse | null>(null);
+  const [matchError, setMatchError] = useState<string | null>(null);
 
   // เติมจากบัญชีเฉพาะช่องที่ยังว่าง — ไม่ทับที่ผู้ใช้พิมพ์เอง (แพทเทิร์นเดียวกับ /profile)
   useEffect(() => {
@@ -144,7 +168,52 @@ export default function SoulmatePage() {
     }
   }
 
+  async function submitMatch(e: React.FormEvent) {
+    e.preventDefault();
+    setMatchError(null);
+    setNeedsLogin(false);
+    setNeedsTopup(false);
+    if (!birthDate) return setMatchError("กรุณากรอกวันเกิดของคุณในแบบฟอร์มด้านบนก่อนค่ะ");
+    if (!pBirthDate) return setMatchError("กรุณากรอกวันเกิดของอีกฝ่ายค่ะ");
+    setMatchLoading(true);
+    setMatchRes(null);
+    try {
+      const r = await fetch("/api/soulmate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mode: "match",
+          birthDate,
+          birthTime: birthTime || undefined,
+          province: birthTime ? province : undefined,
+          partnerBirthDate: pBirthDate,
+          partnerBirthTime: pBirthTime || undefined,
+          partnerProvince: pBirthTime ? pProvince : undefined,
+          partnerName: pName.trim() || undefined,
+        }),
+      });
+      const data = (await r.json()) as MatchResponse & { needsLogin?: boolean };
+      if (r.status === 401) {
+        setNeedsLogin(true);
+        setMatchError(data.error ?? "กรุณาเข้าสู่ระบบก่อนค่ะ");
+      } else if (r.status === 429) {
+        setNeedsTopup(true);
+        setMatchError(data.message ?? "สิทธิ์ฟรีหมดแล้วค่ะ");
+      } else if (!r.ok) {
+        setMatchError(data.error ?? "เกิดข้อผิดพลาด");
+      } else {
+        setMatchRes(data);
+        syncAuthStatus();
+      }
+    } catch {
+      setMatchError("เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งค่ะ");
+    } finally {
+      setMatchLoading(false);
+    }
+  }
+
   const reading = res?.reading;
+  const m = matchRes?.match;
 
   return (
     <div className={`tone-marble ${styles.page}`}>
@@ -304,6 +373,101 @@ export default function SoulmatePage() {
           </div>
         </section>
       )}
+
+      {/* ---- เช็คกับคนที่คุณสนใจ (23 ส.ค. 2569) ---- */}
+      <section className={styles.panel}>
+        <h2 className={styles.h2}>💕 เช็คกับคนที่คุณสนใจ</h2>
+        <p className={styles.note} style={{ marginTop: 0 }}>
+          ใส่วันเกิดของเขา — ระบบเทียบเคมีธาตุ ความสอดคล้อง 5 ด้าน และภพคู่ครอง (ปัตนิ) ให้
+          · ข้อมูลของอีกฝ่ายใช้คำนวณชั่วขณะ <b>ไม่ถูกจัดเก็บ</b>
+        </p>
+        <form onSubmit={submitMatch}>
+          <label className={styles.field}>
+            <span>วันเกิดของเขา (ค.ศ.) — จำเป็น</span>
+            <input type="date" className={styles.input} value={pBirthDate} onChange={(e) => setPBirthDate(e.target.value)} required />
+          </label>
+          <label className={styles.field}>
+            <span>เวลาเกิดของเขา (ถ้าทราบ — เปิดชั้นเช็คภพคู่ครองไขว้ตามตำรา)</span>
+            <input type="time" className={styles.input} value={pBirthTime} onChange={(e) => setPBirthTime(e.target.value)} />
+          </label>
+          {pBirthTime && (
+            <label className={styles.field}>
+              <span>จังหวัดที่เขาเกิด</span>
+              <select className={styles.input} value={pProvince} onChange={(e) => setPProvince(e.target.value)}>
+                {provincesByRegion().map((g) => (
+                  <optgroup key={g.region} label={g.region}>
+                    {g.items.map((p) => (
+                      <option key={p.key} value={p.key}>{p.name}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          )}
+          <label className={styles.field}>
+            <span>ชื่อ-นามสกุลของเขา (ไม่บังคับ — ชั้นเสริมธาตุจากชื่อ ตารางรอเจ้าของสูตรยืนยัน)</span>
+            <input type="text" className={styles.input} value={pName} onChange={(e) => setPName(e.target.value)} maxLength={60} placeholder="เช่น สมชาย รักดี" />
+          </label>
+          {matchError && <p className={styles.error}>{matchError}</p>}
+          {needsLogin && (
+            <div className={styles.ctaRow}>
+              <a className={styles.ctaBtn} href="/login?next=/soulmate">เข้าสู่ระบบ / ผูกบัญชี →</a>
+            </div>
+          )}
+          {needsTopup && (
+            <div className={styles.ctaRow}>
+              <a className={styles.ctaBtn} href="/account">⭐ เติมเครดิต →</a>
+            </div>
+          )}
+          <button type="submit" className={styles.btn} disabled={matchLoading}>
+            {matchLoading ? "กำลังคำนวณ..." : "💕 เช็คความเข้ากัน"}
+          </button>
+          <p className={styles.note}>
+            ใช้สิทธิ์เดียวกับคำทำนายเนื้อคู่ (ฟรีครั้งแรก · จากนั้น 20 เครดิต) — ไม่รองรับรูปถ่ายของอีกฝ่าย
+            เพราะเป็นข้อมูลชีวมิติที่เจ้าตัวต้องยินยอมเอง
+          </p>
+        </form>
+
+        {matchRes?.reply && m && (
+          <div style={{ marginTop: "1.2rem", borderTop: "1px dashed var(--marble-vein)", paddingTop: "1rem" }}>
+            <div className={styles.factRow}>
+              <span className={styles.factLabel}>ธาตุของเขา</span>
+              <span>{m.partner.dominantTh} · ขาด {m.partner.missingTh.length ? m.partner.missingTh.join(", ") : "—"} · เลขตัวตน {m.partner.identityNumber}</span>
+            </div>
+            <div className={styles.factRow}>
+              <span className={styles.factLabel}>เคมีธาตุคุณ↔เขา</span>
+              <span>{m.chemistry.relation_th} ({m.chemistry.final_score >= 0 ? "+" : ""}{m.chemistry.final_score})</span>
+            </div>
+            {m.patni && (
+              <div className={styles.factRow}>
+                <span className={styles.factLabel}>ภพคู่ครอง (ปัตนิ)</span>
+                <span>{m.patni.match ? `💞 ตรงกันทั้งสองทาง (ราศี${m.patni.partnerLagna})` : `ไม่ตรง — ภพคู่ครองของคุณคือราศี${m.patni.userSeventh} (ไม่ใช่ลางร้าย)`}</span>
+              </div>
+            )}
+            {m.nameLayer && (
+              <div className={styles.factRow}>
+                <span className={styles.factLabel}>ธาตุจากชื่อเขา ⚠️</span>
+                <span>{m.nameLayer.elementTh} — {m.nameLayer.fit.relation_th}</span>
+              </div>
+            )}
+            <details className={styles.fold ?? undefined} open style={{ marginTop: "0.6rem" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 700, fontSize: "0.9rem" }}>📊 ความสอดคล้อง 5 ด้าน (จากเลขตัวตนทั้งคู่)</summary>
+              {m.coherence.map((c) => (
+                <div key={c.labelTh} className={styles.factRow}>
+                  <span className={styles.factLabel}>{c.labelTh}</span>
+                  <span>
+                    {c.tone === "strong" ? "✅" : c.tone === "caution" ? "⚠️" : "·"} เฉลี่ย {c.avg} · สูงสุด {c.strongest.label} ({c.max}) · ต่ำสุด {c.weakest.label} ({c.min})
+                  </span>
+                </div>
+              ))}
+            </details>
+            <div className={styles.reply} style={{ marginTop: "0.8rem" }}>{matchRes.reply}</div>
+            {m.caveats.length > 0 && (
+              <div className={styles.caveat}>{m.caveats.map((c, i) => <p key={i}>⚠️ {c}</p>)}</div>
+            )}
+          </div>
+        )}
+      </section>
 
       <FunctionChat
         logicId={17}

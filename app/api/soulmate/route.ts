@@ -16,6 +16,7 @@ import {
   soulmateElementReading,
   soulmateImagePrompt,
   soulmateImageCaptions,
+  partnerMatchReading,
   SOULMATE_IMAGE_DISCLAIMER,
   type PartnerGender,
 } from "@/lib/engine/soulmate";
@@ -65,12 +66,34 @@ const LALA_SOULMATE_SYSTEM = `${LALA_PERSONA}
 
 const GENDER_TH: Record<PartnerGender, string> = { male: "ผู้ชาย", female: "ผู้หญิง", any: "ไม่ระบุ" };
 
+// โหมดเช็คกับคนที่สนใจ (23 ส.ค. 2569) — narrator เข้มเรื่องบุคคลที่สาม
+const LALA_MATCH_SYSTEM = `${LALA_PERSONA}
+
+บริบทหน้านี้: "เช็คความเข้ากันกับคนที่ผู้ใช้สนใจ" — ระบบคำนวณเคมีธาตุ ความสอดคล้อง 5 ด้าน และภพปัตนิมาให้แล้ว
+
+กฎเหล็ก:
+1. ใช้ได้เฉพาะข้อมูลใน <ผลเช็คความเข้ากัน> — ห้ามแต่งเลข ธาตุ ราศี หรือคะแนนเพิ่มเอง
+2. 🔴 อีกฝ่ายเป็นบุคคลที่สาม: พูดเชิง "พลังงานเข้ากันแบบไหน" เท่านั้น — ห้ามตัดสินนิสัยเขา
+   ห้ามทำนายชะตาของเขา และห้ามฟันธงว่าความสัมพันธ์นี้จะสำเร็จ/ล้มเหลว
+3. คะแนนอ้างเป็นตัวเลข x/10 หรือ +/− ตามข้อมูลเสมอ · ใช้คำว่า "Productive Clash" เฉพาะเมื่อ
+   ข้อมูลระบุคำนี้ไว้จริงเท่านั้น (ห้ามตีความความหมายอื่นมาสวมคำนี้) — เมื่อมีจริงต้องชูเป็นจุดเด่น
+4. ภพปัตนิ: ตรง = อธิบายว่าตามตำราถือเป็นสัญญาณเกื้อหนุน (ราศีเขาอยู่ในเรือนคู่ครองของคุณ) ·
+   ไม่ตรง = บอกชัดว่าไม่ใช่ลางร้าย เป็นเพียงชั้นหนึ่งจากหลายชั้น
+5. โครง: ① พลังงานของสองฝ่าย ② เคมีธาตุ ③ ด้านที่หนุนกัน/ด้านที่ต้องช่วยกันดูแล ④ ทางปฏิบัติ
+   ⑤ ปิดด้วย caveat ที่ให้มาครบ + ชวนถามต่อ 1 ประโยค
+6. ความยาว 4-5 ย่อหน้าสั้น`;
+
 interface SoulmateBody {
-  mode?: "reading" | "images";
+  mode?: "reading" | "images" | "match";
   birthDate?: string;
   birthTime?: string; // "HH:MM" — ไม่มี = fallback ชั้นธาตุ
   province?: string;
   partnerGender?: string;
+  // โหมด match — ข้อมูลอีกฝ่าย (ใช้คำนวณชั่วขณะ **ไม่จัดเก็บ** — PARTNER_PRIVACY_NOTE)
+  partnerBirthDate?: string;
+  partnerBirthTime?: string;
+  partnerProvince?: string;
+  partnerName?: string;
 }
 
 /** คำนวณลัคนา (นิรายนะ — verify กับ Swiss Ephemeris แล้ว §5.2) จากวันเกิด+เวลา+จังหวัด */
@@ -87,11 +110,11 @@ function lagnaFrom(birthDate: string, birthTime: string, provinceKey: string): Z
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as SoulmateBody;
-    const mode = body.mode === "images" ? "images" : "reading";
+    const mode = body.mode === "images" ? "images" : body.mode === "match" ? "match" : "reading";
 
-    // เพศคู่ที่สนใจ — ผู้ใช้ต้องเลือกเอง ห้ามเดา (กติกาในคิว §15)
-    const partnerGender = body.partnerGender as PartnerGender | undefined;
-    if (!partnerGender || !["male", "female", "any"].includes(partnerGender)) {
+    // เพศคู่ที่สนใจ — ผู้ใช้ต้องเลือกเอง ห้ามเดา (กติกาในคิว §15) · โหมด match ไม่ใช้เพศ
+    const partnerGender = (body.partnerGender ?? "any") as PartnerGender;
+    if (mode !== "match" && (!body.partnerGender || !["male", "female", "any"].includes(body.partnerGender))) {
       return NextResponse.json({ error: "กรุณาเลือกเพศคู่ที่สนใจก่อนค่ะ (ระบบจะไม่เดาให้)" }, { status: 400 });
     }
 
@@ -136,6 +159,113 @@ export async function POST(req: Request) {
     // ธาตุของ "คู่" สำหรับโทนภาพ: ชั้นลัคนา = ธาตุราศีที่ 7 · ชั้นธาตุ = ธาตุอันดับ 1 ที่เกื้อหนุน
     const partnerElement: Element5 =
       reading.mode === "lagna" ? reading.partner.element : reading.rankedElements[0].element;
+
+    // =======================================================================
+    // โหมดเช็คกับคนที่สนใจ — สิทธิ์/เรทเดียวกับคำทำนาย (ฟรีครั้งแรกร่วม bucket · แล้ว 20 เครดิต)
+    // 🔴 ข้อมูลอีกฝ่ายใช้คำนวณชั่วขณะ **ไม่จัดเก็บ** (ไม่ลง DB/ความจำ — PARTNER_PRIVACY_NOTE)
+    // =======================================================================
+    if (mode === "match") {
+      if (!body.partnerBirthDate) {
+        return NextResponse.json({ error: "กรุณากรอกวันเกิดของอีกฝ่ายก่อนค่ะ" }, { status: 400 });
+      }
+      const bucket = logicBucket(SOULMATE_LOGIC_ID);
+      const used = await getDbUsage(userId, bucket);
+      const quota = checkQuota({ [String(SOULMATE_LOGIC_ID)]: used }, SOULMATE_LOGIC_ID);
+      const cost = creditCost("soulmate");
+      const balance = await getCreditBalance(userId);
+      const charge = decideCharge({ freeRemaining: quota.remaining, loggedIn: true, balance, cost, freeLaunch: freeLaunchMode() });
+      if (charge.mode === "denied") {
+        return NextResponse.json(
+          { quotaExceeded: true, message: `${quotaExhaustedMessage(SOULMATE_LOGIC_ID, cost)}\n\n${chargeDeniedMessage(charge)}`, credits: charge.balance, creditCost: charge.cost },
+          { status: 429 }
+        );
+      }
+
+      const partnerLagna =
+        body.partnerBirthTime && body.partnerProvince
+          ? lagnaFrom(body.partnerBirthDate, body.partnerBirthTime, body.partnerProvince)
+          : null;
+      const match = partnerMatchReading({
+        userDominant: profile.dominant as Element5,
+        userMissing: profile.missing as Element5[],
+        userBirthDate: body.birthDate!,
+        userLagna: lagna,
+        partnerBirthDate: body.partnerBirthDate,
+        partnerLagna,
+        partnerName: body.partnerName ?? null,
+      });
+      if (!match) {
+        return NextResponse.json({ error: "วันเกิดของอีกฝ่ายไม่ถูกต้องค่ะ (กรอกเป็น ค.ศ.)" }, { status: 400 });
+      }
+
+      const ctx = JSON.stringify(
+        {
+          ธาตุของคุณ: THAI_LABEL_5[profile.dominant as Element5],
+          ธาตุที่คุณขาด: (profile.missing as Element5[]).map((m) => THAI_LABEL_5[m]),
+          ธาตุของเขา: match.partner.dominantTh,
+          ธาตุที่เขาขาด: match.partner.missingTh,
+          เคมีธาตุ: { คะแนน: match.chemistry.final_score, ความสัมพันธ์: match.chemistry.relation_th },
+          ความสอดคล้อง5ด้าน: match.coherence.map((c) => ({
+            ด้าน: c.labelTh, เฉลี่ย: c.avg, ต่ำสุด: `${c.weakest.label} (${c.min})`, สูงสุด: `${c.strongest.label} (${c.max})`, tone: c.tone,
+          })),
+          ภพปัตนิ: match.patni
+            ? match.patni.match
+              ? `ตรงกันทั้งสองทาง — ลัคนาเขา (ราศี${match.patni.partnerLagna}) อยู่ในภพคู่ครองของคุณ และกลับกันด้วยโดยโครงสร้างราศี`
+              : `ไม่ตรง (ภพคู่ครองของคุณคือราศี${match.patni.userSeventh} · ลัคนาเขาคือราศี${match.patni.partnerLagna}) — ไม่ใช่ลางร้าย เป็นชั้นหนึ่งจากหลายชั้น`
+            : "ไม่ทราบลัคนาครบทั้งสองฝ่าย — ไม่ตัดสินชั้นนี้",
+          ธาตุจากชื่อเขา: match.nameLayer
+            ? { ธาตุ: match.nameLayer.elementTh, ความเข้ากัน: match.nameLayer.fit.relation_th }
+            : null,
+          จุดแข็ง: match.advice.strengths,
+          ข้อควรระวัง: match.advice.cautions,
+          คำแนะนำ: match.advice.tips,
+          คำเตือนที่ต้องแสดงครบ: match.caveats,
+        },
+        null,
+        1
+      );
+
+      const memory = await getMemoryBlock(userId);
+      let reply: string;
+      try {
+        const ai2 = await generate({
+          role: "ai2",
+          logicId: SOULMATE_LOGIC_ID,
+          channel: "web",
+          userId,
+          system: LALA_MATCH_SYSTEM,
+          input: `${memory ? `${memory}\n\n` : ""}<ผลเช็คความเข้ากัน>\n${ctx}\n</ผลเช็คความเข้ากัน>\n\nเรียบเรียงให้ผู้ใช้`,
+          maxTokens: 1600,
+        });
+        reply = ai2.text;
+      } catch (e) {
+        console.warn("[soulmate] AI match ล้มเหลว — ใช้ผลคำนวณล้วน", e);
+        reply =
+          `เคมีธาตุ: ${match.chemistry.relation_th} (${match.chemistry.final_score})\n` +
+          [...match.advice.strengths, ...match.advice.cautions, ...match.advice.tips].join("\n") +
+          `\n\n${match.caveats.join("\n")}\n\n(ระบบเรียบเรียงอัตโนมัติชั่วคราว — ผู้ช่วย AI ไม่พร้อมใช้งานขณะนี้)`;
+      }
+
+      // จำเฉพาะผลรวม — **ไม่เก็บวันเกิด/ชื่อของอีกฝ่าย** (PARTNER_PRIVACY_NOTE)
+      void rememberEvent(userId, "soulmate", {
+        q: "เช็คความเข้ากันกับคนที่สนใจ",
+        a: `เคมี ${match.chemistry.final_score}${match.patni?.match ? " · ตรงภพปัตนิ" : ""}`,
+      });
+
+      let creditsLeft: number | null = null;
+      if (charge.mode === "credits") {
+        const spent = await spendCredits(userId, charge.cost, "soulmate", bucket);
+        if (spent.ok) creditsLeft = spent.balance;
+        else console.warn("[soulmate] หักเครดิต match ไม่สำเร็จหลังตอบแล้ว", spent.reason);
+      } else {
+        await bumpDbUsage(userId, bucket);
+      }
+      return NextResponse.json({
+        reply,
+        match,
+        ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
+      });
+    }
 
     // =======================================================================
     // โหมดภาพ — 30 เครดิต/ชุด 3 รูป ไม่มีสิทธิ์ฟรี (FLUX มีต้นทุนจริงทุกครั้ง)

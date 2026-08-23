@@ -305,3 +305,136 @@ export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElement
     `พลังเกื้อหนุนอยู่ทางทิศ${dirs || "—"} (จากธาตุที่เข้ากับคุณที่สุด)`,
   ];
 }
+
+// ---------------------------------------------------------------------------
+// เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — วันเกิดเขา (บังคับ) + เวลาเกิด/ชื่อ (ไม่บังคับ)
+// ประกอบจากชิ้นที่มีอยู่ทั้งหมด: personSeedFromBirthDate (ElementSeed จริง) · เลขตัวตน→5 ด้าน
+// (มุมผู้ใช้เป็นศูนย์กลาง — แบบเดียวกับโหมดองค์รวม) · ภพปัตนิเช็คไขว้ (seventhSign เป็น involution:
+// ตรงทางเดียว = ตรงซึ่งกันและกันเสมอ จึงรายงานเป็น "ตรงกันทั้งสองทาง" ค่าเดียว) ·
+// ธาตุชื่อ (⚠️ตารางยังไม่ verify — caveat บังคับ) · 🔴 ไม่รับรูปถ่ายบุคคลที่สาม (ชีวมิติ
+// เจ้าตัวไม่ได้ยินยอม + Logic 5/6 ยังไม่มีสูตร)
+// ---------------------------------------------------------------------------
+
+import {
+  personSeedFromBirthDate,
+  birthPowerNumber,
+  partAspects,
+  analyzeCoherence,
+  holisticAdvice,
+  type HolisticPart,
+  type AspectCoherence,
+  type HolisticAdvice,
+} from "./network-holistic";
+import { nameElement } from "./naming";
+
+/** ข้อมูลอีกฝ่ายใช้คำนวณชั่วขณะเท่านั้น — ประกาศบนหน้า + ห้ามเก็บลง DB/ความจำ (มีเทสต์ล็อกข้อความ) */
+export const PARTNER_PRIVACY_NOTE =
+  "ข้อมูลของอีกฝ่าย (วันเกิด/เวลาเกิด/ชื่อ) ใช้คำนวณชั่วขณะเท่านั้น ระบบไม่จัดเก็บ";
+
+export const NAME_TABLE_CAVEAT =
+  "ธาตุจากชื่อใช้ตารางกลุ่มอักษรที่ยังรอการยืนยันจากเจ้าของสูตร — เป็นชั้นเสริมประกอบ";
+
+export interface PartnerMatchResult {
+  partner: {
+    dominantTh: string;
+    missingTh: string[];
+    identityNumber: string;
+    lagnaSign: ZodiacSign | null;
+  };
+  /** เคมีธาตุคุณ↔เขา — มุมเดียวกับทั้งระบบ wuXingScore(ธาตุคุณ, ธาตุเขา, ธาตุที่คุณขาด) */
+  chemistry: WuXingResult;
+  /** ความสอดคล้อง 5 ด้านจากเลขตัวตนทั้งคู่ (สูตรเสริม — caveat เดิมของ numberAspects) */
+  parts: HolisticPart[];
+  coherence: AspectCoherence[];
+  /** ภพปัตนิเช็คไขว้ — null เมื่อลัคนาฝ่ายใดฝ่ายหนึ่งไม่ทราบ (ไม่เดา) */
+  patni: { userSeventh: ZodiacSign; partnerLagna: ZodiacSign; match: boolean } | null;
+  /** ธาตุจากชื่อเขา (ชั้นเสริม ⚠️) — null เมื่อไม่ให้ชื่อ/อ่านธาตุไม่ได้ */
+  nameLayer: { elementTh: string; fit: WuXingResult } | null;
+  advice: HolisticAdvice;
+  caveats: string[];
+}
+
+export function partnerMatchReading(input: {
+  userDominant: Element5;
+  userMissing: Element5[];
+  userBirthDate: string;
+  userLagna?: ZodiacSign | null;
+  partnerBirthDate: string;
+  partnerLagna?: ZodiacSign | null;
+  partnerName?: string | null;
+}): PartnerMatchResult | null {
+  const pSeed = personSeedFromBirthDate(input.partnerBirthDate);
+  if (!pSeed) return null;
+  const partnerElement = pSeed.dominant as Element5;
+
+  const chemistry = wuXingScore(input.userDominant, partnerElement, [...input.userMissing]);
+
+  // คะแนน 5 ด้านจากเลขตัวตนทั้งคู่ (มุมผู้ใช้เป็นศูนย์กลาง — convention เดียวกับโหมดองค์รวม)
+  const userNum = String(birthPowerNumber(input.userBirthDate)).padStart(2, "0");
+  const partnerNum = String(birthPowerNumber(input.partnerBirthDate)).padStart(2, "0");
+  const parts: HolisticPart[] = [
+    {
+      label: `ตัวคุณ (เลขตัวตน ${userNum})`,
+      icon: "👤",
+      aspects: partAspects({ digits: userNum, letters: null }, input.userDominant, input.userMissing),
+      chemistry: null,
+      element: null,
+    },
+    {
+      label: `เขา (เลขตัวตน ${partnerNum})`,
+      icon: "💗",
+      aspects: partAspects({ digits: partnerNum, letters: null }, input.userDominant, input.userMissing),
+      chemistry,
+      element: partnerElement,
+      personMissing: pSeed.missing_th,
+    },
+  ];
+  const coherence = analyzeCoherence(parts);
+  const advice = holisticAdvice(parts, coherence, input.userDominant);
+
+  // ภพปัตนิเช็คไขว้ — seventhSign เป็น involution จึง "ตรงทางเดียว = ตรงสองทางเสมอ"
+  let patni: PartnerMatchResult["patni"] = null;
+  if (input.userLagna && input.partnerLagna) {
+    const userSeventh = seventhSign(input.userLagna);
+    patni = { userSeventh, partnerLagna: input.partnerLagna, match: userSeventh === input.partnerLagna };
+    if (patni.match) {
+      advice.strengths.unshift(
+        `💞 ลัคนาของเขา (ราศี${input.partnerLagna}) ตรงกับภพคู่ครอง (ปัตนิ) ของคุณพอดี — และโดยโครงสร้างราศี ลัคนาของคุณก็อยู่ในภพคู่ครองของเขาเช่นกัน (ตรงตามตำราทั้งสองทาง)`
+      );
+    }
+  }
+
+  // ธาตุชื่อ (ชั้นเสริม — ตารางยังไม่ verify)
+  let nameLayer: PartnerMatchResult["nameLayer"] = null;
+  const nm = input.partnerName?.trim();
+  if (nm) {
+    const el = nameElement(nm);
+    if (el) {
+      nameLayer = { elementTh: THAI_LABEL_5[el], fit: wuXingScore(input.userDominant, el, [...input.userMissing]) };
+    }
+  }
+
+  const caveats = [
+    ...advice.caveats,
+    SOULMATE_CAVEAT,
+    "อ่านเป็นความเข้ากันของพลังงานเท่านั้น — ไม่ใช่คำตัดสินความสัมพันธ์หรือตัวบุคคล",
+    PARTNER_PRIVACY_NOTE,
+    ...(nameLayer ? [NAME_TABLE_CAVEAT] : []),
+  ];
+
+  return {
+    partner: {
+      dominantTh: THAI_LABEL_5[partnerElement],
+      missingTh: pSeed.missing_th,
+      identityNumber: partnerNum,
+      lagnaSign: input.partnerLagna ?? null,
+    },
+    chemistry,
+    parts,
+    coherence,
+    patni,
+    nameLayer,
+    advice,
+    caveats,
+  };
+}

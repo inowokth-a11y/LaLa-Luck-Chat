@@ -123,3 +123,45 @@ test("คำบรรยายประจำภาพ — ถ้อยคำจ
   assert.ok(caps2[0].includes(el.rankedElements[0].thai));
   assert.ok(caps2[1].includes(el.rankedElements[1].thai));
 });
+
+// ---- เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) ----
+import { partnerMatchReading, PARTNER_PRIVACY_NOTE, NAME_TABLE_CAVEAT } from "../lib/engine/soulmate";
+import { personSeedFromBirthDate, birthPowerNumber } from "../lib/engine/network-holistic";
+import { nameElement } from "../lib/engine/naming";
+
+test("partnerMatchReading — เคมี/เลขตัวตน/ธาตุเขา ตรง engine จริงทุกชั้น + caveat ครบ", () => {
+  const user = { userDominant: "Fire" as const, userMissing: ["Water" as const], userBirthDate: "1986-10-07" };
+  const r = partnerMatchReading({ ...user, partnerBirthDate: "1992-05-20", partnerName: "สมชาย" });
+  assert.ok(r);
+  const pSeed = personSeedFromBirthDate("1992-05-20")!;
+  assert.equal(r!.partner.dominantTh, {"Fire":"ไฟ","Earth":"ดิน","Wood":"ไม้","Water":"น้ำ"}[pSeed.dominant]);
+  assert.equal(r!.partner.identityNumber, String(birthPowerNumber("1992-05-20")).padStart(2, "0"));
+  assert.equal(r!.chemistry.final_score, wuXingScore("Fire", pSeed.dominant, ["Water"]).final_score);
+  assert.equal(r!.parts.length, 2);
+  assert.equal(r!.coherence.length, 5);
+  // ธาตุชื่อ (ชั้นเสริม) ตรง nameElement + caveat ตารางชื่อติดมา
+  const nEl = nameElement("สมชาย")!;
+  assert.equal(r!.nameLayer!.fit.final_score, wuXingScore("Fire", nEl, ["Water"]).final_score);
+  assert.ok(r!.caveats.includes(NAME_TABLE_CAVEAT));
+  assert.ok(r!.caveats.includes(PARTNER_PRIVACY_NOTE));
+  assert.ok(r!.caveats.includes(SOULMATE_CAVEAT));
+  assert.ok(r!.caveats.some((c) => c.includes("ไม่ใช่คำตัดสินความสัมพันธ์")));
+  // ไม่ให้ชื่อ = ไม่มีชั้นชื่อ + ไม่มี caveat ตารางชื่อ (ไม่แบกเกินจำเป็น)
+  const r2 = partnerMatchReading({ ...user, partnerBirthDate: "1992-05-20" });
+  assert.equal(r2!.nameLayer, null);
+  assert.ok(!r2!.caveats.includes(NAME_TABLE_CAVEAT));
+  // วันเกิดเขาเป็น พ.ศ. = null (ไม่เดา)
+  assert.equal(partnerMatchReading({ ...user, partnerBirthDate: "2535-05-20" }), null);
+});
+
+test("ภพปัตนิเช็คไขว้ — ตรง (กันย์↔มีน) ขึ้นจุดแข็ง · ไม่ตรงไม่ขึ้น · ไม่รู้ลัคนา = null ไม่เดา", () => {
+  const base = { userDominant: "Fire" as const, userMissing: [] as ("Fire")[], userBirthDate: "1986-10-07", partnerBirthDate: "1992-05-20" };
+  const match = partnerMatchReading({ ...base, userLagna: "กันย์", partnerLagna: "มีน" })!;
+  assert.ok(match.patni && match.patni.match === true);
+  assert.ok(match.advice.strengths.some((s) => s.includes("ภพคู่ครอง")), "ตรงปัตนิต้องขึ้นจุดแข็ง");
+  const noMatch = partnerMatchReading({ ...base, userLagna: "กันย์", partnerLagna: "เมษ" })!;
+  assert.ok(noMatch.patni && noMatch.patni.match === false);
+  assert.ok(!noMatch.advice.strengths.some((s) => s.includes("ภพคู่ครอง")));
+  const unknown = partnerMatchReading(base)!;
+  assert.equal(unknown.patni, null);
+});
