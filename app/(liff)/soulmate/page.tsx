@@ -27,7 +27,13 @@ interface ReadingResponse {
     rankedElements?: { thai: string; score: number; relation: string }[];
     supportDirections?: string[];
     appearance?: { faceTh: string; bodyTh: string };
-    nameLayer?: { elementTh: string; fit: { relation_th: string; final_score: number } } | null;
+    nameLayer?: {
+      elementTh: string;
+      fit: { relation_th: string; final_score: number };
+      namePower: number;
+      card: { id: string; name: string | null };
+      lens?: { partnerElementTh: string; traitsTh: string; appearance: { faceTh: string; bodyTh: string }; styleTh: string };
+    } | null;
     caveats: string[];
   };
   error?: string;
@@ -45,7 +51,7 @@ interface MatchResponse {
     chemistry: { final_score: number; relation_th: string };
     coherence: { labelTh: string; avg: number; min: number; max: number; tone: string; weakest: { label: string; score: number }; strongest: { label: string; score: number } }[];
     patni: { userSeventh: string; partnerLagna: string; match: boolean } | null;
-    nameLayer: { elementTh: string; fit: { relation_th: string; final_score: number } } | null;
+    nameLayer: { elementTh: string; fit: { relation_th: string; final_score: number }; namePower: number; card: { id: string; name: string | null } } | null;
     advice: { strengths: string[]; cautions: string[]; tips: string[] };
     caveats: string[];
   };
@@ -328,9 +334,31 @@ export default function SoulmatePage() {
             </div>
           )}
           {reading?.nameLayer && (
-            <div className={styles.factRow} style={{ marginBottom: "0.8rem" }}>
-              <span className={styles.factLabel}>ธาตุจากชื่อคุณ↔ธาตุคู่ ⚠️</span>
-              <span>ธาตุ{reading.nameLayer.elementTh} · {reading.nameLayer.fit.relation_th} ({reading.nameLayer.fit.final_score >= 0 ? "+" : ""}{reading.nameLayer.fit.final_score})</span>
+            <div style={{ marginBottom: "0.8rem" }}>
+              <div className={styles.factRow}>
+                <span className={styles.factLabel}>ธาตุจากชื่อคุณ↔ธาตุคู่ ⚠️</span>
+                <span>ธาตุ{reading.nameLayer.elementTh} · {reading.nameLayer.fit.relation_th} ({reading.nameLayer.fit.final_score >= 0 ? "+" : ""}{reading.nameLayer.fit.final_score})</span>
+              </div>
+              <div className={styles.factRow}>
+                <span className={styles.factLabel}>เลขศาสตร์ · การ์ดพลังชื่อ ⚠️</span>
+                <span>เลข {reading.nameLayer.namePower}{reading.nameLayer.card.name ? ` · การ์ด ${reading.nameLayer.card.id} "${reading.nameLayer.card.name}"` : ""}</span>
+              </div>
+              {reading.nameLayer.lens && (
+                <>
+                  <div className={styles.factRow}>
+                    <span className={styles.factLabel}>คู่ในมุมธาตุชื่อ ⚠️</span>
+                    <span>ธาตุ{reading.nameLayer.lens.partnerElementTh} — {reading.nameLayer.lens.traitsTh}</span>
+                  </div>
+                  <div className={styles.factRow}>
+                    <span className={styles.factLabel}>รูปลักษณ์มุมธาตุชื่อ (ค.1)</span>
+                    <span>ใบหน้า{reading.nameLayer.lens.appearance.faceTh} · รูปร่าง{reading.nameLayer.lens.appearance.bodyTh}</span>
+                  </div>
+                  <div className={styles.factRow}>
+                    <span className={styles.factLabel}>สไตล์มุมธาตุชื่อ</span>
+                    <span>{reading.nameLayer.lens.styleTh}</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
           <div className={styles.reply}>{res.reply}</div>
@@ -506,6 +534,12 @@ export default function SoulmatePage() {
               <div className={styles.factRow}>
                 <span className={styles.factLabel}>ธาตุจากชื่อเขา ⚠️</span>
                 <span>{m.nameLayer.elementTh} — {m.nameLayer.fit.relation_th}</span>
+              </div>
+            )}
+            {m.nameLayer && (
+              <div className={styles.factRow}>
+                <span className={styles.factLabel}>เลขศาสตร์ · การ์ดพลังชื่อเขา ⚠️</span>
+                <span>เลข {m.nameLayer.namePower}{m.nameLayer.card.name ? ` · การ์ด ${m.nameLayer.card.id} "${m.nameLayer.card.name}"` : ""}</span>
               </div>
             )}
             <details className={styles.fold ?? undefined} open style={{ marginTop: "0.6rem" }}>

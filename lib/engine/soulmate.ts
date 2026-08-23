@@ -237,6 +237,30 @@ export function soulmateChemistry(
 export interface OwnNameLayer {
   elementTh: string;
   fit: WuXingResult;
+  /** เลขศาสตร์ชื่อจาก NamePower (สูตร verify กับตัวอย่างตำราแล้ว §5) */
+  namePower: number;
+  /** การ์ดพลังงาน 00-99 ของเลขชื่อ — ตาราง Master Energy จริง (แบบเดียวการ์ดผลรวมสายเลข) */
+  card: { id: string; name: string | null; essence: string | null };
+  /** เนื้อคู่ในมุมธาตุจากชื่อ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ธาตุคู่ที่เกื้อหนุนธาตุชื่อที่สุด
+   *  แล้วดึง นิสัย (เทมเพลตหลักธาตุ) + รูปร่างหน้าตา (ค.1 ตำราจริง) + สไตล์ (ชั้นเสริม)
+   *  ของธาตุนั้น — ทั้งก้อนเป็นชั้นเสริม caveat ตารางอักษร+รูปลักษณ์ครอบอยู่แล้ว
+   *  🔴 โหมด match (คนจริง) จงใจไม่มี lens — ไม่ทำนายหน้าตา/นิสัยของบุคคลจริงจากชื่อ
+   *  (การตัดสินใจเดิม §15: partnerMatch ไม่ใส่รูปลักษณ์) */
+  lens?: {
+    partnerElement: Element5;
+    partnerElementTh: string;
+    relationTh: string;
+    traitsTh: string;
+    appearance: Physiognomy;
+    styleTh: string;
+  };
+}
+
+/** เลขศาสตร์+การ์ดจากชื่อ — ใช้ร่วมทั้งชื่อผู้ใช้และชื่ออีกฝ่าย */
+function nameNumerology(nm: string): { power: number; card: OwnNameLayer["card"] } {
+  const power = namePower(nm);
+  const c = lookup2digit(reduceTo99(power));
+  return { power, card: { id: c.input, name: c.energy_name, essence: c.essence } };
 }
 
 function buildOwnNameLayer(
@@ -249,7 +273,25 @@ function buildOwnNameLayer(
   const el = nameElement(nm);
   if (!el) return null;
   // มุมเดียวกับเคมีหลัก: ธาตุ(จากชื่อ)ของเรา ↔ ธาตุคู่ · ธาตุที่เราขาด = Productive Clash ได้
-  return { elementTh: THAI_LABEL_5[el], fit: wuXingScore(el, partnerElement, [...userMissing]) };
+  const num = nameNumerology(nm);
+  // มุมธาตุชื่อ: จัดอันดับธาตุคู่ที่เกื้อหนุน "ธาตุจากชื่อ" (กลไกเดียวกับ soulmateChemistry)
+  const lensRanked = (Object.keys(THAI_LABEL_5) as Element5[])
+    .map((cand) => ({ cand, s: wuXingScore(el, cand, [...userMissing]) }))
+    .sort((a, b) => b.s.final_score - a.s.final_score)[0];
+  return {
+    elementTh: THAI_LABEL_5[el],
+    fit: wuXingScore(el, partnerElement, [...userMissing]),
+    namePower: num.power,
+    card: num.card,
+    lens: {
+      partnerElement: lensRanked.cand,
+      partnerElementTh: THAI_LABEL_5[lensRanked.cand],
+      relationTh: lensRanked.s.relation_th,
+      traitsTh: ELEMENT_PERSONA[lensRanked.cand].นิสัยเด่น,
+      appearance: PHYSIOGNOMY_BY_ELEMENT[lensRanked.cand],
+      styleTh: OUTFIT_MOOD_TH[lensRanked.cand],
+    },
+  };
 }
 
 export interface SoulmateReading {
@@ -459,6 +501,16 @@ export function soulmateImagePrompt(opts: {
  * 1 gen · เอาเฉพาะ "รูปแบบหลายมุม" ไม่เอาธีม/ป้ายข้อความของภาพอ้างอิง (no-text ตามกติกาเดิม)
  * ชุด+อารมณ์มาจากธาตุคู่ (OUTFIT_MOOD_BY_ELEMENT) · หน้า/รูปร่างจาก ค.1 · ลุคสัญชาติผู้ใช้เลือก
  */
+/** สไตล์การแต่งกาย/อารมณ์ตามธาตุ ฉบับภาษาไทย — ความหมายเดียวกับ OUTFIT_MOOD_BY_ELEMENT
+ *  (ใช้เล่าในคำทำนาย ส่วนตัวอังกฤษใช้ใน prompt ภาพ — ชั้นเสริม ไม่ใช่ตำราตรง) */
+export const OUTFIT_MOOD_TH: Record<Element5, string> = {
+  Wood: "สมาร์ทแคชวลโทนสดชื่น · บุคลิกเข้าสังคม ร่าเริง มีความคิดสร้างสรรค์",
+  Fire: "แต่งตัวมั่นใจ เส้นสายชัดเจน · บุคลิกมีพลัง มีเสน่ห์ อบอุ่น",
+  Earth: "เรียบร้อยคลาสสิกไร้กาลเวลา · บุคลิกสงบ น่าเชื่อถือ มั่นคง",
+  Metal: "เรียบคมมินิมัล · บุคลิกนิ่ง สุขุม มั่นใจ",
+  Water: "นุ่มสบายพลิ้วไหว · บุคลิกอ่อนโยน อบอุ่น ชวนฝัน",
+};
+
 export function soulmateCollagePrompt(opts: {
   gender: PartnerGender;
   element: Element5;
@@ -521,6 +573,9 @@ import {
   type HolisticAdvice,
 } from "./network-holistic";
 import { nameElement } from "./naming";
+import { namePower, reduceTo99 } from "./card-id";
+import { ELEMENT_PERSONA } from "./first-reading";
+import { lookup2digit } from "./numerology";
 
 /** ข้อมูลอีกฝ่ายใช้คำนวณชั่วขณะเท่านั้น — ประกาศบนหน้า + ห้ามเก็บลง DB/ความจำ (มีเทสต์ล็อกข้อความ) */
 export const PARTNER_PRIVACY_NOTE =
@@ -543,8 +598,8 @@ export interface PartnerMatchResult {
   coherence: AspectCoherence[];
   /** ภพปัตนิเช็คไขว้ — null เมื่อลัคนาฝ่ายใดฝ่ายหนึ่งไม่ทราบ (ไม่เดา) */
   patni: { userSeventh: ZodiacSign; partnerLagna: ZodiacSign; match: boolean } | null;
-  /** ธาตุจากชื่อเขา (ชั้นเสริม ⚠️) — null เมื่อไม่ให้ชื่อ/อ่านธาตุไม่ได้ */
-  nameLayer: { elementTh: string; fit: WuXingResult } | null;
+  /** ธาตุ+เลขศาสตร์+การ์ดจากชื่อเขา (ชั้นเสริม ⚠️) — null เมื่อไม่ให้ชื่อ/อ่านธาตุไม่ได้ */
+  nameLayer: OwnNameLayer | null;
   advice: HolisticAdvice;
   caveats: string[];
 }
@@ -605,7 +660,8 @@ export function partnerMatchReading(input: {
   if (nm) {
     const el = nameElement(nm);
     if (el) {
-      nameLayer = { elementTh: THAI_LABEL_5[el], fit: wuXingScore(input.userDominant, el, [...input.userMissing]) };
+      const num = nameNumerology(nm);
+      nameLayer = { elementTh: THAI_LABEL_5[el], fit: wuXingScore(input.userDominant, el, [...input.userMissing]), namePower: num.power, card: num.card };
     }
   }
 

@@ -237,6 +237,9 @@ test("คอลลาจรูปเดียวหลายอิริยา�
 });
 
 import { nameElement as nameElementFn } from "../lib/engine/naming";
+import { namePower as namePowerFn, reduceTo99 as reduceTo99Fn } from "../lib/engine/card-id";
+import { lookup2digit as lookup2digitFn } from "../lib/engine/numerology";
+import { OUTFIT_MOOD_TH } from "../lib/engine/soulmate";
 
 test("ชั้นเสริมธาตุจากชื่อผู้ใช้ — มีชื่อ = nameLayer + NAME_TABLE_CAVEAT · ไม่มีชื่อ = null ไม่แตะ caveat เดิม", () => {
   // ไม่มีชื่อ → เหมือนเดิมทุกอย่าง (backward compatible)
@@ -250,6 +253,21 @@ test("ชั้นเสริมธาตุจากชื่อผู้ใ�
   assert.ok(expectEl, "ชื่อทดสอบต้องอ่านธาตุได้");
   const expectFit = wuXingScore(expectEl!, withName.partner.element, ["Water"]);
   assert.deepEqual(withName.nameLayer!.fit, expectFit, "fit ต้องตรง wuXingScore ตัวจริง");
+  // เลขศาสตร์+การ์ดต้องมาจาก engine จริง (NamePower verify แล้ว → reduceTo99 → ตาราง 00-99)
+  const np = namePowerFn("สมชาย รักดี");
+  assert.equal(withName.nameLayer!.namePower, np, "เลขศาสตร์ชื่อต้องตรง namePower");
+  const card = lookup2digitFn(reduceTo99Fn(np));
+  assert.equal(withName.nameLayer!.card.id, card.input);
+  assert.equal(withName.nameLayer!.card.name, card.energy_name, "การ์ดพลังชื่อต้องตรงตาราง Master Energy");
+  // มุมธาตุชื่อ: ธาตุคู่ = อันดับ 1 ของ wuXingScore(ธาตุชื่อ, แต่ละธาตุ, ที่ขาด) + ตาราง ค.1/สไตล์ตรงธาตุนั้น
+  const lens = withName.nameLayer!.lens!;
+  assert.ok(lens, "โหมดเนื้อคู่ต้องมี lens");
+  const lensBest = (["Wood", "Fire", "Earth", "Metal", "Water"] as const)
+    .map((c) => ({ c, sc: wuXingScore(expectEl!, c, ["Water"]).final_score }))
+    .sort((a, b) => b.sc - a.sc)[0].c;
+  assert.equal(lens.partnerElement, lensBest, "ธาตุคู่มุมชื่อต้องเป็นอันดับ 1 จาก wuXingScore จริง");
+  assert.deepEqual(lens.appearance, PHYSIOGNOMY_BY_ELEMENT[lensBest], "รูปลักษณ์ต้องเป็น ค.1 ของธาตุนั้น");
+  assert.equal(lens.styleTh, OUTFIT_MOOD_TH[lensBest]);
   assert.ok(withName.caveats.includes(NAME_TABLE_CAVEAT), "caveat ตารางอักษรต้องติดมาเสมอ");
   // โหมดธาตุ (ไม่มีเวลาเกิด) ก็ได้ชั้นนี้เช่นกัน
   const el = soulmateElementReading("Fire", ["Water"], "สมชาย รักดี");
