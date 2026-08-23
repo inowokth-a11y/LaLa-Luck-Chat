@@ -360,6 +360,24 @@ export const AGE_STYLES = {
 } as const;
 export type AgeKey = keyof typeof AGE_STYLES;
 
+/**
+ * ชุด+อารมณ์ภาพตามธาตุของคู่ (ผู้ใช้เคาะ 23 ส.ค. 2569: "แต่งกาย/อารมณ์ตามแนวคำทำนาย")
+ * — แปลงบุคลิกตาม ข.2/ค.1 ของแต่ละกลุ่มธาตุเป็นภาษาภาพ (การแปลงเป็นงานออกแบบ แต่บุคลิกต้นทาง
+ * มาจากตำราจริง) · ยังบังคับ modest เสมอ
+ */
+export const OUTFIT_MOOD_BY_ELEMENT: Record<Element5, { outfitEn: string; moodEn: string }> = {
+  // ไม้ (มิถุน/ตุลย์/กุมภ์ — ฉลาด ช่างพูด เข้าสังคม สร้างสรรค์)
+  Wood: { outfitEn: "smart casual modern outfit in light fresh tones", moodEn: "sociable cheerful creative mood" },
+  // ไฟ (เมษ/สิงห์/ธนู — ผู้นำ มั่นใจ กล้าแสดงออก ผจญภัย)
+  Fire: { outfitEn: "confident stylish outfit with bold clean lines", moodEn: "energetic charismatic warm mood" },
+  // ดิน (พฤษภ/กันย์/มังกร — สุขุม มั่นคง รับผิดชอบ)
+  Earth: { outfitEn: "neat classic timeless outfit", moodEn: "calm dependable grounded mood" },
+  // ทอง (สมดุล แข็งแกร่ง ชัดเจน เป็นนักจัดการ — ค.1)
+  Metal: { outfitEn: "clean tailored minimal outfit", moodEn: "composed refined confident mood" },
+  // น้ำ (กรกฎ/พิจิก/มีน — อ่อนโยน ลึกซึ้ง ช่างฝัน มนุษยสัมพันธ์ดี)
+  Water: { outfitEn: "soft comfortable flowing outfit", moodEn: "gentle warm approachable dreamy mood" },
+};
+
 /** ฉาก 3 แบบ — ภาพละมุมมอง เพื่อให้แต่ละรูปมีคำบรรยายประจำภาพของตัวเอง (ผู้ใช้ขอ) */
 const IMAGE_VARIANT_SCENES: readonly string[] = [
   "close-up portrait near a bright window with soft morning light",
@@ -404,6 +422,32 @@ export function soulmateImagePrompt(opts: {
  * คำบรรยาย "ลักษณะคู่ที่เข้ากัน" ประจำภาพทั้ง 3 — ถ้อยคำมาจากผลคำนวณล้วน (ข.2/wuXing/ทิศ)
  * ห้ามแต่งลักษณะใหม่ที่ engine ไม่ได้ให้ (§16)
  */
+/**
+ * prompt คอลลาจรูปเดียว-หลายอิริยาบถ (ผู้ใช้เคาะ 23 ส.ค. 2569 จากภาพอ้างอิงแนว photoshoot
+ * หลายมุม) — จุดแข็ง: **คนเดียวกันทุกมุมแน่นอน** (3 รูปแยกแบบเดิมได้คนละหน้า) + ต้นทุนเหลือ
+ * 1 gen · เอาเฉพาะ "รูปแบบหลายมุม" ไม่เอาธีม/ป้ายข้อความของภาพอ้างอิง (no-text ตามกติกาเดิม)
+ * ชุด+อารมณ์มาจากธาตุคู่ (OUTFIT_MOOD_BY_ELEMENT) · หน้า/รูปร่างจาก ค.1 · ลุคสัญชาติผู้ใช้เลือก
+ */
+export function soulmateCollagePrompt(opts: {
+  gender: PartnerGender;
+  element: Element5;
+  look?: string | null;
+}): string {
+  const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : LOOK_STYLES.thai.en;
+  const phys = PHYSIOGNOMY_BY_ELEMENT[opts.element];
+  const om = OUTFIT_MOOD_BY_ELEMENT[opts.element];
+  return (
+    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} shown in four different poses and camera angles arranged in a 2x2 grid — ` +
+    `front close-up portrait smiling, side profile view, seated relaxed pose, standing with arms crossed. ` +
+    `Each panel shows that person completely alone, exactly one person per panel, never two people together. ` +
+    `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
+    `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
+    `${phys.promptEn}, ${look}, modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
+    `highly detailed natural skin texture with visible pores, photorealistic, ` +
+    `no text, no words, no letters, no watermark`
+  );
+}
+
 export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElementReading): [string, string, string] {
   if (reading.mode === "lagna") {
     const p = reading.partner;

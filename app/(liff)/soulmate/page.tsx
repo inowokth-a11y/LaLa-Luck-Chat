@@ -68,6 +68,7 @@ export default function SoulmatePage() {
 
   const [imgLoading, setImgLoading] = useState(false);
   const [images, setImages] = useState<{ url: string; caption: string }[]>([]);
+  const [imgCaptions, setImgCaptions] = useState<string[]>([]);
   const [imgDisclaimer, setImgDisclaimer] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -158,11 +159,12 @@ export default function SoulmatePage() {
           look: look || undefined,
         }),
       });
-      const data = (await r.json()) as { images?: { url: string; caption: string }[]; shareUrl?: string | null; disclaimer?: string; error?: string; message?: string };
+      const data = (await r.json()) as { images?: { url: string; caption: string }[]; captions?: string[]; shareUrl?: string | null; disclaimer?: string; error?: string; message?: string };
       if (!r.ok) {
         setImgError(data.message ?? data.error ?? "สร้างภาพไม่สำเร็จ");
       } else {
         setImages(data.images ?? []);
+        setImgCaptions(data.captions ?? []);
         setShareUrl(data.shareUrl ?? null);
         setImgDisclaimer(data.disclaimer ?? "");
         syncAuthStatus();
@@ -349,19 +351,22 @@ export default function SoulmatePage() {
               </button>
             )}
             {images.length > 0 && (
-              <div className={styles.imgGrid}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
                 {images.map((img, i) => (
-                  <figure key={img.url} className={styles.imgCard}>
+                  <figure key={img.url} className={styles.imgCard} style={{ maxWidth: 420 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.url} alt={`ภาพจินตนาการเนื้อคู่ ${i + 1}`} />
+                    <img src={img.url} alt={`ภาพจินตนาการเนื้อคู่${images.length > 1 ? ` ${i + 1}` : ""}`} />
                     {img.caption && (
-                      <figcaption style={{ fontSize: "0.82rem", lineHeight: 1.55, marginTop: "0.4rem" }}>
-                        {img.caption}
-                      </figcaption>
+                      <figcaption style={{ fontSize: "0.82rem", lineHeight: 1.55, marginTop: "0.4rem" }}>{img.caption}</figcaption>
                     )}
                     <figcaption className={styles.imgLabel}>🎨 {imgDisclaimer}</figcaption>
                   </figure>
                 ))}
+                {imgCaptions.length > 0 && (
+                  <ul style={{ fontSize: "0.85rem", lineHeight: 1.7, paddingLeft: "1.2rem", margin: "0.3rem 0 0", textAlign: "left", maxWidth: 420 }}>
+                    {imgCaptions.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                )}
               </div>
             )}
             {shareUrl && images.length > 0 && (

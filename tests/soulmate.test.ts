@@ -206,3 +206,27 @@ test("สัญชาติ/สไตล์ลุค — preset เข้า pro
   // โครงหน้า/วัยยังรับได้ทาง engine (ทางเลือกอนาคต) แต่ไม่บังคับ — และโน้ตบังคับยังครบ
   assert.ok(SOULMATE_LOOK_NOTE.includes("ไม่ใช่คำทำนาย"));
 });
+
+import { soulmateCollagePrompt, OUTFIT_MOOD_BY_ELEMENT } from "../lib/engine/soulmate";
+
+test("คอลลาจรูปเดียวหลายอิริยาบถ — คนเดียวกันทุกช่อง + แต่งกาย/อารมณ์ตามธาตุ + injection-safe", () => {
+  const p = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "korean" });
+  assert.ok(p.includes("one single person"), "ต้องยืนยันว่าเป็นคนเดียว");
+  assert.ok(p.includes("2x2 grid"), "ต้องเป็นคอลลาจ 2x2");
+  assert.ok(p.includes("Identical face"), "หน้าเหมือนกันทุกช่อง");
+  assert.ok(p.includes("side profile"), "มีมุมภาพต่างกัน");
+  assert.ok(p.includes("adult woman"));
+  assert.ok(p.includes("Korean"), "สไตล์เกาหลีต้องเข้า prompt");
+  assert.ok(p.includes(PHYSIOGNOMY_BY_ELEMENT.Fire.promptEn), "นรลักษณ์ ค.1 ตามธาตุต้องเข้า prompt");
+  assert.ok(p.includes(OUTFIT_MOOD_BY_ELEMENT.Fire.outfitEn), "การแต่งกายตามธาตุ");
+  assert.ok(p.includes(OUTFIT_MOOD_BY_ELEMENT.Fire.moodEn), "อารมณ์ภาพตามธาตุ");
+  assert.ok(p.includes("modest"), "ต้องสุภาพเสมอ");
+  assert.ok(p.includes("visible pores"), "รายละเอียดผิว/รูขุมขน");
+  assert.ok(p.includes("no text"), "ห้ามตัวอักษรในภาพ");
+  const p2 = soulmateCollagePrompt({ gender: "female", element: "Water", look: "korean" });
+  assert.notEqual(p, p2, "ธาตุต่างกันชุด/อารมณ์ต้องต่างกัน");
+  assert.ok(p2.includes(OUTFIT_MOOD_BY_ELEMENT.Water.outfitEn));
+  const evil = soulmateCollagePrompt({ gender: "male", element: "Earth", look: "Kim Soo-hyun lookalike" });
+  const def = soulmateCollagePrompt({ gender: "male", element: "Earth", look: null });
+  assert.equal(evil, def, "look นอก preset ต้องเท่ากับ default ไทย");
+});

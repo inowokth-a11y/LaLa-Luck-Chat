@@ -65,13 +65,18 @@ export default async function SoulmateSharePage({ params }: { params: Promise<{ 
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={urls[i]!}
-                    alt={`ภาพจินตนาการเนื้อคู่ ${i + 1}`}
-                    style={{ width: "100%", maxWidth: 340, borderRadius: 10, boxShadow: "0 8px 20px rgba(110,82,16,0.25)" }}
+                    alt={`ภาพจินตนาการเนื้อคู่${data.image_paths.length > 1 ? ` ${i + 1}` : ""}`}
+                    style={{ width: "100%", maxWidth: 360, borderRadius: 10, boxShadow: "0 8px 20px rgba(110,82,16,0.25)" }}
                   />
-                  {data.captions[i] && (
-                    <figcaption style={{ fontSize: "0.85rem", marginTop: "0.4rem", lineHeight: 1.6 }}>
-                      {data.captions[i]}
-                    </figcaption>
+                  {/* คอลลาจรูปเดียว (แถวใหม่) = โชว์คำบรรยายครบชุดใต้รูป · แถวเก่า 3 รูป = จับคู่รายรูป */}
+                  {data.image_paths.length === 1 ? (
+                    <ul style={{ fontSize: "0.85rem", lineHeight: 1.7, textAlign: "left", margin: "0.5rem auto 0", maxWidth: 340, paddingLeft: "1.2rem" }}>
+                      {data.captions.map((c, ci) => <li key={ci}>{c}</li>)}
+                    </ul>
+                  ) : (
+                    data.captions[i] && (
+                      <figcaption style={{ fontSize: "0.85rem", marginTop: "0.4rem", lineHeight: 1.6 }}>{data.captions[i]}</figcaption>
+                    )
                   )}
                   <p style={{ color: "var(--ink-dim)", fontSize: "0.72rem", margin: "0.25rem 0 0" }}>
                     🎨 {SOULMATE_IMAGE_DISCLAIMER}

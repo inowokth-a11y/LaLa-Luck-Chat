@@ -14,7 +14,7 @@ import { THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import {
   soulmateReading,
   soulmateElementReading,
-  soulmateImagePrompt,
+  soulmateCollagePrompt,
   soulmateImageCaptions,
   partnerMatchReading,
   SOULMATE_IMAGE_DISCLAIMER,
@@ -289,17 +289,8 @@ export async function POST(req: Request) {
         );
       }
 
-      // 3 ภาพ = 3 ฉาก (variant) แต่ละภาพมีคำบรรยายจากผลคำนวณของตัวเอง (ผู้ใช้ขอ 23 ส.ค. 2569)
-      const prompts = [0, 1, 2].map((v) =>
-        soulmateImagePrompt({
-          gender: partnerGender,
-          element: partnerElement,
-          variant: v,
-          look: body.look ?? null,
-          face: body.face ?? null,
-          age: body.age ?? null,
-        })
-      );
+      // คอลลาจรูปเดียว-หลายอิริยาบถ (ผู้ใช้เคาะ 23 ส.ค. 2569) — คนเดียวกันทุกมุม · 1 gen
+      const prompts = [soulmateCollagePrompt({ gender: partnerGender, element: partnerElement, look: body.look ?? null })];
       const captions = soulmateImageCaptions(reading);
       const images = await falSoulmateImages(prompts);
 
@@ -328,13 +319,13 @@ export async function POST(req: Request) {
         shareUrl = `/sm/${token}`;
         for (let i = 0; i < paths.length; i++) {
           const signed = await soulmateSignedUrl(paths[i]);
-          shown.push({ url: signed ?? images[i].url, caption: captions[i] ?? "" });
+          shown.push({ url: signed ?? images[i].url, caption: "" });
         }
       } catch (e) {
         // เก็บถาวรพัง = ยังส่งภาพชั่วคราว+คำบรรยายให้ผู้ใช้ได้ (ไม่มีลิงก์แชร์)
         console.warn("[soulmate] เก็บภาพ/สร้างลิงก์แชร์ไม่สำเร็จ — ใช้ URL ชั่วคราว", e);
         shown.length = 0;
-        images.forEach((img, i) => shown.push({ url: img.url, caption: captions[i] ?? "" }));
+        images.forEach((img) => shown.push({ url: img.url, caption: "" }));
       }
 
       // หักหลังสำเร็จเท่านั้น
@@ -356,6 +347,7 @@ export async function POST(req: Request) {
       });
       return NextResponse.json({
         images: shown,
+        captions,
         shareUrl,
         disclaimer: SOULMATE_IMAGE_DISCLAIMER,
         ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
