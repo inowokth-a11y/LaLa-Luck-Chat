@@ -6,11 +6,11 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { thaiSoftWrap } from "@/lib/share";
 import { readSoulmateImage } from "@/lib/soulmate/store";
-import { fetchSoulmateShare, imageBufferToDataUri } from "./shared";
+import { fetchSoulmateShare, imageBufferToDataUri, stripCjkForSatori } from "./shared";
 
 export const runtime = "nodejs";
 export const revalidate = 86400;
-export const alt = "เนื้อคู่ในจินตนาการ — LaLa Lucky Chat";
+export const alt = "เนื้อคู่ตามดวงของฉัน — LaLa Lucky Chat";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -40,7 +40,7 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
       readSoulmateImage(data.image_paths[0]),
     ]);
     const artUri = artBuf ? imageBufferToDataUri(artBuf) : null;
-    const caption = thaiSoftWrap(truncateAtWord(data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง", 120));
+    const caption = thaiSoftWrap(truncateAtWord(stripCjkForSatori(data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง"), 120));
 
     return new ImageResponse(
       (
@@ -66,7 +66,7 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
               }}
             >
               <div style={{ display: "flex", fontSize: 50, color: "#96700a", fontWeight: 700, lineHeight: 1.25 }}>
-                เนื้อคู่ในจินตนาการของฉัน ✨
+                เนื้อคู่ตามดวงของฉัน ✨
               </div>
               <div style={{ display: "flex", fontSize: 26, color: "#2b2620", lineHeight: 1.55 }}>{caption}</div>
               <div

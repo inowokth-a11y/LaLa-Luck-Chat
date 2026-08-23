@@ -16,6 +16,7 @@ const nextConfig = {
     "/s/[token]/opengraph-image": ["./assets/**"],
     "/s/[token]/story": ["./assets/**"],
     "/sm/[token]/opengraph-image": ["./assets/**"],
+    "/sm/[token]/story": ["./assets/**"],
   },
   images: {
     // รูปการ์ด 100 ใบเสิร์ฟจาก Supabase Storage (bucket `cards`, public)

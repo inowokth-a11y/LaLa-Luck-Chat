@@ -12,7 +12,7 @@ import { fetchSoulmateShare } from "./shared";
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
   const { token } = await params;
   const data = await fetchSoulmateShare(token);
-  const title = "เนื้อคู่ในจินตนาการของฉัน ✨ | LaLa Lucky Chat";
+  const title = "เนื้อคู่ตามดวงของฉัน ✨ | LaLa Lucky Chat";
   const description = data
     ? `${data.captions[0] ?? "คำนวณจากลัคนาและธาตุจริง"} — เปิดดวงเนื้อคู่ของคุณบ้างสิ`
     : "เปิดดวงเนื้อคู่จากลัคนาและธาตุจริง";
@@ -53,7 +53,7 @@ export default async function SoulmateSharePage({ params }: { params: Promise<{ 
             <MascotLogo size={64} />
           </div>
           <h1 style={{ fontFamily: "var(--font-serif-thai)", fontSize: "1.5rem", color: "var(--gold)", margin: "0.4rem 0 0" }}>
-            เนื้อคู่ในจินตนาการของฉัน ✨
+            เนื้อคู่ตามดวงของฉัน ✨
           </h1>
           <p style={{ color: "var(--ink-dim)", fontSize: "0.82rem", margin: "0.5rem 0 0", lineHeight: 1.6 }}>
             คำนวณจากลัคนา ราศีคู่ครอง และธาตุจริง — {SOULMATE_IMAGE_DISCLAIMER}

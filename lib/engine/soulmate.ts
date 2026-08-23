@@ -243,10 +243,11 @@ export function soulmateElementReading(
 
 export type PartnerGender = "male" | "female" | "any";
 
+// สัญชาติ/ภูมิภาคแยกไปอยู่ใน LOOK_STYLES (ผู้ใช้เลือกเอง · default ไทย) — base ไม่ผูกสัญชาติ
 const GENDER_PHRASE: Record<PartnerGender, string> = {
-  male: "an adult Thai man",
-  female: "an adult Thai woman",
-  any: "an adult Thai person",
+  male: "an adult man",
+  female: "an adult woman",
+  any: "an adult person",
 };
 
 /** โทนสี/บรรยากาศตามธาตุของราศีคู่ — เชื่อมกับ ELEMENT ที่คำนวณ ไม่ใช่ให้ AI เดา */
@@ -272,12 +273,17 @@ export const SOULMATE_LOOK_NOTE =
   "ตัวเลือกรูปลักษณ์เป็นการตั้งค่าภาพตามความชอบของคุณเอง ไม่ใช่คำทำนายจากดวง " +
   "(ตำรายังไม่มีข้อมูลรูปลักษณ์เนื้อคู่ — อยู่ระหว่างสอบถามเจ้าของตำรา)";
 
-/** ลุคโดยรวม — บรรยายเป็น "สไตล์" ไม่อ้างอิงบุคคลจริง */
+/** สัญชาติ/สไตล์ลุค (ผู้ใช้เคาะ 23 ส.ค. 2569: แทนโครงหน้า/วัยที่ให้ AI จัดเอง) —
+ *  บรรยายเป็น "ลักษณะภูมิภาค+สไตล์" ไม่อ้างอิงบุคคลจริง · default = ไทย */
 export const LOOK_STYLES = {
-  natural: { th: "ธรรมชาติ", en: "warm natural everyday appearance" },
-  thai_star: { th: "ลุคดาราไทย", en: "polished photogenic appearance in the style of a Thai television drama lead, well-groomed" },
-  korean: { th: "ลุคซีรีส์เกาหลี", en: "fresh polished appearance in the style of a Korean drama lead, clear glowing skin" },
-  international: { th: "ลุคอินเตอร์", en: "elegant international model-like appearance, refined and confident" },
+  thai: { th: "ไทย", en: "Thai appearance with warm Southeast Asian features, polished and photogenic" },
+  korean: { th: "เกาหลี", en: "Korean appearance in the style of a K-drama lead, clear glowing skin" },
+  japanese: { th: "ญี่ปุ่น", en: "Japanese appearance with a clean elegant natural style" },
+  chinese: { th: "จีน", en: "Chinese appearance with refined graceful features" },
+  western: { th: "ฝรั่ง (ตะวันตก)", en: "Caucasian European appearance, fair skin, well-defined Western facial features" },
+  arab: { th: "อาหรับ/ตะวันออกกลาง", en: "Middle Eastern appearance with elegant modest style" },
+  indian: { th: "อินเดีย/เอเชียใต้", en: "South Asian appearance with graceful warm features" },
+  mixed: { th: "ลูกครึ่ง", en: "mixed Asian-Western appearance, photogenic and charming" },
 } as const;
 export type LookKey = keyof typeof LOOK_STYLES;
 
@@ -320,7 +326,8 @@ export function soulmateImagePrompt(opts: {
   age?: string | null;
 }): string {
   const scene = IMAGE_VARIANT_SCENES[(opts.variant ?? 0) % IMAGE_VARIANT_SCENES.length];
-  const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : null;
+  // default ไทย (พฤติกรรมเดิมของระบบ) — ค่านอก enum ก็ตกมาที่ไทย ไม่มีทางพา free-text เข้า prompt
+  const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : LOOK_STYLES.thai.en;
   const face = opts.face && opts.face in FACE_STYLES ? FACE_STYLES[opts.face as FaceKey].en : null;
   const age = opts.age && opts.age in AGE_STYLES ? AGE_STYLES[opts.age as AgeKey].en : null;
   return (
@@ -328,7 +335,7 @@ export function soulmateImagePrompt(opts: {
     (age ? ` ${age}` : "") +
     `, genuine warm smile, ` +
     (face ? `${face}, ` : "") +
-    (look ? `${look}, ` : "") +
+    `${look}, ` +
     `modest elegant everyday clothing, ${scene}, ` +
     `natural daylight, fresh airy atmosphere, realistic natural skin texture, ` +
     `subtle ${ELEMENT_ACCENT[opts.element]} color accents in clothing or surroundings, ` +

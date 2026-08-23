@@ -12,7 +12,8 @@ import FunctionChat from "../_components/FunctionChat";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { provincesByRegion } from "@/lib/provinces";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
-import { LOOK_STYLES, FACE_STYLES, AGE_STYLES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
+import { shareLinks } from "@/lib/share";
+import { LOOK_STYLES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
 import styles from "./soulmate.module.css";
 
 interface ReadingResponse {
@@ -70,10 +71,8 @@ export default function SoulmatePage() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState<string | null>(null);
-  // ตัวเลือกรูปลักษณ์ของภาพ (preset เท่านั้น — ไม่ใช่คำทำนาย ดู SOULMATE_LOOK_NOTE)
-  const [look, setLook] = useState("natural");
-  const [face, setFace] = useState("");
-  const [age, setAge] = useState("");
+  // สัญชาติ/สไตล์ลุคของภาพ (preset เท่านั้น — ไม่ใช่คำทำนาย · โครงหน้า/วัยให้ AI จัดตามเหมาะสม)
+  const [look, setLook] = useState("thai");
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
   const [pBirthDate, setPBirthDate] = useState("");
@@ -156,8 +155,6 @@ export default function SoulmatePage() {
           province: birthTime ? province : undefined,
           partnerGender,
           look: look || undefined,
-          face: face || undefined,
-          age: age || undefined,
         }),
       });
       const data = (await r.json()) as { images?: { url: string; caption: string }[]; shareUrl?: string | null; disclaimer?: string; error?: string; message?: string };
@@ -323,36 +320,19 @@ export default function SoulmatePage() {
               AI วาดจากบุคลิกและธาตุที่คำนวณ (3 รูป · 30 เครดิต) — เป็นภาพจินตนาการเท่านั้น
               ไม่ใช่บุคคลจริง และไม่ได้มาจากตำรา
             </p>
-            {/* ตัวเลือกรูปลักษณ์ (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง) */}
+            {/* สัญชาติ/สไตล์ลุค (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง ·
+                โครงหน้า/วัยให้ AI จัดตามความเหมาะสม — ผู้ใช้เคาะ 23 ส.ค. 2569) */}
             {!images.length && (
-              <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", margin: "0.6rem 0" }}>
-                <label className={styles.field} style={{ flex: 1, minWidth: 140, marginBottom: 0 }}>
-                  <span>ลุคโดยรวม</span>
+              <div style={{ margin: "0.6rem 0" }}>
+                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0 }}>
+                  <span>สัญชาติ/สไตล์ลุคของภาพ</span>
                   <select className={styles.input} value={look} onChange={(e) => setLook(e.target.value)}>
                     {Object.entries(LOOK_STYLES).map(([k, v]) => (
                       <option key={k} value={k}>{v.th}</option>
                     ))}
                   </select>
                 </label>
-                <label className={styles.field} style={{ flex: 1, minWidth: 140, marginBottom: 0 }}>
-                  <span>โครงหน้า</span>
-                  <select className={styles.input} value={face} onChange={(e) => setFace(e.target.value)}>
-                    <option value="">— ให้ AI เลือก —</option>
-                    {Object.entries(FACE_STYLES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.th}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.field} style={{ flex: 1, minWidth: 120, marginBottom: 0 }}>
-                  <span>ช่วงวัย</span>
-                  <select className={styles.input} value={age} onChange={(e) => setAge(e.target.value)}>
-                    <option value="">— ให้ AI เลือก —</option>
-                    {Object.entries(AGE_STYLES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.th}</option>
-                    ))}
-                  </select>
-                </label>
-                <p className={styles.note} style={{ width: "100%", marginTop: 0 }}>💡 {SOULMATE_LOOK_NOTE}</p>
+                <p className={styles.note} style={{ marginTop: "0.4rem" }}>💡 {SOULMATE_LOOK_NOTE}</p>
               </div>
             )}
             {imgError && <p className={styles.error}>{imgError}</p>}
@@ -392,13 +372,24 @@ export default function SoulmatePage() {
                 >
                   {copied ? "✓ คัดลอกลิงก์แล้ว" : "🔗 คัดลอกลิงก์แชร์"}
                 </button>
+                <a
+                  className={styles.ctaBtn}
+                  href={shareLinks(`https://lalaluckychat.com${shareUrl}`, "เนื้อคู่ตามดวงของฉัน ✨").facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📘 แชร์ Facebook
+                </a>
+                <a className={styles.ctaBtn} href={`${shareUrl}/story`} download>
+                  📱 ดาวน์โหลดสตอรี่ IG
+                </a>
                 {typeof navigator !== "undefined" && "share" in navigator && (
                   <button
                     type="button"
                     className={styles.ctaBtn}
                     onClick={() => {
                       navigator
-                        .share({ url: `${window.location.origin}${shareUrl}`, text: "เนื้อคู่ในจินตนาการของฉัน ✨ เปิดดวงเนื้อคู่ของคุณบ้างสิ 🐾" })
+                        .share({ url: `${window.location.origin}${shareUrl}`, text: "เนื้อคู่ตามดวงของฉัน ✨ เปิดดวงเนื้อคู่ของคุณบ้างสิ 🐾" })
                         .catch(() => {});
                     }}
                   >

@@ -80,11 +80,12 @@ test("fallback ไม่มีเวลาเกิด — บอกตรงว
 
 test("prompt ภาพเนื้อคู่ — สุภาพ/ผู้ใหญ่/ห้ามตัวอักษร + เพศตามที่ผู้ใช้เลือก (ห้ามเดา)", () => {
   const p = soulmateImagePrompt({ gender: "female", element: "Water" });
-  assert.ok(p.includes("adult Thai woman"));
+  assert.ok(p.includes("adult woman"));
+  assert.ok(p.includes("Thai appearance"), "default = ลุคไทย (พฤติกรรมเดิม)");
   assert.ok(p.includes("modest"));
   assert.ok(p.includes("no text"));
   const any = soulmateImagePrompt({ gender: "any", element: "Fire" });
-  assert.ok(any.includes("adult Thai person"));
+  assert.ok(any.includes("adult person") && any.includes("Thai appearance"));
   // ป้ายกำกับบังคับต้องประกาศชัดว่าไม่ใช่บุคคลจริงและไม่ได้มาจากตำรา
   assert.ok(SOULMATE_IMAGE_DISCLAIMER.includes("ไม่ใช่บุคคลจริง"));
   assert.ok(SOULMATE_IMAGE_DISCLAIMER.includes("ไม่ได้มาจากตำรา"));
@@ -169,20 +170,22 @@ test("ภพปัตนิเช็คไขว้ — ตรง (กันย�
 // ---- ตัวเลือกรูปลักษณ์ (23 ส.ค. 2569 — "แนวดารา" แบบปลอดภัย: preset เท่านั้น) ----
 import { LOOK_STYLES, FACE_STYLES, AGE_STYLES, SOULMATE_LOOK_NOTE } from "../lib/engine/soulmate";
 
-test("ตัวเลือกรูปลักษณ์ — preset เข้า prompt ตรงตัว · ค่านอก enum ถูกเพิกเฉย (กันอ้างชื่อบุคคลจริง)", () => {
-  const p = soulmateImagePrompt({ gender: "female", element: "Water", look: "korean", face: "sharp", age: "30s" });
+test("สัญชาติ/สไตล์ลุค — preset เข้า prompt ตรงตัว · ค่านอก enum ตกเป็นลุคไทย (กันอ้างชื่อบุคคลจริง)", () => {
+  // ครบ 8 สัญชาติ/สไตล์ (ผู้ใช้เคาะ: เกาหลี ฝรั่ง ไทย ญี่ปุ่น อาหรับ และอื่นๆ)
+  assert.equal(Object.keys(LOOK_STYLES).length, 8);
+  for (const k of ["thai", "korean", "japanese", "western", "arab"]) assert.ok(k in LOOK_STYLES);
+  const p = soulmateImagePrompt({ gender: "female", element: "Water", look: "korean" });
   assert.ok(p.includes(LOOK_STYLES.korean.en));
-  assert.ok(p.includes(FACE_STYLES.sharp.en));
-  assert.ok(p.includes(AGE_STYLES["30s"].en));
-  // 🔴 ค่าที่ไม่ใช่ preset (เช่น ชื่อดาราจริง) ต้องไม่มีทางเข้า prompt
-  const inj = soulmateImagePrompt({ gender: "female", element: "Water", look: "looks like Nadech Kugimiya", face: "หน้าเหมือนญาญ่า", age: "famous actress" });
-  assert.ok(!inj.includes("Nadech") && !inj.includes("ญาญ่า") && !inj.includes("famous actress"));
+  assert.ok(!p.includes("Thai appearance"), "เลือกเกาหลีแล้วต้องไม่มีลุคไทยปน");
+  // 🔴 ค่าที่ไม่ใช่ preset (เช่น ชื่อดาราจริง) ต้องไม่มีทางเข้า prompt — ตกเป็น default ไทย
+  const inj = soulmateImagePrompt({ gender: "female", element: "Water", look: "looks like Nadech Kugimiya" });
+  assert.ok(!inj.includes("Nadech"));
   const base = soulmateImagePrompt({ gender: "female", element: "Water" });
-  assert.equal(inj, base, "ค่านอก enum = เหมือนไม่ได้เลือกเลย");
-  // สไตล์ทุกตัวห้ามอ้างอิงบุคคลจริง (เป็นคำบรรยายสไตล์ล้วน)
-  for (const v of [...Object.values(LOOK_STYLES), ...Object.values(FACE_STYLES)]) {
-    assert.ok(!/[A-Z][a-z]+ [A-Z][a-z]+/.test(v.en.replace(/Thai|Korean/g, "")), `ห้ามมีชื่อบุคคล: ${v.en}`);
+  assert.equal(inj, base, "ค่านอก enum = เหมือนไม่ได้เลือกเลย (default ไทย)");
+  // สไตล์ทุกตัวเป็นคำบรรยายภูมิภาค/สไตล์ล้วน ห้ามอ้างอิงชื่อบุคคลจริง
+  for (const v of Object.values(LOOK_STYLES)) {
+    assert.ok(!/[A-Z][a-z]+ [A-Z][a-z]+/.test(v.en.replace(/Thai|Korean|Japanese|Chinese|Western|Caucasian|European|Middle Eastern|South Asian|Asian-Western|Southeast Asian/g, "")), `ห้ามมีชื่อบุคคล: ${v.en}`);
   }
-  // โน้ตบังคับ: บอกชัดว่าเป็นตัวเลือกภาพ ไม่ใช่คำทำนาย
+  // โครงหน้า/วัยยังรับได้ทาง engine (ทางเลือกอนาคต) แต่ไม่บังคับ — และโน้ตบังคับยังครบ
   assert.ok(SOULMATE_LOOK_NOTE.includes("ไม่ใช่คำทำนาย"));
 });
