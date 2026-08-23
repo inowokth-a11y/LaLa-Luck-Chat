@@ -135,10 +135,59 @@ export const SOULMATE_CAVEAT =
   "คำทำนายนี้บอกได้เพียง 'พลังงานและลักษณะนิสัยแบบไหนเกื้อหนุนคุณ' ตามหลักโหราศาสตร์ — " +
   "ระบุตัวบุคคล รูปร่างหน้าตา สถานที่ หรือเวลาที่จะพบกันแน่นอนไม่ได้ค่ะ";
 
-/** บอกขอบเขต v1 ตรงๆ — 5 หัวข้อที่ตำราไม่มีข้อมูล ยังไม่เปิด (ห้ามแต่งเอง §15) */
+/** บอกขอบเขตตรงๆ — หัวข้อที่ตำราไม่มีข้อมูล ยังไม่เปิด (ห้ามแต่งเอง §15)
+ *  (23 ส.ค. 2569: "รูปลักษณ์ภายนอก" ถอดจากรายการนี้แล้ว — พบตาราง ค.1 นรลักษณ์กายา 5 ธาตุ
+ *  ในตำราจตุพลวัตรเอง จึงเปิดหัวข้อนี้ได้ด้วยข้อมูลตำราจริง ดู PHYSIOGNOMY_BY_ELEMENT) */
 export const SOULMATE_SCOPE_NOTE =
-  "หัวข้อ รูปลักษณ์ภายนอก · พื้นเพครอบครัว · ฐานะ · อายุ · ช่วงเวลาที่จะพบ " +
+  "หัวข้อ พื้นเพครอบครัว · ฐานะ · อายุ · ช่วงเวลาที่จะพบ " +
   "ยังไม่เปิดในเวอร์ชันนี้ เพราะตำราต้นทางยังไม่มีข้อมูลรองรับ (อยู่ระหว่างสอบถามเจ้าของตำรา)";
+
+// ---------------------------------------------------------------------------
+// นรลักษณ์กายา 5 ธาตุ — ตำราจตุพลวัตร ภาคผนวก ค.1 (คัดลอกตรง ห้ามแก้ถ้อยคำเอง)
+// ใช้บอก "แนวโน้มรูปลักษณ์" ของคู่จากธาตุ + ป้อนเข้า prompt ภาพ (ผู้ใช้เคาะ 23 ส.ค. 2569)
+// ---------------------------------------------------------------------------
+
+export interface Physiognomy {
+  /** ลักษณะใบหน้า (ค.1 คำต่อคำ) */
+  faceTh: string;
+  /** ลักษณะรูปร่าง (ค.1 คำต่อคำ) */
+  bodyTh: string;
+  /** คำบรรยายอังกฤษสำหรับ prompt ภาพ (แปลง ค.1 เป็นภาษาภาพเชิงบวก) */
+  promptEn: string;
+}
+
+export const PHYSIOGNOMY_BY_ELEMENT: Record<Element5, Physiognomy> = {
+  Wood: {
+    faceTh: "ยาวและแคบ, โหนกแก้มและกรามไม่เด่นชัด",
+    bodyTh: "สูงโปร่ง",
+    promptEn: "long slender face with soft cheekbones, tall slim graceful build",
+  },
+  Fire: {
+    faceTh: "รูปสามเหลี่ยมหรือรูปไข่, หน้าผากกว้างและสูง, คางเล็กแหลม",
+    bodyTh: "ไหล่กว้าง เอวเล็ก",
+    promptEn: "oval face with a broad high forehead and delicate pointed chin, broad shoulders with a slim waist",
+  },
+  Earth: {
+    faceTh: "รูปสี่เหลี่ยมจัตุรัส/ผืนผ้า, ใบหน้าใหญ่, มีเนื้อหนาแน่น",
+    bodyTh: "โครงร่างใหญ่, แน่น, ดูมั่นคง",
+    promptEn: "strong square full face, solid sturdy dependable build",
+  },
+  Metal: {
+    faceTh: "รูปไข่หรือค่อนข้างเหลี่ยมแต่มุมมน, โครงสร้างสมดุล",
+    bodyTh: "สมส่วน, ดูแข็งแรง",
+    promptEn: "balanced oval face with softly angular refined features, well-proportioned athletic build",
+  },
+  Water: {
+    faceTh: "ใบหน้ากลม, อูม, มีเนื้อเยอะ, หน้ากว้าง, คางสั้น",
+    bodyTh: "ท้วม, มีเนื้อ",
+    promptEn: "soft round full face with gentle plump friendly features",
+  },
+};
+
+/** caveat บังคับเมื่อพูดถึงรูปลักษณ์ — เป็นแนวโน้มตามศาสตร์ ไม่ใช่คำระบุตัวบุคคล */
+export const APPEARANCE_CAVEAT =
+  "รูปลักษณ์เป็นแนวโน้มกว้างๆ ตามหลักนรลักษณ์กายา 5 ธาตุ (ตำราภาคผนวก ค.1) — " +
+  "ไม่ใช่คำระบุรูปร่างหน้าตาของบุคคลใดบุคคลหนึ่งแน่นอน";
 
 /** ป้ายบังคับของภาพเนื้อคู่ทุกรูป (ผู้ใช้สั่ง 21 ส.ค. 2569) */
 export const SOULMATE_IMAGE_DISCLAIMER =
@@ -189,6 +238,8 @@ export interface SoulmateReading {
   partner: ZodiacTraits;
   rulers: { name: string; meaning: string }[];
   chemistry: SoulmateChemistry;
+  /** แนวโน้มรูปลักษณ์จากธาตุของราศีคู่ — ตาราง ค.1 นรลักษณ์กายา (ตำราจริง) */
+  appearance: Physiognomy;
   caveats: string[];
 }
 
@@ -207,7 +258,8 @@ export function soulmateReading(
     partner,
     rulers: partner.rulerIds.map((id) => PLANET_MEANINGS[id]),
     chemistry: soulmateChemistry(userDominant, partner.element, userMissing),
-    caveats: [SOULMATE_CAVEAT, SOULMATE_SCOPE_NOTE],
+    appearance: PHYSIOGNOMY_BY_ELEMENT[partner.element],
+    caveats: [SOULMATE_CAVEAT, APPEARANCE_CAVEAT, SOULMATE_SCOPE_NOTE],
   };
 }
 
@@ -216,6 +268,8 @@ export interface SoulmateElementReading {
   /** อันดับธาตุคู่ + ทิศ (ชั้นเดียวกับ myMatchProfile) */
   rankedElements: SoulmateChemistry["rankedElements"];
   supportDirections: Direction[];
+  /** แนวโน้มรูปลักษณ์จากธาตุคู่อันดับ 1 — ตาราง ค.1 */
+  appearance: Physiognomy;
   caveats: string[];
 }
 
@@ -233,7 +287,8 @@ export function soulmateElementReading(
     mode: "element",
     rankedElements: c.rankedElements,
     supportDirections: c.supportDirections,
-    caveats: [SOULMATE_NO_TIME_NOTE, SOULMATE_CAVEAT, SOULMATE_SCOPE_NOTE],
+    appearance: PHYSIOGNOMY_BY_ELEMENT[c.rankedElements[0].element],
+    caveats: [SOULMATE_NO_TIME_NOTE, SOULMATE_CAVEAT, APPEARANCE_CAVEAT, SOULMATE_SCOPE_NOTE],
   };
 }
 
@@ -334,10 +389,12 @@ export function soulmateImagePrompt(opts: {
     `Bright natural photorealistic portrait photograph of ${GENDER_PHRASE[opts.gender]}` +
     (age ? ` ${age}` : "") +
     `, genuine warm smile, ` +
+    // รูปหน้า/รูปร่างตามธาตุของคู่ — ตาราง ค.1 นรลักษณ์กายา (ตำราจริง ไม่ใช่ความชอบ)
+    `${PHYSIOGNOMY_BY_ELEMENT[opts.element].promptEn}, ` +
     (face ? `${face}, ` : "") +
     `${look}, ` +
     `modest elegant everyday clothing, ${scene}, ` +
-    `natural daylight, fresh airy atmosphere, realistic natural skin texture, ` +
+    `natural daylight, fresh airy atmosphere, highly detailed natural skin texture with visible pores, subtle skin imperfections, fine facial detail, ` +
     `subtle ${ELEMENT_ACCENT[opts.element]} color accents in clothing or surroundings, ` +
     `no text, no words, no letters, no watermark`
   );
@@ -351,8 +408,9 @@ export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElement
   if (reading.mode === "lagna") {
     const p = reading.partner;
     const dirs = reading.chemistry.supportDirections.slice(0, 3).join("/");
+    const phys = PHYSIOGNOMY_BY_ELEMENT[p.element];
     return [
-      `นิสัยเด่นของคู่: ${p.traits} (ราศี${reading.seventhSign} · ธาตุ${THAI_LABEL_5[p.element]})`,
+      `นิสัยเด่นของคู่: ${p.traits} (ราศี${reading.seventhSign} · ธาตุ${THAI_LABEL_5[p.element]}) · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ใบหน้า${phys.faceTh}`,
       `จุดแข็งเมื่ออยู่ด้วยกัน: ${p.strengths}`,
       `เคมีธาตุ: ${reading.chemistry.score.relation_th}${dirs ? ` · พลังเกื้อหนุนอยู่ทางทิศ${dirs}` : ""}`,
     ];

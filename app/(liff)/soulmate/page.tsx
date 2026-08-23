@@ -26,6 +26,7 @@ interface ReadingResponse {
     chemistry?: { score: { final_score: number; relation_th: string }; supportDirections: string[] };
     rankedElements?: { thai: string; score: number; relation: string }[];
     supportDirections?: string[];
+    appearance?: { faceTh: string; bodyTh: string };
     caveats: string[];
   };
   error?: string;
@@ -305,6 +306,12 @@ export default function SoulmatePage() {
                 <div className={styles.factRow}>
                   <span className={styles.factLabel}>เคมีธาตุคุณ↔เขา</span>
                   <span>{reading.chemistry.score.relation_th} ({reading.chemistry.score.final_score >= 0 ? "+" : ""}{reading.chemistry.score.final_score})</span>
+                </div>
+              )}
+              {reading.appearance && (
+                <div className={styles.factRow}>
+                  <span className={styles.factLabel}>แนวโน้มรูปลักษณ์ (นรลักษณ์ ค.1)</span>
+                  <span>ใบหน้า{reading.appearance.faceTh} · รูปร่าง{reading.appearance.bodyTh}</span>
                 </div>
               )}
             </div>

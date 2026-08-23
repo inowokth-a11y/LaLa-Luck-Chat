@@ -91,10 +91,27 @@ test("prompt ภาพเนื้อคู่ — สุภาพ/ผู้ใ�
   assert.ok(SOULMATE_IMAGE_DISCLAIMER.includes("ไม่ได้มาจากตำรา"));
 });
 
-test("ขอบเขต v1 — SCOPE_NOTE ระบุครบ 5 หัวข้อที่ตำราไม่มีข้อมูล (ห้ามแต่งเอง)", () => {
-  for (const topic of ["รูปลักษณ์", "พื้นเพ", "ฐานะ", "อายุ", "ช่วงเวลา"]) {
+test("ขอบเขต — SCOPE_NOTE เหลือ 4 หัวข้อ (รูปลักษณ์เปิดแล้วด้วยตาราง ค.1) + นรลักษณ์ครบ 5 ธาตุ", () => {
+  for (const topic of ["พื้นเพ", "ฐานะ", "อายุ", "ช่วงเวลา"]) {
     assert.ok(SOULMATE_SCOPE_NOTE.includes(topic), `SCOPE_NOTE ต้องมี "${topic}"`);
   }
+  assert.ok(!SOULMATE_SCOPE_NOTE.includes("รูปลักษณ์"), "รูปลักษณ์เปิดแล้ว — ห้ามอยู่ในรายการปิด");
+  // ตาราง ค.1 คัดลอกตรงตำรา (spot-check คำต่อคำ)
+  assert.equal(Object.keys(PHYSIOGNOMY_BY_ELEMENT).length, 5);
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Fire.faceTh, "รูปสามเหลี่ยมหรือรูปไข่, หน้าผากกว้างและสูง, คางเล็กแหลม");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Water.bodyTh, "ท้วม, มีเนื้อ");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Wood.faceTh, "ยาวและแคบ, โหนกแก้มและกรามไม่เด่นชัด");
+  // readings แนบรูปลักษณ์ + caveat นรลักษณ์
+  const r = soulmateReading("เมษ", "Fire", ["Water"]); // คู่ตุลย์ = Wood
+  assert.equal(r.appearance.faceTh, PHYSIOGNOMY_BY_ELEMENT.Wood.faceTh);
+  assert.ok(r.caveats.includes(APPEARANCE_CAVEAT));
+  const el = soulmateElementReading("Fire", ["Water"]);
+  assert.equal(el.appearance.faceTh, PHYSIOGNOMY_BY_ELEMENT[el.rankedElements[0].element].faceTh);
+  assert.ok(el.caveats.includes(APPEARANCE_CAVEAT));
+  // prompt ภาพใส่รูปหน้าตามธาตุ (ค.1) + ผิวละเอียด/รูขุมขน (ผู้ใช้ขอ)
+  const p = soulmateImagePrompt({ gender: "female", element: "Water" });
+  assert.ok(p.includes(PHYSIOGNOMY_BY_ELEMENT.Water.promptEn));
+  assert.ok(/visible pores/i.test(p), "ต้องมีรายละเอียดผิว/รูขุมขน");
 });
 
 // ---- ภาพสว่าง-สมจริง 3 ฉาก + คำบรรยายจาก engine (feedback ผู้ใช้ 23 ส.ค. 2569) ----
@@ -126,7 +143,7 @@ test("คำบรรยายประจำภาพ — ถ้อยคำจ
 });
 
 // ---- เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) ----
-import { partnerMatchReading, PARTNER_PRIVACY_NOTE, NAME_TABLE_CAVEAT } from "../lib/engine/soulmate";
+import { partnerMatchReading, PARTNER_PRIVACY_NOTE, NAME_TABLE_CAVEAT, PHYSIOGNOMY_BY_ELEMENT, APPEARANCE_CAVEAT } from "../lib/engine/soulmate";
 import { personSeedFromBirthDate, birthPowerNumber } from "../lib/engine/network-holistic";
 import { nameElement } from "../lib/engine/naming";
 
