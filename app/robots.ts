@@ -21,14 +21,14 @@ export default function robots(): MetadataRoute.Robots {
       ...SOCIAL_CRAWLERS.map((ua) => ({
         userAgent: ua,
         // /s/ = หน้าแชร์ face-card ส่วนบุคคล — โซเชียลต้องสเครปได้ (พรีวิว OG) เช่นเดียวกับ /card/
-        allow: ["/card/", "/s/"],
+        allow: ["/card/", "/s/", "/sm/"],
         disallow: ["/api/", "/admin", "/account", "/auth/", "/onboarding", "/login", "/consent", "/welcome"],
       })),
       {
         userAgent: "*",
         allow: "/",
         // /s/ ปิดจาก search engine — หน้าส่วนบุคคลที่ผู้ใช้เลือกแชร์เอง ไม่ใช่หน้า SEO (มี noindex ซ้ำอีกชั้น)
-        disallow: ["/api/", "/admin", "/account", "/auth/", "/onboarding", "/login", "/consent", "/welcome", "/card/", "/s/"],
+        disallow: ["/api/", "/admin", "/account", "/auth/", "/onboarding", "/login", "/consent", "/welcome", "/card/", "/s/", "/sm/"],
       },
     ],
     sitemap: "https://lalaluckychat.com/sitemap.xml",

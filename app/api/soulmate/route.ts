@@ -15,9 +15,17 @@ import {
   soulmateReading,
   soulmateElementReading,
   soulmateImagePrompt,
+  soulmateImageCaptions,
   SOULMATE_IMAGE_DISCLAIMER,
   type PartnerGender,
 } from "@/lib/engine/soulmate";
+import { randomUUID } from "node:crypto";
+import {
+  ensureSoulmateBucket,
+  storeSoulmateImage,
+  soulmateSignedUrl,
+  newShareToken,
+} from "@/lib/soulmate/store";
 import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
 import { provinceByKey } from "@/lib/provinces";
@@ -25,6 +33,7 @@ import { buildProfileContext } from "@/lib/chat/plan-run";
 import { generate } from "@/lib/ai";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { checkQuota, quotaExhaustedMessage } from "@/lib/chat/quota";
 import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
@@ -145,8 +154,44 @@ export async function POST(req: Request) {
         );
       }
 
-      const prompt = soulmateImagePrompt({ gender: partnerGender, element: partnerElement });
-      const images = await falSoulmateImages(prompt, 3);
+      // 3 ภาพ = 3 ฉาก (variant) แต่ละภาพมีคำบรรยายจากผลคำนวณของตัวเอง (ผู้ใช้ขอ 23 ส.ค. 2569)
+      const prompts = [0, 1, 2].map((v) => soulmateImagePrompt({ gender: partnerGender, element: partnerElement, variant: v }));
+      const captions = soulmateImageCaptions(reading);
+      const images = await falSoulmateImages(prompts);
+
+      // เก็บถาวร + token หน้าแชร์ /sm/<token> (แชร์โซเชียลได้ — ผู้ใช้ขอ)
+      let shareUrl: string | null = null;
+      const shown: { url: string; caption: string }[] = [];
+      try {
+        await ensureSoulmateBucket();
+        const genId = randomUUID();
+        const paths: string[] = [];
+        for (let i = 0; i < images.length; i++) {
+          paths.push(await storeSoulmateImage(userId, genId, i, images[i].url));
+        }
+        const token = newShareToken();
+        const svc = createServiceClient();
+        const { error: insErr } = await svc.from("soulmate_gen_e").insert({
+          id: genId,
+          auth_uid: userId,
+          share_token: token,
+          partner_gender: partnerGender,
+          partner_element: partnerElement,
+          image_paths: paths,
+          captions,
+        });
+        if (insErr) throw new Error(insErr.message);
+        shareUrl = `/sm/${token}`;
+        for (let i = 0; i < paths.length; i++) {
+          const signed = await soulmateSignedUrl(paths[i]);
+          shown.push({ url: signed ?? images[i].url, caption: captions[i] ?? "" });
+        }
+      } catch (e) {
+        // เก็บถาวรพัง = ยังส่งภาพชั่วคราว+คำบรรยายให้ผู้ใช้ได้ (ไม่มีลิงก์แชร์)
+        console.warn("[soulmate] เก็บภาพ/สร้างลิงก์แชร์ไม่สำเร็จ — ใช้ URL ชั่วคราว", e);
+        shown.length = 0;
+        images.forEach((img, i) => shown.push({ url: img.url, caption: captions[i] ?? "" }));
+      }
 
       // หักหลังสำเร็จเท่านั้น
       let creditsLeft: number | null = null;
@@ -155,18 +200,19 @@ export async function POST(req: Request) {
         if (spent.ok) creditsLeft = spent.balance;
         else console.warn("[soulmate] หักเครดิตภาพไม่สำเร็จหลังสร้างแล้ว", spent.reason);
       }
-      for (const img of images) {
+      images.forEach((img, i) => {
         void logImageGeneration({
           authUid: userId,
           kind: "soulmate_image",
           imageUrl: img.url,
-          stored: false,
-          prompt,
+          stored: shareUrl !== null,
+          prompt: prompts[i],
           brandElement: partnerElement,
         });
-      }
+      });
       return NextResponse.json({
-        images: images.map((i) => i.url),
+        images: shown,
+        shareUrl,
         disclaimer: SOULMATE_IMAGE_DISCLAIMER,
         ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       });

@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase/auth-server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { deleteFaceCardImages } from "@/lib/face-card/store";
+import { deleteSoulmateImages } from "@/lib/soulmate/store";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,7 @@ export async function POST() {
     // ไฟล์ face-card ใน Storage ไม่ได้ผูก FK — ต้องลบเองก่อน (คำมั่นใน consent ชีวมิติ:
     // ลบบัญชี = ภาพผลงานถูกลบทั้งหมด) · ลบไฟล์พังไม่บล็อกการลบบัญชี (log ไว้ตามรอย)
     await deleteFaceCardImages(user.id);
+    await deleteSoulmateImages(user.id);
 
     const svc = createServiceClient();
     const { error } = await svc.auth.admin.deleteUser(user.id);

@@ -49,8 +49,10 @@ export default function SoulmatePage() {
   const [needsTopup, setNeedsTopup] = useState(false);
 
   const [imgLoading, setImgLoading] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ url: string; caption: string }[]>([]);
   const [imgDisclaimer, setImgDisclaimer] = useState("");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState<string | null>(null);
 
   // เติมจากบัญชีเฉพาะช่องที่ยังว่าง — ไม่ทับที่ผู้ใช้พิมพ์เอง (แพทเทิร์นเดียวกับ /profile)
@@ -126,11 +128,12 @@ export default function SoulmatePage() {
           partnerGender,
         }),
       });
-      const data = (await r.json()) as { images?: string[]; disclaimer?: string; error?: string; message?: string };
+      const data = (await r.json()) as { images?: { url: string; caption: string }[]; shareUrl?: string | null; disclaimer?: string; error?: string; message?: string };
       if (!r.ok) {
         setImgError(data.message ?? data.error ?? "สร้างภาพไม่สำเร็จ");
       } else {
         setImages(data.images ?? []);
+        setShareUrl(data.shareUrl ?? null);
         setImgDisclaimer(data.disclaimer ?? "");
         syncAuthStatus();
       }
@@ -251,13 +254,51 @@ export default function SoulmatePage() {
             )}
             {images.length > 0 && (
               <div className={styles.imgGrid}>
-                {images.map((url) => (
-                  <figure key={url} className={styles.imgCard}>
+                {images.map((img, i) => (
+                  <figure key={img.url} className={styles.imgCard}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt="ภาพจินตนาการเนื้อคู่จาก AI" />
+                    <img src={img.url} alt={`ภาพจินตนาการเนื้อคู่ ${i + 1}`} />
+                    {img.caption && (
+                      <figcaption style={{ fontSize: "0.82rem", lineHeight: 1.55, marginTop: "0.4rem" }}>
+                        {img.caption}
+                      </figcaption>
+                    )}
                     <figcaption className={styles.imgLabel}>🎨 {imgDisclaimer}</figcaption>
                   </figure>
                 ))}
+              </div>
+            )}
+            {shareUrl && images.length > 0 && (
+              <div className={styles.ctaRow} style={{ justifyContent: "center", marginTop: "0.8rem" }}>
+                <button
+                  type="button"
+                  className={styles.ctaBtn}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(`${window.location.origin}${shareUrl}`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2500);
+                    } catch { /* คัดลอกไม่ได้ */ }
+                  }}
+                >
+                  {copied ? "✓ คัดลอกลิงก์แล้ว" : "🔗 คัดลอกลิงก์แชร์"}
+                </button>
+                {typeof navigator !== "undefined" && "share" in navigator && (
+                  <button
+                    type="button"
+                    className={styles.ctaBtn}
+                    onClick={() => {
+                      navigator
+                        .share({ url: `${window.location.origin}${shareUrl}`, text: "เนื้อคู่ในจินตนาการของฉัน ✨ เปิดดวงเนื้อคู่ของคุณบ้างสิ 🐾" })
+                        .catch(() => {});
+                    }}
+                  >
+                    📤 แชร์
+                  </button>
+                )}
+                <p className={styles.note} style={{ width: "100%", textAlign: "center", marginTop: "0.3rem" }}>
+                  ลิงก์แชร์แสดงเฉพาะภาพ+คำบรรยาย ไม่มีข้อมูลส่วนตัวของคุณ
+                </p>
               </div>
             )}
           </div>

@@ -95,3 +95,31 @@ test("ขอบเขต v1 — SCOPE_NOTE ระบุครบ 5 หัวข�
     assert.ok(SOULMATE_SCOPE_NOTE.includes(topic), `SCOPE_NOTE ต้องมี "${topic}"`);
   }
 });
+
+// ---- ภาพสว่าง-สมจริง 3 ฉาก + คำบรรยายจาก engine (feedback ผู้ใช้ 23 ส.ค. 2569) ----
+import { soulmateImageCaptions } from "../lib/engine/soulmate";
+
+test("prompt 3 variant — สว่าง/ธรรมชาติ/สมจริง · ฉากต่างกันทั้ง 3 · ยังสุภาพ+no-text", () => {
+  const prompts = [0, 1, 2].map((v) => soulmateImagePrompt({ gender: "female", element: "Water", variant: v }));
+  assert.equal(new Set(prompts).size, 3, "3 ฉากต้องต่างกัน");
+  for (const p of prompts) {
+    assert.ok(/natural daylight/i.test(p), "ต้องสว่างธรรมชาติ");
+    assert.ok(/photorealistic|realistic/i.test(p), "ต้องสมจริง");
+    assert.ok(!/cinematic|dreamy romantic|artistic illustration/i.test(p), "ห้ามโทนมืดจัดฉากแบบเดิม");
+    assert.ok(p.includes("modest") && /no text/i.test(p));
+    assert.ok(/accents/i.test(p), "สีธาตุเป็นสีเน้น ไม่ใช่โทนคุมทั้งภาพ");
+  }
+});
+
+test("คำบรรยายประจำภาพ — ถ้อยคำจาก engine ล้วน (ข.2/เคมี/ทิศ) ทั้งโหมดลัคนาและโหมดธาตุ", () => {
+  const lagna = soulmateReading("กันย์", "Fire", ["Water"]);
+  const caps = soulmateImageCaptions(lagna);
+  assert.equal(caps.length, 3);
+  assert.ok(caps[0].includes(lagna.partner.traits), "ภาพ 1 = นิสัยจาก ข.2 คำต่อคำ");
+  assert.ok(caps[1].includes(lagna.partner.strengths), "ภาพ 2 = จุดแข็งจาก ข.2");
+  assert.ok(caps[2].includes(lagna.chemistry.score.relation_th), "ภาพ 3 = เคมีจาก wuXing จริง");
+  const el = soulmateElementReading("Fire", ["Water"]);
+  const caps2 = soulmateImageCaptions(el);
+  assert.ok(caps2[0].includes(el.rankedElements[0].thai));
+  assert.ok(caps2[1].includes(el.rankedElements[1].thai));
+});

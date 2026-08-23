@@ -250,23 +250,58 @@ const GENDER_PHRASE: Record<PartnerGender, string> = {
 };
 
 /** โทนสี/บรรยากาศตามธาตุของราศีคู่ — เชื่อมกับ ELEMENT ที่คำนวณ ไม่ใช่ให้ AI เดา */
-const ELEMENT_MOOD: Record<Element5, string> = {
-  Fire: "warm golden-red tones, confident radiant mood",
-  Earth: "earthy warm beige and terracotta tones, calm grounded mood",
-  Wood: "fresh green natural tones, lively breezy mood",
-  Water: "cool blue serene tones, gentle dreamy mood",
-  Metal: "elegant silver-white tones, refined graceful mood",
+// ปรับ 23 ส.ค. 2569 (feedback ผู้ใช้: ภาพมืด/จัดฉาก/ไม่เป็นธรรมชาติ) — สีธาตุเป็นแค่ "สีเน้น"
+// ในเสื้อผ้า/ฉาก ไม่ใช่โทนคุมทั้งภาพ (โทนน้ำเงินเข้มทั้งภาพมาจาก mood เดิมของธาตุน้ำ)
+const ELEMENT_ACCENT: Record<Element5, string> = {
+  Fire: "warm coral-red",
+  Earth: "cream and warm brown",
+  Wood: "fresh green",
+  Water: "soft sky-blue",
+  Metal: "clean white and silver",
 };
 
+/** ฉาก 3 แบบ — ภาพละมุมมอง เพื่อให้แต่ละรูปมีคำบรรยายประจำภาพของตัวเอง (ผู้ใช้ขอ) */
+const IMAGE_VARIANT_SCENES: readonly string[] = [
+  "close-up portrait near a bright window with soft morning light",
+  "half-body lifestyle shot in a bright airy everyday setting, relaxed and approachable",
+  "candid outdoor portrait in a sunny park with natural greenery, genuine laughing smile",
+];
+
 /**
- * สร้าง prompt ภาพเนื้อคู่จากข้อเท็จจริงที่คำนวณแล้ว (ธาตุของราศีคู่ → โทนภาพ)
- * 🔴 บังคับ: สุภาพ (modest clothing) · ผู้ใหญ่ · ไม่มีตัวอักษรในภาพ · ภาพเดี่ยว portrait
+ * สร้าง prompt ภาพเนื้อคู่จากข้อเท็จจริงที่คำนวณแล้ว (ธาตุของราศีคู่ → สีเน้น)
+ * 🔴 บังคับ: สุภาพ (modest clothing) · ผู้ใหญ่ · ไม่มีตัวอักษรในภาพ · สว่าง-ธรรมชาติ-สมจริง
  */
-export function soulmateImagePrompt(opts: { gender: PartnerGender; element: Element5 }): string {
+export function soulmateImagePrompt(opts: { gender: PartnerGender; element: Element5; variant?: number }): string {
+  const scene = IMAGE_VARIANT_SCENES[(opts.variant ?? 0) % IMAGE_VARIANT_SCENES.length];
   return (
-    `Tasteful artistic portrait of ${GENDER_PHRASE[opts.gender]}, warm friendly expression, ` +
-    `modest elegant clothing, ${ELEMENT_MOOD[opts.element]}, ` +
-    `soft cinematic lighting, dreamy romantic atmosphere, upper-body portrait, ` +
-    `photorealistic but clearly an artistic illustration, no text, no words, no letters, no watermark`
+    `Bright natural photorealistic portrait photograph of ${GENDER_PHRASE[opts.gender]}, ` +
+    `genuine warm smile, modest elegant everyday clothing, ${scene}, ` +
+    `natural daylight, fresh airy atmosphere, realistic natural skin texture, ` +
+    `subtle ${ELEMENT_ACCENT[opts.element]} color accents in clothing or surroundings, ` +
+    `no text, no words, no letters, no watermark`
   );
+}
+
+/**
+ * คำบรรยาย "ลักษณะคู่ที่เข้ากัน" ประจำภาพทั้ง 3 — ถ้อยคำมาจากผลคำนวณล้วน (ข.2/wuXing/ทิศ)
+ * ห้ามแต่งลักษณะใหม่ที่ engine ไม่ได้ให้ (§16)
+ */
+export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElementReading): [string, string, string] {
+  if (reading.mode === "lagna") {
+    const p = reading.partner;
+    const dirs = reading.chemistry.supportDirections.slice(0, 3).join("/");
+    return [
+      `นิสัยเด่นของคู่: ${p.traits} (ราศี${reading.seventhSign} · ธาตุ${THAI_LABEL_5[p.element]})`,
+      `จุดแข็งเมื่ออยู่ด้วยกัน: ${p.strengths}`,
+      `เคมีธาตุ: ${reading.chemistry.score.relation_th}${dirs ? ` · พลังเกื้อหนุนอยู่ทางทิศ${dirs}` : ""}`,
+    ];
+  }
+  const top = reading.rankedElements[0];
+  const second = reading.rankedElements[1];
+  const dirs = reading.supportDirections.slice(0, 3).join("/");
+  return [
+    `คู่ธาตุ${top.thai} เกื้อหนุนคุณที่สุด (${top.score > 0 ? "+" : ""}${top.score}) — ${top.relation}`,
+    `รองลงมาคือคู่ธาตุ${second.thai} (${second.score > 0 ? "+" : ""}${second.score}) — ${second.relation}`,
+    `พลังเกื้อหนุนอยู่ทางทิศ${dirs || "—"} (จากธาตุที่เข้ากับคุณที่สุด)`,
+  ];
 }
