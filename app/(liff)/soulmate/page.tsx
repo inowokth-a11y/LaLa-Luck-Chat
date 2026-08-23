@@ -12,6 +12,7 @@ import FunctionChat from "../_components/FunctionChat";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { provincesByRegion } from "@/lib/provinces";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
+import { LOOK_STYLES, FACE_STYLES, AGE_STYLES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
 import styles from "./soulmate.module.css";
 
 interface ReadingResponse {
@@ -69,6 +70,10 @@ export default function SoulmatePage() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState<string | null>(null);
+  // ตัวเลือกรูปลักษณ์ของภาพ (preset เท่านั้น — ไม่ใช่คำทำนาย ดู SOULMATE_LOOK_NOTE)
+  const [look, setLook] = useState("natural");
+  const [face, setFace] = useState("");
+  const [age, setAge] = useState("");
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
   const [pBirthDate, setPBirthDate] = useState("");
@@ -150,6 +155,9 @@ export default function SoulmatePage() {
           birthTime: birthTime || undefined,
           province: birthTime ? province : undefined,
           partnerGender,
+          look: look || undefined,
+          face: face || undefined,
+          age: age || undefined,
         }),
       });
       const data = (await r.json()) as { images?: { url: string; caption: string }[]; shareUrl?: string | null; disclaimer?: string; error?: string; message?: string };
@@ -315,6 +323,38 @@ export default function SoulmatePage() {
               AI วาดจากบุคลิกและธาตุที่คำนวณ (3 รูป · 30 เครดิต) — เป็นภาพจินตนาการเท่านั้น
               ไม่ใช่บุคคลจริง และไม่ได้มาจากตำรา
             </p>
+            {/* ตัวเลือกรูปลักษณ์ (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง) */}
+            {!images.length && (
+              <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", margin: "0.6rem 0" }}>
+                <label className={styles.field} style={{ flex: 1, minWidth: 140, marginBottom: 0 }}>
+                  <span>ลุคโดยรวม</span>
+                  <select className={styles.input} value={look} onChange={(e) => setLook(e.target.value)}>
+                    {Object.entries(LOOK_STYLES).map(([k, v]) => (
+                      <option key={k} value={k}>{v.th}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.field} style={{ flex: 1, minWidth: 140, marginBottom: 0 }}>
+                  <span>โครงหน้า</span>
+                  <select className={styles.input} value={face} onChange={(e) => setFace(e.target.value)}>
+                    <option value="">— ให้ AI เลือก —</option>
+                    {Object.entries(FACE_STYLES).map(([k, v]) => (
+                      <option key={k} value={k}>{v.th}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.field} style={{ flex: 1, minWidth: 120, marginBottom: 0 }}>
+                  <span>ช่วงวัย</span>
+                  <select className={styles.input} value={age} onChange={(e) => setAge(e.target.value)}>
+                    <option value="">— ให้ AI เลือก —</option>
+                    {Object.entries(AGE_STYLES).map(([k, v]) => (
+                      <option key={k} value={k}>{v.th}</option>
+                    ))}
+                  </select>
+                </label>
+                <p className={styles.note} style={{ width: "100%", marginTop: 0 }}>💡 {SOULMATE_LOOK_NOTE}</p>
+              </div>
+            )}
             {imgError && <p className={styles.error}>{imgError}</p>}
             {!images.length && (
               <button type="button" className={styles.ctaBtn} onClick={generateImages} disabled={imgLoading}>

@@ -260,6 +260,45 @@ const ELEMENT_ACCENT: Record<Element5, string> = {
   Metal: "clean white and silver",
 };
 
+// ---------------------------------------------------------------------------
+// ตัวเลือกรูปลักษณ์ (ผู้ใช้เคาะ 23 ส.ค. 2569 — "แนวดารา") · 🔴 กติกาความปลอดภัย:
+// (1) เป็น preset enum เท่านั้น **ไม่มีช่องพิมพ์อิสระ** — กันการอ้างชื่อดารา/คนดังจริง
+//     (สิทธิภาพลักษณ์บุคคล + ขัดป้าย "ไม่ใช่บุคคลจริง" + นโยบายผู้ให้บริการโมเดลภาพ)
+// (2) เป็น "ตัวเลือกการวาดภาพตามความชอบ" ไม่ใช่คำทำนาย — รูปลักษณ์เนื้อคู่คือหัวข้อที่ตำรา
+//     ยังไม่มีข้อมูล (SOULMATE_SCOPE_NOTE) · SOULMATE_LOOK_NOTE ต้องแสดงคู่ตัวเลือกเสมอ
+// ---------------------------------------------------------------------------
+
+export const SOULMATE_LOOK_NOTE =
+  "ตัวเลือกรูปลักษณ์เป็นการตั้งค่าภาพตามความชอบของคุณเอง ไม่ใช่คำทำนายจากดวง " +
+  "(ตำรายังไม่มีข้อมูลรูปลักษณ์เนื้อคู่ — อยู่ระหว่างสอบถามเจ้าของตำรา)";
+
+/** ลุคโดยรวม — บรรยายเป็น "สไตล์" ไม่อ้างอิงบุคคลจริง */
+export const LOOK_STYLES = {
+  natural: { th: "ธรรมชาติ", en: "warm natural everyday appearance" },
+  thai_star: { th: "ลุคดาราไทย", en: "polished photogenic appearance in the style of a Thai television drama lead, well-groomed" },
+  korean: { th: "ลุคซีรีส์เกาหลี", en: "fresh polished appearance in the style of a Korean drama lead, clear glowing skin" },
+  international: { th: "ลุคอินเตอร์", en: "elegant international model-like appearance, refined and confident" },
+} as const;
+export type LookKey = keyof typeof LOOK_STYLES;
+
+/** โครงหน้า */
+export const FACE_STYLES = {
+  warm: { th: "อบอุ่น", en: "gentle warm approachable facial features" },
+  sweet: { th: "หน้าหวาน", en: "soft sweet charming facial features" },
+  sharp: { th: "คมเข้ม", en: "sharp well-defined striking facial features" },
+  bright: { th: "สดใส", en: "bright cheerful youthful facial features" },
+} as const;
+export type FaceKey = keyof typeof FACE_STYLES;
+
+/** ช่วงวัย (ผู้ใหญ่เท่านั้น — สอดคล้องกติกา modest/adult เดิม) */
+export const AGE_STYLES = {
+  "20s": { th: "วัย 20+", en: "in their mid twenties" },
+  "30s": { th: "วัย 30+", en: "in their thirties" },
+  "40s": { th: "วัย 40+", en: "in their forties" },
+  "50s": { th: "วัย 50+", en: "in their fifties, graceful and dignified" },
+} as const;
+export type AgeKey = keyof typeof AGE_STYLES;
+
 /** ฉาก 3 แบบ — ภาพละมุมมอง เพื่อให้แต่ละรูปมีคำบรรยายประจำภาพของตัวเอง (ผู้ใช้ขอ) */
 const IMAGE_VARIANT_SCENES: readonly string[] = [
   "close-up portrait near a bright window with soft morning light",
@@ -271,11 +310,26 @@ const IMAGE_VARIANT_SCENES: readonly string[] = [
  * สร้าง prompt ภาพเนื้อคู่จากข้อเท็จจริงที่คำนวณแล้ว (ธาตุของราศีคู่ → สีเน้น)
  * 🔴 บังคับ: สุภาพ (modest clothing) · ผู้ใหญ่ · ไม่มีตัวอักษรในภาพ · สว่าง-ธรรมชาติ-สมจริง
  */
-export function soulmateImagePrompt(opts: { gender: PartnerGender; element: Element5; variant?: number }): string {
+export function soulmateImagePrompt(opts: {
+  gender: PartnerGender;
+  element: Element5;
+  variant?: number;
+  /** ตัวเลือกรูปลักษณ์ — รับเฉพาะ key ใน preset (ค่าอื่นถูกเพิกเฉย ไม่มีทางพา free-text เข้า prompt) */
+  look?: string | null;
+  face?: string | null;
+  age?: string | null;
+}): string {
   const scene = IMAGE_VARIANT_SCENES[(opts.variant ?? 0) % IMAGE_VARIANT_SCENES.length];
+  const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : null;
+  const face = opts.face && opts.face in FACE_STYLES ? FACE_STYLES[opts.face as FaceKey].en : null;
+  const age = opts.age && opts.age in AGE_STYLES ? AGE_STYLES[opts.age as AgeKey].en : null;
   return (
-    `Bright natural photorealistic portrait photograph of ${GENDER_PHRASE[opts.gender]}, ` +
-    `genuine warm smile, modest elegant everyday clothing, ${scene}, ` +
+    `Bright natural photorealistic portrait photograph of ${GENDER_PHRASE[opts.gender]}` +
+    (age ? ` ${age}` : "") +
+    `, genuine warm smile, ` +
+    (face ? `${face}, ` : "") +
+    (look ? `${look}, ` : "") +
+    `modest elegant everyday clothing, ${scene}, ` +
     `natural daylight, fresh airy atmosphere, realistic natural skin texture, ` +
     `subtle ${ELEMENT_ACCENT[opts.element]} color accents in clothing or surroundings, ` +
     `no text, no words, no letters, no watermark`

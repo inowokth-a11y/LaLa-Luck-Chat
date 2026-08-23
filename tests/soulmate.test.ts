@@ -165,3 +165,24 @@ test("ภพปัตนิเช็คไขว้ — ตรง (กันย�
   const unknown = partnerMatchReading(base)!;
   assert.equal(unknown.patni, null);
 });
+
+// ---- ตัวเลือกรูปลักษณ์ (23 ส.ค. 2569 — "แนวดารา" แบบปลอดภัย: preset เท่านั้น) ----
+import { LOOK_STYLES, FACE_STYLES, AGE_STYLES, SOULMATE_LOOK_NOTE } from "../lib/engine/soulmate";
+
+test("ตัวเลือกรูปลักษณ์ — preset เข้า prompt ตรงตัว · ค่านอก enum ถูกเพิกเฉย (กันอ้างชื่อบุคคลจริง)", () => {
+  const p = soulmateImagePrompt({ gender: "female", element: "Water", look: "korean", face: "sharp", age: "30s" });
+  assert.ok(p.includes(LOOK_STYLES.korean.en));
+  assert.ok(p.includes(FACE_STYLES.sharp.en));
+  assert.ok(p.includes(AGE_STYLES["30s"].en));
+  // 🔴 ค่าที่ไม่ใช่ preset (เช่น ชื่อดาราจริง) ต้องไม่มีทางเข้า prompt
+  const inj = soulmateImagePrompt({ gender: "female", element: "Water", look: "looks like Nadech Kugimiya", face: "หน้าเหมือนญาญ่า", age: "famous actress" });
+  assert.ok(!inj.includes("Nadech") && !inj.includes("ญาญ่า") && !inj.includes("famous actress"));
+  const base = soulmateImagePrompt({ gender: "female", element: "Water" });
+  assert.equal(inj, base, "ค่านอก enum = เหมือนไม่ได้เลือกเลย");
+  // สไตล์ทุกตัวห้ามอ้างอิงบุคคลจริง (เป็นคำบรรยายสไตล์ล้วน)
+  for (const v of [...Object.values(LOOK_STYLES), ...Object.values(FACE_STYLES)]) {
+    assert.ok(!/[A-Z][a-z]+ [A-Z][a-z]+/.test(v.en.replace(/Thai|Korean/g, "")), `ห้ามมีชื่อบุคคล: ${v.en}`);
+  }
+  // โน้ตบังคับ: บอกชัดว่าเป็นตัวเลือกภาพ ไม่ใช่คำทำนาย
+  assert.ok(SOULMATE_LOOK_NOTE.includes("ไม่ใช่คำทำนาย"));
+});

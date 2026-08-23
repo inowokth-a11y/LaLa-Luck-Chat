@@ -94,6 +94,10 @@ interface SoulmateBody {
   partnerBirthTime?: string;
   partnerProvince?: string;
   partnerName?: string;
+  // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
+  look?: string;
+  face?: string;
+  age?: string;
 }
 
 /** คำนวณลัคนา (นิรายนะ — verify กับ Swiss Ephemeris แล้ว §5.2) จากวันเกิด+เวลา+จังหวัด */
@@ -285,7 +289,16 @@ export async function POST(req: Request) {
       }
 
       // 3 ภาพ = 3 ฉาก (variant) แต่ละภาพมีคำบรรยายจากผลคำนวณของตัวเอง (ผู้ใช้ขอ 23 ส.ค. 2569)
-      const prompts = [0, 1, 2].map((v) => soulmateImagePrompt({ gender: partnerGender, element: partnerElement, variant: v }));
+      const prompts = [0, 1, 2].map((v) =>
+        soulmateImagePrompt({
+          gender: partnerGender,
+          element: partnerElement,
+          variant: v,
+          look: body.look ?? null,
+          face: body.face ?? null,
+          age: body.age ?? null,
+        })
+      );
       const captions = soulmateImageCaptions(reading);
       const images = await falSoulmateImages(prompts);
 
