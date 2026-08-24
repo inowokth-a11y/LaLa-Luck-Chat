@@ -27,6 +27,11 @@ interface JyotishLayer {
   nakshatra: { nameTh: string; idx: number };
   currentDasha: { mdTh: string; adTh: string } | null;
   windows: { fromTh: string; toTh: string; reasonTh: string }[];
+  derived: {
+    wealth: { signTh: string; toneTh: string };
+    career: { signTh: string; lordTh: string; toneTh: string };
+    roots: { signTh: string; toneTh: string };
+  };
   caveats: string[];
 }
 
@@ -62,6 +67,11 @@ interface ReadingResponse {
 
 interface MatchResponse {
   reply?: string;
+  matchTiming?: {
+    userWindows: { fromTh: string; toTh: string }[];
+    partnerWindows: { fromTh: string; toTh: string }[];
+    overlaps: { fromTh: string; toTh: string }[];
+  } | null;
   match?: {
     partner: { dominantTh: string; missingTh: string[]; identityNumber: string };
     chemistry: { final_score: number; relation_th: string };
@@ -414,6 +424,14 @@ export default function SoulmatePage() {
                 <div><strong>ความยั่งยืนชีวิตคู่ (Upapada ราศี{res.jyotish.upapada.signTh}):</strong> {res.jyotish.upapada.second.toneTh}</div>
                 <div><strong>คุณภาพระยะยาว (D9):</strong> {res.jyotish.d9.noteTh}</div>
                 <div>
+                  <strong>แนวโน้มฝั่งคู่ (ภพต่อเนื่อง — แนวโน้มกว้างๆ):</strong>
+                  <ul style={{ margin: "0.25rem 0 0", paddingLeft: "1.2rem" }}>
+                    <li>ทรัพย์/ครอบครัวฝั่งคู่: ราศี{res.jyotish.derived.wealth.signTh} — {res.jyotish.derived.wealth.toneTh}</li>
+                    <li>การงาน/บทบาทของคู่: ราศี{res.jyotish.derived.career.signTh} — {res.jyotish.derived.career.toneTh}</li>
+                    <li>บ้าน/รากฐานพื้นเพของคู่: ราศี{res.jyotish.derived.roots.signTh} — {res.jyotish.derived.roots.toneTh}</li>
+                  </ul>
+                </div>
+                <div>
                   <strong>จังหวะเวลาเรื่องคู่</strong> (นักษัตรเกิด: {res.jyotish.nakshatra.nameTh}
                   {res.jyotish.currentDasha ? ` · ทศาปัจจุบัน: ${res.jyotish.currentDasha.mdTh}/${res.jyotish.currentDasha.adTh}` : ""})
                   {res.jyotish.windows.length > 0 ? (
@@ -624,6 +642,18 @@ export default function SoulmatePage() {
                 </div>
               ))}
             </details>
+            {matchRes.matchTiming && (
+              <div style={{ fontSize: "0.85rem", lineHeight: 1.7, marginTop: "0.7rem", padding: "0.5rem 0.7rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
+                <strong>🪐 จังหวะเวลาสองฝ่าย (ชั้น Jyotish สากล — ชั้นเสริม)</strong>
+                <br />ช่วงจังหวะของคุณ: {matchRes.matchTiming.userWindows.map((w) => `${w.fromTh}–${w.toTh}`).join(" · ") || "—"}
+                <br />ช่วงจังหวะของเขา: {matchRes.matchTiming.partnerWindows.map((w) => `${w.fromTh}–${w.toTh}`).join(" · ") || "—"}
+                <br /><strong>ช่วงทับซ้อน (น้ำหนักทั้งคู่):</strong>{" "}
+                {matchRes.matchTiming.overlaps.length
+                  ? matchRes.matchTiming.overlaps.map((w) => `${w.fromTh}–${w.toTh}`).join(" · ")
+                  : "ช่วง 8 ปีข้างหน้าไม่มีช่วงทับซ้อนเด่นชัด (เป็นจังหวะพลังงาน ไม่ใช่ลางร้าย)"}
+                <br /><span style={{ opacity: 0.75 }}>จังหวะ = ช่วงที่เรื่องคู่มีน้ำหนักตามทศา — ไม่ใช่คำการันตี · คำนวณชั่วขณะ ไม่จัดเก็บข้อมูลอีกฝ่าย</span>
+              </div>
+            )}
             <div className={styles.reply} style={{ marginTop: "0.8rem" }}>{matchRes.reply}</div>
             {m.caveats.length > 0 && (
               <div className={styles.caveat}>{m.caveats.map((c, i) => <p key={i}>⚠️ {c}</p>)}</div>

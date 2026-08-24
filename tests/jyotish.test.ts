@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 import {
-  PLANET_APPEARANCE, dignityInSign, soulmateConvergence, type SoulmateJyotish,
+  PLANET_APPEARANCE, dignityInSign, soulmateConvergence, overlapWindows, type SoulmateJyotish,
   navamsaIdx, arudhaOfHouse, upapadaLagna, charaKarakas, darakaraka,
   moonNakshatra, vimshottariMahadashas, antardashas, buildJyotishChart,
   soulmateJyotish, SIGN_LORD, GRAHA_TH, JYOTISH_CAVEAT, JYOTISH_TIMING_CAVEAT,
@@ -138,6 +138,33 @@ test("soulmateConvergence — ครบ 4 กิ่ง + กรณีชั้�
   // lord_strong นับเป็นบวก (JS 1.4.8)
   const f = soulmateConvergence(1, fakeJ("lord_strong", "neutral"));
   assert.ok(f.label.includes("หลายชั้นชี้ทางเดียวกัน"));
+});
+
+test("Bhavat Bhavam — derived houses ราศีถูกตำแหน่ง (2จาก7=ภพ8 · 10จาก7=ภพ4 · 4จาก7=ภพ10)", () => {
+  const jd = jdUtc(1986, 10, 6, 23, 28);
+  const j = soulmateJyotish(jd, Date.UTC(1986, 9, 6, 23, 28), "กันย์", Date.UTC(2026, 7, 24), "male");
+  // ลัคนากันย์ (idx 5): ภพ 8 = เมษ · ภพ 4 = ธนู · ภพ 10 = มิถุน
+  assert.equal(j.derived.wealth.signTh, "เมษ", "ทรัพย์ฝั่งคู่ = ภพ 8");
+  assert.equal(j.derived.career.signTh, "ธนู", "การงานคู่ = ภพ 4 (10th จากภพ 7)");
+  assert.equal(j.derived.roots.signTh, "มิถุน", "รากฐานคู่ = ภพ 10 (4th จากภพ 7)");
+  assert.equal(j.derived.career.lordTh, "พฤหัสบดี", "เจ้าเรือนธนู = พฤหัส");
+  for (const d of [j.derived.wealth, j.derived.career, j.derived.roots]) assert.ok(d.toneTh.length > 3);
+  // windows มี ms ให้คำนวณทับซ้อน
+  for (const w of j.windows) assert.ok(w.toMs > w.fromMs);
+});
+
+test("overlapWindows — จุดตัดช่วงเวลา + รวมช่วงต่อเนื่อง + ไม่ทับ = ว่าง", () => {
+  const A = [{ fromMs: 100, toMs: 200 }, { fromMs: 300, toMs: 400 }];
+  const B = [{ fromMs: 150, toMs: 350 }];
+  const ov = overlapWindows(A, B);
+  assert.equal(ov.length, 2);
+  assert.deepEqual([ov[0].fromMs, ov[0].toMs], [150, 200]);
+  assert.deepEqual([ov[1].fromMs, ov[1].toMs], [300, 350]);
+  assert.equal(overlapWindows([{ fromMs: 0, toMs: 10 }], [{ fromMs: 20, toMs: 30 }]).length, 0, "ไม่ทับ = ว่าง");
+  // ช่วงซ้อนกันถูกรวมเป็นก้อนเดียว
+  const merged = overlapWindows([{ fromMs: 0, toMs: 100 }, { fromMs: 50, toMs: 150 }], [{ fromMs: 0, toMs: 200 }]);
+  assert.equal(merged.length, 1);
+  assert.deepEqual([merged[0].fromMs, merged[0].toMs], [0, 150]);
 });
 
 test("SIGN_LORD คลาสสิก — กุมภ์=เสาร์ (ไม่ใช่ราหูแบบธรรมเนียมไทย — จงใจ ตามระบบ Jyotish)", () => {

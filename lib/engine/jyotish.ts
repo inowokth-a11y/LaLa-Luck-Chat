@@ -218,6 +218,32 @@ export function antardashas(md: DashaPeriod, fullYears?: number): DashaPeriod[] 
   return out;
 }
 
+/** ช่วงที่หน้าต่างจังหวะเรื่องคู่ของสองฝ่ายทับซ้อนกัน — จุดตัดของช่วงเวลา (deterministic ล้วน) */
+export function overlapWindows(
+  a: readonly { fromMs: number; toMs: number }[],
+  b: readonly { fromMs: number; toMs: number }[],
+  limit = 2
+): { fromTh: string; toTh: string; fromMs: number; toMs: number }[] {
+  const out: { fromTh: string; toTh: string; fromMs: number; toMs: number }[] = [];
+  for (const x of a) {
+    for (const y of b) {
+      const from = Math.max(x.fromMs, y.fromMs);
+      const to = Math.min(x.toMs, y.toMs);
+      if (to > from) out.push({ fromMs: from, toMs: to, fromTh: thaiDate(from), toTh: thaiDate(to) });
+    }
+  }
+  out.sort((p, q) => p.fromMs - q.fromMs);
+  // รวมช่วงที่ต่อเนื่อง/ซ้อนกันเป็นก้อนเดียว
+  const merged: typeof out = [];
+  for (const w of out) {
+    const last = merged[merged.length - 1];
+    if (last && w.fromMs <= last.toMs) {
+      if (w.toMs > last.toMs) { last.toMs = w.toMs; last.toTh = w.toTh; }
+    } else merged.push({ ...w });
+  }
+  return merged.slice(0, limit);
+}
+
 export interface ConvergenceResult {
   /** +1/-1 = ทิศทางของแต่ละชั้น · 0 = กลาง (เคมีตำราไม่มี 0 — สูตร "ทาง ค" ให้ +2/+1/−2 เท่านั้น) */
   signals: { tamraChemistry: 1 | -1; upapada: 1 | 0 | -1; d9: 1 | 0 | -1 };
@@ -372,6 +398,28 @@ export const HOUSE_MEANING_TH: Record<number, string> = {
 const BENEFICS: Graha[] = ["jupiter", "venus"];
 const MALEFICS: Graha[] = ["saturn", "mars", "rahu", "ketu", "sun"];
 
+/** โทนพลังของราศีหนึ่งในดวง: ดาวศุภ/บาปเคราะห์ที่สถิต + ความแข็งแรงเจ้าเรือน (กลไกเดียว UL2) */
+export function signTone(chart: JyotishChart, signIdx: number): { tone: UlTone; occupantsTh: string[] } {
+  const occ = (Object.values(chart.positions) as GrahaPos[]).filter((p) => p.signIdx === signIdx);
+  const hasB = occ.some((p) => BENEFICS.includes(p.graha));
+  const hasM = occ.some((p) => MALEFICS.includes(p.graha));
+  const lord = SIGN_LORD[signIdx];
+  const lordDig = dignityInSign(lord, chart.positions[lord].signIdx);
+  const tone: UlTone =
+    occ.length === 0
+      ? lordDig === "exalted" || lordDig === "own" ? "lord_strong" : "neutral"
+      : hasB && !hasM ? "benefic" : hasM && !hasB ? "malefic" : "mixed";
+  return { tone, occupantsTh: occ.map((p) => GRAHA_TH[p.graha]) };
+}
+
+const TONE_TH: Record<UlTone, string> = {
+  benefic: "มีดาวศุภเคราะห์หนุน — โทนเกื้อหนุน",
+  malefic: "มีดาวบาปเคราะห์ — เป็นด้านที่ต้องช่วยกันดูแล (ไม่ใช่คำตัดสิน)",
+  mixed: "มีทั้งดาวหนุนและดาวท้าทาย — มีทั้งจุดแข็งและจุดที่ต้องดูแล",
+  lord_strong: "ไม่มีดาว แต่เจ้าเรือนแข็งแรง — โทนมั่นคง",
+  neutral: "โทนกลาง",
+};
+
 // ---------------------------------------------------------------------------
 // ชั้นเนื้อคู่ Jyotish แบบประกอบเสร็จ (เรียกจาก /api/soulmate)
 // ---------------------------------------------------------------------------
@@ -409,7 +457,15 @@ export interface SoulmateJyotish {
   };
   nakshatra: { nameTh: string; idx: number };
   currentDasha: { mdTh: string; adTh: string } | null;
-  windows: { fromTh: string; toTh: string; reasonTh: string }[];
+  windows: { fromTh: string; toTh: string; reasonTh: string; fromMs: number; toMs: number }[];
+  /** ภพต่อเนื่องจากภพ 7 (Bhavat Bhavam — ชั้นเสริม แนวโน้มกว้างๆ):
+   *  ทรัพย์/ครอบครัวฝั่งคู่ = ภพ 2 จากภพ 7 · การงาน/บทบาทของคู่ = ภพ 10 จากภพ 7 ·
+   *  บ้าน/รากฐาน(พื้นเพ)ของคู่ = ภพ 4 จากภพ 7 */
+  derived: {
+    wealth: { signTh: ZodiacSign; toneTh: string };
+    career: { signTh: ZodiacSign; lordTh: string; toneTh: string };
+    roots: { signTh: ZodiacSign; toneTh: string };
+  };
   caveats: string[];
 }
 
@@ -476,8 +532,17 @@ export function soulmateJyotish(
   const curMd = mds.find((m) => nowMs >= m.fromMs && nowMs < m.toMs) ?? null;
   const curAd = curMd ? antardashas(curMd).find((a) => nowMs >= a.fromMs && nowMs < a.toMs) ?? null : null;
   const windows = marriageWindows(mds, favorable, nowMs).map((w) => ({
-    fromTh: thaiDate(w.fromMs), toTh: thaiDate(w.toMs), reasonTh: w.reasonTh,
+    fromTh: thaiDate(w.fromMs), toTh: thaiDate(w.toMs), reasonTh: w.reasonTh, fromMs: w.fromMs, toMs: w.toMs,
   }));
+  // Bhavat Bhavam: 2nd จาก 7 = ภพ 8 · 10th จาก 7 = ภพ 4 · 4th จาก 7 = ภพ 10 (นับจากลัคนา)
+  const wealthIdx = pymod(chart.lagnaIdx + 7, 12);   // ภพ 8
+  const careerIdx = pymod(chart.lagnaIdx + 3, 12);   // ภพ 4
+  const rootsIdx = pymod(chart.lagnaIdx + 9, 12);    // ภพ 10
+  const derived = {
+    wealth: { signTh: signTh(wealthIdx), toneTh: TONE_TH[signTone(chart, wealthIdx).tone] },
+    career: { signTh: signTh(careerIdx), lordTh: GRAHA_TH[SIGN_LORD[careerIdx]], toneTh: TONE_TH[signTone(chart, careerIdx).tone] },
+    roots: { signTh: signTh(rootsIdx), toneTh: TONE_TH[signTone(chart, rootsIdx).tone] },
+  };
 
   return {
     lagnaSign,
@@ -512,6 +577,7 @@ export function soulmateJyotish(
     nakshatra: { nameTh: nak.nameTh, idx: nak.idx + 1 },
     currentDasha: curMd ? { mdTh: GRAHA_TH[curMd.lord], adTh: curAd ? GRAHA_TH[curAd.lord] : "-" } : null,
     windows,
+    derived,
     caveats: [JYOTISH_CAVEAT, JYOTISH_TIMING_CAVEAT],
   };
 }

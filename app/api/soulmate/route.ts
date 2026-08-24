@@ -29,7 +29,7 @@ import {
 } from "@/lib/soulmate/store";
 import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
-import { soulmateJyotish, soulmateConvergence, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
+import { soulmateJyotish, soulmateConvergence, overlapWindows, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
 import { provinceByKey } from "@/lib/provinces";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { generate } from "@/lib/ai";
@@ -55,8 +55,9 @@ const LALA_SOULMATE_SYSTEM = `${LALA_PERSONA}
 
 กฎเหล็ก:
 1. ใช้ได้เฉพาะข้อมูลใน <ผลคำนวณเนื้อคู่> — ห้ามแต่งลักษณะนิสัย ราศี ธาตุ หรือคะแนนขึ้นเอง
-2. 🔴 ห้ามทำนายสิ่งที่ระบบไม่ได้คำนวณเด็ดขาด: พื้นเพครอบครัว · ฐานะการเงิน ·
-   อายุมาก/น้อยกว่า — บอกตรงๆ ว่าหัวข้อเหล่านี้ยังไม่เปิดเพราะรอข้อมูลจากตำราต้นทาง ·
+2. 🔴 ห้ามทำนาย "อายุของคู่" เด็ดขาด (บอกได้เพียงวุฒิภาวะจากข้อมูลดาวที่ให้) · "พื้นเพ/ฐานะ/
+   การงานฝั่งคู่" พูดได้**เฉพาะ**จากข้อมูล "แนวโน้มฝั่งคู่_BhavatBhavam" เป็นแนวโน้มกว้างๆ
+   ห้ามระบุตัวเลขทรัพย์สิน/อาชีพเจาะจง/ชื่อสถานที่ ·
    ส่วน "รูปลักษณ์" พูดได้**เฉพาะ**จากข้อมูล "แนวโน้มรูปลักษณ์ตามนรลักษณ์" ที่ให้มา
    (ตาราง ค.1) และต้องเรียกว่า "แนวโน้ม" ห้ามฟันธง · "บริบทที่มักพบคู่" และ
    "จังหวะเวลาเรื่องคู่" พูดได้**เฉพาะ**เมื่อมีข้อมูล "ชั้นJyotishสากล_ชั้นเสริม" และต้อง
@@ -91,6 +92,9 @@ const LALA_MATCH_SYSTEM = `${LALA_PERSONA}
    ข้อมูลระบุคำนี้ไว้จริงเท่านั้น (ห้ามตีความความหมายอื่นมาสวมคำนี้) — เมื่อมีจริงต้องชูเป็นจุดเด่น
 4. ภพปัตนิ: ตรง = อธิบายว่าตามตำราถือเป็นสัญญาณเกื้อหนุน (ราศีเขาอยู่ในเรือนคู่ครองของคุณ) ·
    ไม่ตรง = บอกชัดว่าไม่ใช่ลางร้าย เป็นเพียงชั้นหนึ่งจากหลายชั้น
+4.5 ถ้ามี "จังหวะเวลาสองฝ่าย_ชั้นJyotishเสริม" — เล่าเป็นหัวข้อสั้น "จังหวะเวลาของทั้งคู่"
+   ใช้ช่วง พ.ศ. ตามข้อมูลเท่านั้น · ช่วงทับซ้อน = "จังหวะที่เรื่องคู่มีน้ำหนักทั้งสองฝ่าย"
+   ห้ามการันตีว่าจะคบกัน/แต่งงาน · เป็นชั้นเสริมสากล ไม่ใช่ตำราหลัก
 5. โครง: ① พลังงานของสองฝ่าย ② เคมีธาตุ ②.5 ถ้ามี "ธาตุจากชื่อเขา" — เพิ่มหัวข้อสั้น "พลังจากชื่อ"
    เล่าจากการ์ด/เลขศาสตร์/ความเข้ากันที่ให้**เท่านั้น** ในเชิงพลังงาน (ห้ามตัดสินนิสัยเขาจากชื่อ)
    และบอกชัดว่าเป็นชั้นเสริมประกอบ ③ ด้านที่หนุนกัน/ด้านที่ต้องช่วยกันดูแล ④ ทางปฏิบัติ
@@ -226,10 +230,29 @@ export async function POST(req: Request) {
         );
       }
 
-      const partnerLagna =
+      const partnerChart =
         body.partnerBirthTime && body.partnerProvince
-          ? lagnaFrom(body.partnerBirthDate, body.partnerBirthTime, body.partnerProvince)
+          ? birthChartFrom(body.partnerBirthDate, body.partnerBirthTime, body.partnerProvince)
           : null;
+      const partnerLagna = partnerChart?.sign ?? null;
+      // ชั้น Jyotish สองฝ่าย (ชั่วขณะ ไม่จัดเก็บ): จังหวะเรื่องคู่ของแต่ละฝ่าย + ช่วงทับซ้อน
+      let matchTiming: {
+        userWindows: { fromTh: string; toTh: string }[];
+        partnerWindows: { fromTh: string; toTh: string }[];
+        overlaps: { fromTh: string; toTh: string }[];
+      } | null = null;
+      if (jyotish && partnerChart) {
+        try {
+          const pj = soulmateJyotish(partnerChart.jd, partnerChart.birthUtcMs, partnerChart.sign, Date.now(), null);
+          matchTiming = {
+            userWindows: jyotish.windows.map((w) => ({ fromTh: w.fromTh, toTh: w.toTh })),
+            partnerWindows: pj.windows.map((w) => ({ fromTh: w.fromTh, toTh: w.toTh })),
+            overlaps: overlapWindows(jyotish.windows, pj.windows).map((w) => ({ fromTh: w.fromTh, toTh: w.toTh })),
+          };
+        } catch (e) {
+          console.warn("[soulmate] jyotish สองฝ่ายคำนวณไม่สำเร็จ — ข้าม", e);
+        }
+      }
       const match = partnerMatchReading({
         userDominant: profile.dominant as Element5,
         userMissing: profile.missing as Element5[],
@@ -269,6 +292,17 @@ export async function POST(req: Request) {
           จุดแข็ง: match.advice.strengths,
           ข้อควรระวัง: match.advice.cautions,
           คำแนะนำ: match.advice.tips,
+          ...(matchTiming
+            ? {
+                จังหวะเวลาสองฝ่าย_ชั้นJyotishเสริม: {
+                  ช่วงจังหวะของคุณ: matchTiming.userWindows.map((w) => `${w.fromTh} – ${w.toTh}`),
+                  ช่วงจังหวะของเขา: matchTiming.partnerWindows.map((w) => `${w.fromTh} – ${w.toTh}`),
+                  ช่วงที่ทับซ้อนกัน: matchTiming.overlaps.length
+                    ? matchTiming.overlaps.map((w) => `${w.fromTh} – ${w.toTh}`)
+                    : "ช่วง 8 ปีข้างหน้าไม่มีช่วงทับซ้อนเด่นชัด (ไม่ใช่ลางร้าย — เป็นจังหวะพลังงาน)",
+                },
+              }
+            : {}),
           คำเตือนที่ต้องแสดงครบ: match.caveats,
         },
         null,
@@ -313,6 +347,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         reply,
         match,
+        matchTiming,
         ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       });
     }
@@ -478,7 +513,12 @@ export async function POST(req: Request) {
                 D9: jyotish.d9.noteTh,
                 นักษัตรเกิด: jyotish.nakshatra.nameTh,
                 ทศาปัจจุบัน: jyotish.currentDasha,
-                จังหวะเวลาเรื่องคู่: jyotish.windows,
+                จังหวะเวลาเรื่องคู่: jyotish.windows.map((w) => ({ ช่วง: `${w.fromTh} – ${w.toTh}`, เหตุผล: w.reasonTh })),
+                แนวโน้มฝั่งคู่_BhavatBhavam: {
+                  ทรัพย์และครอบครัวฝั่งคู่: `ราศี${jyotish.derived.wealth.signTh} — ${jyotish.derived.wealth.toneTh}`,
+                  การงานและบทบาทของคู่: `ราศี${jyotish.derived.career.signTh} (เจ้าเรือน${jyotish.derived.career.lordTh}) — ${jyotish.derived.career.toneTh}`,
+                  บ้านและรากฐานพื้นเพของคู่: `ราศี${jyotish.derived.roots.signTh} — ${jyotish.derived.roots.toneTh}`,
+                },
                 ...(convergence
                   ? { ความสอดคล้องระหว่างศาสตร์: { ป้าย: convergence.label, คำอธิบาย: convergence.detailTh } }
                   : {}),
