@@ -10,7 +10,9 @@
 import { useEffect, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateLagna, julianDay } from "@/lib/engine/lagna";
-import { calculateAscendant } from "@/lib/engine/ascendant";
+import { calculateAscendant, lahiriAyanamsa } from "@/lib/engine/ascendant";
+import { moonEclipticLongitude } from "@/lib/engine/daily";
+import { lifeDasha, type LifeDasha } from "@/lib/engine/life-dasha";
 import { dailyPrediction, getMoonSign } from "@/lib/engine/daily";
 import { monthlyPrediction, yearlyPrediction, birthdayPrediction } from "@/lib/engine/transit";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
@@ -26,6 +28,7 @@ type Birthday = ReturnType<typeof birthdayPrediction>;
 
 interface Result {
   lagna: string | null;
+  dasha: LifeDasha | null;
   sunrise: string;
   correctionMin: number;
   daily: Daily;
@@ -93,8 +96,14 @@ export default function FortunePage() {
       const dow = thaiDayOfWeek(birthDate);
       const moonSign = getMoonSign({ ...today, hour: now.getUTCHours(), minute: now.getUTCMinutes() });
 
+      // ยุคชีวิต (Vimshottari — ชั้น Jyotish สากล ฿0) จากดวงจันทร์ ณ เวลาเกิดจริง
+      const birthUtcMs = Date.UTC(year, month - 1, day, hh, mm, 0) - 7 * 3600000;
+      const moonBirthLon = (((moonEclipticLongitude(jdBirth) - lahiriAyanamsa(jdBirth)) % 360) + 360) % 360;
+      const dasha = lifeDasha(moonBirthLon, birthUtcMs, Date.now());
+
       setR({
         lagna,
+        dasha,
         sunrise: lagnaRes.true_sunrise_civil_time,
         correctionMin: lagnaRes.local_time_correction_min,
         dayOfWeek: dow,
@@ -203,6 +212,28 @@ export default function FortunePage() {
             </dl>
             <p className={styles.caveat}>⚠️ {r.yearly.caveat}</p>
           </section>
+
+          {r.dasha && (
+            <section className={styles.panel}>
+              <h2 className={styles.h2}>🪐 ยุคชีวิต (มหาทศา — ชั้น Jyotish สากล)</h2>
+              <p style={{ fontSize: "0.85rem", lineHeight: 1.7, margin: "0.3rem 0" }}>
+                <strong>ยุค{r.dasha.current.lordTh}</strong> ({r.dasha.current.fromTh} – {r.dasha.current.toTh} · เดินมาแล้ว {r.dasha.current.progressPct}%)
+                <br />ด้านที่ถูกจุดไฟ: {r.dasha.current.theme.areasTh}
+                <br />✨ โอกาส: {r.dasha.current.theme.upTh}
+                <br />⚠️ จุดดูแล: {r.dasha.current.theme.careTh}
+              </p>
+              <p style={{ fontSize: "0.83rem", lineHeight: 1.7, margin: "0.3rem 0", borderTop: "1px dashed color-mix(in srgb, var(--ink) 20%, transparent)", paddingTop: "0.5rem" }}>
+                ช่วงย่อยปัจจุบัน: <strong>{r.dasha.sub.lordTh}</strong> ({r.dasha.sub.fromTh} – {r.dasha.sub.toTh})
+                <br />{r.dasha.sub.harmonyTh}
+                <br />โทนช่วงย่อย: {r.dasha.sub.colorTh}
+                {r.dasha.inSandhi && <><br />🔶 ขณะนี้อยู่ช่วงรอยต่อระหว่างยุค — เหมาะสังเกตมากกว่าผูกมัดเรื่องใหญ่</>}
+                <br />ยุคถัดไป: {r.dasha.next.lordTh} เริ่ม {r.dasha.next.startTh} ({r.dasha.next.areasTh})
+              </p>
+              <p style={{ fontSize: "0.74rem", opacity: 0.8, lineHeight: 1.6 }}>
+                {r.dasha.caveats.map((c, i) => <span key={i}>⚠️ {c}<br /></span>)}
+              </p>
+            </section>
+          )}
 
           {/* ---- Logic 11: ทักษาจร ---- */}
           {"taksa_jr" in r.birthday && (

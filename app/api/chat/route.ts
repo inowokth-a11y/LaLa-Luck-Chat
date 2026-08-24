@@ -20,6 +20,9 @@ import {
 } from "@/lib/chat/questions";
 import { runPlanChat, buildProfileContext } from "@/lib/chat/plan-run";
 import { FIRST_READING_SYSTEM, buildFirstReadingInput } from "@/lib/chat/first-reading-prompt";
+import { lifeDasha } from "@/lib/engine/life-dasha";
+import { moonEclipticLongitude } from "@/lib/engine/daily";
+import { lahiriAyanamsa } from "@/lib/engine/ascendant";
 import {
   questionSuggestsComputation,
   CONSULT_TOPIC_KEY,
@@ -133,21 +136,37 @@ export async function POST(req: Request) {
     if (body.mode === "first_reading") {
       let uid: string | null = null;
       let birthDate: string | null = null;
+      let birthTime: string | null = null;
       try {
         const supabase = await createSupabaseServer();
         uid = (await supabase.auth.getUser()).data.user?.id ?? null;
         if (uid) {
           const { data } = await supabase
             .from("user_profiles_e")
-            .select("birth_date")
+            .select("birth_date,birth_time")
             .eq("auth_uid", uid)
             .maybeSingle();
           birthDate = data?.birth_date ?? null;
+          birthTime = data?.birth_time ?? null;
         }
       } catch {
         uid = null;
       }
       const profileCtx = buildProfileContext(birthDate);
+      // ยุคชีวิต (ชั้น Jyotish สากล ฿0) — เฉพาะเมื่อมีเวลาเกิด · พังไม่ล้มคำทำนายแรกพบ
+      let dashaLayer: ReturnType<typeof lifeDasha> = null;
+      if (birthDate && birthTime) {
+        try {
+          const [by, bm, bd] = birthDate.split("-").map(Number);
+          const [bh, bmin] = birthTime.slice(0, 5).split(":").map(Number);
+          const birthUtcMs = Date.UTC(by, bm - 1, bd, bh, bmin) - 7 * 3600000;
+          const jd = birthUtcMs / 86400000 + 2440587.5;
+          const moonLon = (((moonEclipticLongitude(jd) - lahiriAyanamsa(jd)) % 360) + 360) % 360;
+          dashaLayer = lifeDasha(moonLon, birthUtcMs, Date.now());
+        } catch (e) {
+          console.warn("[first-reading] ยุคชีวิตคำนวณไม่สำเร็จ — ข้าม", e);
+        }
+      }
       if (!uid || !profileCtx) {
         return NextResponse.json({ error: "ต้องเข้าสู่ระบบและมีวันเกิดในโปรไฟล์ก่อนค่ะ" }, { status: 401 });
       }
@@ -163,6 +182,7 @@ export async function POST(req: Request) {
           birthDay: profileCtx.birthDay,
           birthMonth: profileCtx.birthMonth,
           cardContext: body.context ?? undefined,
+          lifeDasha: dashaLayer,
         }),
         maxTokens: 1600,
       });
