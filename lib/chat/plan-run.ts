@@ -57,7 +57,7 @@ export function buildProfileContext(birthDate: string | null | undefined): PlanP
   });
   // ธาตุ 4-bucket (Fire/Earth/Wood/Water) เป็นสับเซ็ตของ Element5 อยู่แล้ว — ไม่มีทางเป็น Metal
   // birthDay/birthMonth ให้ myPersonalYear (แนวโน้มปี) — ยังอยู่ฝั่ง server เท่านั้น AI ไม่เห็น
-  return { dominant: seed.dominant, missing: seed.missing, seed, birthDay: day, birthMonth: month };
+  return { dominant: seed.dominant, missing: seed.missing, seed, birthDay: day, birthMonth: month, dayOfWeekTh: thaiDayOfWeek(birthDate) };
 }
 
 // ---------------------------------------------------------------------------

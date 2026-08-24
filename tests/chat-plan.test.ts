@@ -504,6 +504,21 @@ test("myMindCare — state ถูก normalize (ไทย→enum) · ค่า�
   assert.ok(ex.caveats[0]?.includes("ไม่ใช่การรักษา"));
 });
 
+test("myNameMatch — ชั้นทักษาปกรณ์ตามวันเกิด (รอบ 4 Jyotish): มี dayOfWeekTh = มีชั้นทักษา · ไม่มี = ไม่มี", () => {
+  const spec = PLAN_ALLOWLIST.myNameMatch;
+  // คนเกิดวันอาทิตย์: กาลกิณี = ศ ษ ส ห ฬ ฮ → "สมชาย" มี ส ตกกาลกิณี
+  const ctxSun = { dominant: "Fire", missing: ["Water"], seed: null, dayOfWeekTh: "อาทิตย์" } as never;
+  const out = spec.run({ name: "สมชาย" }, ctxSun) as Record<string, any>;
+  const tk = out["ทักษาปกรณ์_ชั้นอักษรวรรค"];
+  assert.ok(tk, "ต้องมีชั้นทักษาเมื่อรู้วันเกิด");
+  assert.ok(String(tk.ผล).includes("วรรคห้ามใช้"), "ส ต้องตกกาลกิณีของคนเกิดอาทิตย์");
+  assert.deepEqual(tk.อักษรที่ตกกาลกิณี, ["ส"]);
+  assert.ok(Array.isArray(tk.อักษรแนะนำ) && tk.อักษรแนะนำ.length === 3);
+  // ไม่มี dayOfWeekTh (ctx รุ่นเก่า) → ไม่มีชั้นทักษา ไม่พัง
+  const out2 = spec.run({ name: "สมชาย" }, { dominant: "Fire", missing: ["Water"], seed: null } as never) as Record<string, unknown>;
+  assert.ok(!("ทักษาปกรณ์_ชั้นอักษรวรรค" in out2));
+});
+
 test("myNameMatch — ธาตุชื่อจาก engine จริง (ทาง ค: สมชาย=ดิน) + validate ชื่อ", () => {
   const spec = PLAN_ALLOWLIST.myNameMatch;
   const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;

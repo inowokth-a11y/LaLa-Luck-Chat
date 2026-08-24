@@ -26,6 +26,7 @@ import { DAY_ELEMENT } from "../engine/element";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
 import { phoneOfficialReading, PHONE_OFFICIAL_NOTE } from "../engine/phone-official";
 import { scoreCandidateName, nameComposition } from "../engine/naming";
+import { analyzeNameTaksa } from "../engine/taksa-naming";
 import { rankAuspiciousDays, ACTIVITIES, TIMING_CAVEAT, type Emphasis } from "../engine/timing";
 import { analyzeFengShui, type Direction, type Purpose } from "../engine/fengshui";
 import { namePower } from "../engine/card-id";
@@ -52,6 +53,8 @@ export interface PlanProfileContext {
   /** วัน/เดือนเกิด (สำหรับ myPersonalYear — แนวโน้มปีส่วนบุคคล) · optional เผื่อ ctx รุ่นเก่า */
   birthDay?: number;
   birthMonth?: number;
+  /** วันในสัปดาห์ของวันเกิด (ไทย) — ชั้นทักษาปกรณ์ของ myNameMatch · server เติมให้ AI ไม่เห็น */
+  dayOfWeekTh?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -501,12 +504,27 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
         คะแนนต่อธาตุ[THAI_LABEL_5[el]] = sc;
         weighted += share * sc;
       }
+      // ชั้นทักษาปกรณ์ (รอบ 4 แผน Jyotish — คนละระบบกับชั้นเลขศาสตร์ อ่านแยกชั้น)
+      const taksa = ctx?.dayOfWeekTh ? analyzeNameTaksa(name, ctx.dayOfWeekTh) : null;
       return {
         ...("error" in scored ? {} : scored),
         องค์ประกอบธาตุ: องค์ประกอบ,
         คะแนนต่อธาตุ,
         คะแนนรวมถ่วงน้ำหนัก: Math.round(weighted * 100) / 100,
         ผลรวมเลขศาสตร์: namePower(name),
+        ...(taksa
+          ? {
+              ทักษาปกรณ์_ชั้นอักษรวรรค: {
+                วันเกิด: `${ctx!.dayOfWeekTh} (ดาว${taksa.dayPlanetTh})`,
+                ผล: taksa.verdictTh,
+                อักษรกาลกิณีของวันนี้: taksa.kalakini.letters,
+                ...(taksa.kalakiniChars.length ? { อักษรที่ตกกาลกิณี: taksa.kalakiniChars } : {}),
+                ภูมิที่พบในชื่อ: taksa.breakdown.map((b) => `${b.bhumi} (${b.chars.join(" ")}) — ${b.meaningTh}`),
+                อักษรแนะนำ: taksa.suggestLetters.map((sug) => `${sug.bhumi}: ${sug.letters}`),
+                หมายเหตุ: taksa.caveats[0],
+              },
+            }
+          : {}),
       };
     },
     defaultLabel: (a) => `ชื่อ ${a.name}`,
