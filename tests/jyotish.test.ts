@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 import {
-  PLANET_APPEARANCE,
+  PLANET_APPEARANCE, dignityInSign, soulmateConvergence, type SoulmateJyotish,
   navamsaIdx, arudhaOfHouse, upapadaLagna, charaKarakas, darakaraka,
   moonNakshatra, vimshottariMahadashas, antardashas, buildJyotishChart,
   soulmateJyotish, SIGN_LORD, GRAHA_TH, JYOTISH_CAVEAT, JYOTISH_TIMING_CAVEAT,
@@ -105,6 +105,39 @@ test("PLANET_APPEARANCE — ครบ 9 ดาว + appearance เข้าใ�
   // ดวงนี้ราหูอยู่ภพ 7 (ตรง Swiss Ephemeris) → appearance ต้องมีวลีราหู
   assert.ok(j.appearance.th.some((t) => t.includes("ราหู")), "ราหูในภพ 7 ต้องขึ้นใน appearance");
   assert.equal(j.appearance.en.length, j.planetsIn7th.slice(0, 3).length);
+});
+
+test("ราศีนิจ (debilitation) = ตรงข้ามอุจ — จูนจากการทดลอง 5 ดวง ให้ D9 ชี้ลบได้จริง", () => {
+  assert.equal(dignityInSign("venus", 11), "exalted", "ศุกร์อุจมีน");
+  assert.equal(dignityInSign("venus", 5), "debilitated", "ศุกร์นิจกันย์ (ตรงข้ามมีน)");
+  assert.equal(dignityInSign("jupiter", 9), "debilitated", "พฤหัสนิจมังกร");
+  assert.equal(dignityInSign("sun", 6), "debilitated", "อาทิตย์นิจตุลย์");
+  assert.equal(dignityInSign("moon", 7), "debilitated", "จันทร์นิจพิจิก");
+  assert.equal(dignityInSign("rahu", 0), "neutral", "ราหูไม่มีอุจ/นิจในตารางเรา (สำนักไม่ตรงกัน)");
+});
+
+test("soulmateConvergence — ครบ 4 กิ่ง + กรณีชั้นสากลเงียบต้องประกาศตำราเป็นเสียงหลัก (จูนข้อ 1)", () => {
+  const fakeJ = (tone: string, strength: string) =>
+    ({ upapada: { second: { tone } }, d9: { strength } } as unknown as SoulmateJyotish);
+  // ✅ สอดคล้องบวก
+  const a = soulmateConvergence(2, fakeJ("benefic", "strong"));
+  assert.ok(a.label.includes("หลายชั้นชี้ทางเดียวกัน"));
+  assert.deepEqual(a.signals, { tamraChemistry: 1, upapada: 1, d9: 1 });
+  // ⚠️ สอดคล้องลบ (เคมี −2 + D9 นิจ)
+  const b = soulmateConvergence(-2, fakeJ("neutral", "weak"));
+  assert.ok(b.label.includes("จุดต้องดูแลตรงกัน"));
+  // 🔀 ต่างมุม
+  const c = soulmateConvergence(2, fakeJ("malefic", "neutral"));
+  assert.ok(c.label.includes("ต่างมุม"));
+  assert.ok(c.detailTh.includes("ตำราเป็นแกนหลัก"), "กติกาลำดับชั้น: ตำราเป็นแกน");
+  // ชั้นสากลเงียบ → ตำราเป็นเสียงหลัก (ห้ามบอกว่า "ไม่มีชั้นไหนชี้แรง")
+  const d = soulmateConvergence(2, fakeJ("neutral", "neutral"));
+  assert.ok(d.label.includes("ชั้นตำราเป็นเสียงหลัก (เกื้อหนุน)"));
+  const e = soulmateConvergence(-2, fakeJ("neutral", "neutral"));
+  assert.ok(e.label.includes("ชั้นตำราเป็นเสียงหลัก (ต้องดูแล)"));
+  // lord_strong นับเป็นบวก (JS 1.4.8)
+  const f = soulmateConvergence(1, fakeJ("lord_strong", "neutral"));
+  assert.ok(f.label.includes("หลายชั้นชี้ทางเดียวกัน"));
 });
 
 test("SIGN_LORD คลาสสิก — กุมภ์=เสาร์ (ไม่ใช่ราหูแบบธรรมเนียมไทย — จงใจ ตามระบบ Jyotish)", () => {

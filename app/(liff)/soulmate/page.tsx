@@ -33,6 +33,7 @@ interface JyotishLayer {
 interface ReadingResponse {
   reply?: string;
   jyotish?: JyotishLayer | null;
+  convergence?: { label: string; detailTh: string } | null;
   reading?: {
     mode: "lagna" | "element";
     lagnaSign?: string;
@@ -386,6 +387,12 @@ export default function SoulmatePage() {
                 🪐 มุมมองจากดวงดาว (ชั้น Jyotish สากล — ชั้นเสริม)
               </summary>
               <div style={{ fontSize: "0.88rem", lineHeight: 1.7, marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+                {res.convergence && (
+                  <div style={{ padding: "0.5rem 0.7rem", borderRadius: 8, background: "rgba(184,134,11,0.10)", border: "1px solid rgba(184,134,11,0.35)" }}>
+                    <strong>🧭 ความสอดคล้องระหว่างศาสตร์:</strong> {res.convergence.label}
+                    <br /><span style={{ opacity: 0.85 }}>{res.convergence.detailTh}</span>
+                  </div>
+                )}
                 <div>
                   <strong>เจ้าเรือนคู่ครอง ({res.jyotish.seventhLord.grahaTh}) อยู่ภพ {res.jyotish.seventhLord.house} — {res.jyotish.seventhLord.houseMeaningTh}</strong>
                   <br />{res.jyotish.seventhLord.arenaTh}

@@ -113,10 +113,13 @@ const EXALTATION: Partial<Record<Graha, number>> = {
   sun: 0, moon: 1, mars: 9, mercury: 5, jupiter: 3, venus: 11, saturn: 6,
 };
 
-export type Dignity = "exalted" | "own" | "neutral";
+export type Dignity = "exalted" | "own" | "debilitated" | "neutral";
 export function dignityInSign(graha: Graha, signIdx: number): Dignity {
   if (EXALTATION[graha] === signIdx) return "exalted";
   if (SIGN_LORD[signIdx] === graha) return "own";
+  // ราศีนิจ (debilitation) = ราศีตรงข้ามราศีอุจ — มาตรฐานคลาสสิก (แหล่งเดียวกับตารางอุจ)
+  const ex = EXALTATION[graha];
+  if (ex !== undefined && pymod(ex + 6, 12) === signIdx) return "debilitated";
   return "neutral";
 }
 
@@ -213,6 +216,44 @@ export function antardashas(md: DashaPeriod, fullYears?: number): DashaPeriod[] 
     cursor = to;
   }
   return out;
+}
+
+export interface ConvergenceResult {
+  /** +1/-1 = ทิศทางของแต่ละชั้น · 0 = กลาง (เคมีตำราไม่มี 0 — สูตร "ทาง ค" ให้ +2/+1/−2 เท่านั้น) */
+  signals: { tamraChemistry: 1 | -1; upapada: 1 | 0 | -1; d9: 1 | 0 | -1 };
+  label: string;
+  detailTh: string;
+}
+
+/**
+ * ตัวชี้ความสอดคล้องระหว่างศาสตร์ (ตำรา↔Jyotish) — นับเสียงส่วนใหญ่แบบเดียวกับการรวมชั้นของ
+ * Logic 3 (ไม่ถ่วงน้ำหนัก ไม่เฉลี่ยคะแนนข้ามระบบ — แค่บอกว่า "หลายชั้นชี้ตรงกันไหม")
+ * 🔴 จูนจากการทดลอง 5 ดวง (24 ส.ค. 2569): กรณีชั้นสากลเงียบทั้งคู่ → ประกาศ "ตำราเป็นเสียงหลัก"
+ * ไม่ใช่ "ไม่มีชั้นไหนชี้แรง" (เคมีตำราชี้อยู่จริง ห้ามถูกกลบ)
+ */
+export function soulmateConvergence(chemistryFinalScore: number, j: SoulmateJyotish): ConvergenceResult {
+  const tamra: 1 | -1 = chemistryFinalScore >= 1 ? 1 : -1;
+  const ul: 1 | 0 | -1 = j.upapada.second.tone === "benefic" || j.upapada.second.tone === "lord_strong" ? 1
+    : j.upapada.second.tone === "malefic" ? -1 : 0;
+  const d9: 1 | 0 | -1 = j.d9.strength === "strong" ? 1 : j.d9.strength === "weak" ? -1 : 0;
+  const pos = [tamra, ul, d9].filter((x) => x > 0).length;
+  const neg = [tamra, ul, d9].filter((x) => x < 0).length;
+  let label: string, detailTh: string;
+  if (pos > 0 && neg > 0) {
+    label = "🔀 ต่างมุม — สองศาสตร์ให้แง่มุมต่างกัน";
+    detailTh = "อ่านแยกชั้นโดยไม่หักล้างกัน: ชั้นตำราเป็นแกนหลัก มุมจากชั้นสากลเป็นข้อสังเกตประกอบ";
+  } else if (pos >= 2) {
+    label = "✅ หลายชั้นชี้ทางเดียวกัน (เกื้อหนุน) — น้ำหนักสูง";
+    detailTh = "ทั้งชั้นตำราและชั้น Jyotish สากลให้สัญญาณเกื้อหนุนตรงกัน";
+  } else if (neg >= 2) {
+    label = "⚠️ หลายชั้นชี้จุดต้องดูแลตรงกัน";
+    detailTh = "ทั้งสองศาสตร์ชี้ว่ามีจุดที่ต้องใส่ใจดูแลความสัมพันธ์เป็นพิเศษ (ไม่ใช่คำตัดสินว่าไม่ดี)";
+  } else {
+    // ชั้นสากลเงียบทั้งคู่ (ul=0, d9=0) — ตำราเป็นเสียงเดียวที่ชี้
+    label = tamra > 0 ? "ชั้นตำราเป็นเสียงหลัก (เกื้อหนุน) · ชั้นสากลโทนกลาง" : "ชั้นตำราเป็นเสียงหลัก (ต้องดูแล) · ชั้นสากลโทนกลาง";
+    detailTh = "ชั้น Jyotish สากลของดวงนี้ไม่ได้ชี้แรงทางใดทางหนึ่ง — คำอ่านหลักจึงอยู่ที่เคมีธาตุชั้นตำรา";
+  }
+  return { signals: { tamraChemistry: tamra, upapada: ul, d9 }, label, detailTh };
 }
 
 export interface MarriageWindow { fromMs: number; toMs: number; mdLord: Graha; adLord: Graha; reasonTh: string }
@@ -345,6 +386,9 @@ export const JYOTISH_TIMING_CAVEAT =
   "ช่วงเวลาจากทศาเป็น 'จังหวะที่เรื่องคู่มีน้ำหนัก' ตามหลัก Vimshottari — ไม่ใช่คำการันตีว่าจะพบคู่ " +
   "และไม่ได้ระบุตัวบุคคล";
 
+export type UlTone = "benefic" | "malefic" | "mixed" | "lord_strong" | "neutral";
+export type D9Strength = "strong" | "weak" | "mixed" | "neutral";
+
 export interface SoulmateJyotish {
   lagnaSign: ZodiacSign;
   seventhSign: ZodiacSign;
@@ -355,12 +399,13 @@ export interface SoulmateJyotish {
   darakaraka: { grahaTh: string; archetypeTh: string };
   upapada: {
     signTh: ZodiacSign;
-    second: { signTh: ZodiacSign; occupantsTh: string[]; toneTh: string };
+    second: { signTh: ZodiacSign; occupantsTh: string[]; toneTh: string; tone: UlTone };
   };
   d9: {
     venus: { signTh: ZodiacSign; dignity: Dignity };
     seventhLord: { grahaTh: string; signTh: ZodiacSign; dignity: Dignity };
     noteTh: string;
+    strength: D9Strength;
   };
   nakshatra: { nameTh: string; idx: number };
   currentDasha: { mdTh: string; adTh: string } | null;
@@ -400,19 +445,27 @@ export function soulmateJyotish(
   const hasMalefic = ul2Occupants.some((p) => MALEFICS.includes(p.graha));
   const ul2Lord = SIGN_LORD[ul2Idx];
   const ul2LordDignity = dignityInSign(ul2Lord, chart.positions[ul2Lord].signIdx);
-  const ul2Tone =
+  const ul2LordStrong = ul2LordDignity === "exalted" || ul2LordDignity === "own";
+  const ulTone: UlTone =
     ul2Occupants.length === 0
-      ? ul2LordDignity !== "neutral"
-        ? "ไม่มีดาว — เจ้าเรือนแข็งแรง ถือเป็นสัญญาณความยั่งยืนของชีวิตคู่ (JS 1.4.8)"
-        : "ไม่มีดาว — อ่านจากเจ้าเรือนเป็นหลัก โทนกลางๆ"
-      : hasBenefic && !hasMalefic
-        ? "มีดาวศุภเคราะห์หนุน — สัญญาณเกื้อหนุนความยั่งยืนของชีวิตคู่"
-        : hasMalefic && !hasBenefic
-          ? "มีดาวบาปเคราะห์ — เป็นจุดที่ต้องช่วยกันดูแลความสัมพันธ์ระยะยาว (ไม่ใช่คำตัดสิน)"
-          : "มีทั้งดาวหนุนและดาวท้าทาย — ชีวิตคู่มีทั้งจุดแข็งและจุดที่ต้องดูแล";
+      ? ul2LordStrong ? "lord_strong" : "neutral"
+      : hasBenefic && !hasMalefic ? "benefic"
+        : hasMalefic && !hasBenefic ? "malefic"
+          : "mixed";
+  const ul2Tone = {
+    lord_strong: "ไม่มีดาว — เจ้าเรือนแข็งแรง ถือเป็นสัญญาณความยั่งยืนของชีวิตคู่ (JS 1.4.8)",
+    neutral: "ไม่มีดาว — อ่านจากเจ้าเรือนเป็นหลัก โทนกลางๆ",
+    benefic: "มีดาวศุภเคราะห์หนุน — สัญญาณเกื้อหนุนความยั่งยืนของชีวิตคู่",
+    malefic: "มีดาวบาปเคราะห์ — เป็นจุดที่ต้องช่วยกันดูแลความสัมพันธ์ระยะยาว (ไม่ใช่คำตัดสิน)",
+    mixed: "มีทั้งดาวหนุนและดาวท้าทาย — ชีวิตคู่มีทั้งจุดแข็งและจุดที่ต้องดูแล",
+  }[ulTone];
 
   const venusD9 = navamsaIdx(chart.positions.venus.lon);
   const lordD9 = navamsaIdx(lordPos.lon);
+  const d9Digs = [dignityInSign("venus", venusD9), dignityInSign(seventhLordGraha, lordD9)];
+  const d9HasStrong = d9Digs.some((x) => x === "exalted" || x === "own");
+  const d9HasWeak = d9Digs.some((x) => x === "debilitated");
+  const d9Strength: D9Strength = d9HasStrong && d9HasWeak ? "mixed" : d9HasStrong ? "strong" : d9HasWeak ? "weak" : "neutral";
 
   // จังหวะเรื่องคู่: เจ้าเรือน 7 · ศุกร์ · ดาวในภพ 7 · เจ้าเรือน UL · DK (+พฤหัสสำหรับดวงหญิง)
   const favorable = new Set<Graha>([seventhLordGraha, "venus", ...in7.map((p) => p.graha), SIGN_LORD[ulIdx], dk]);
@@ -443,15 +496,18 @@ export function soulmateJyotish(
     darakaraka: { grahaTh: GRAHA_TH[dk], archetypeTh: DK_ARCHETYPE_TH[dk] },
     upapada: {
       signTh: signTh(ulIdx),
-      second: { signTh: signTh(ul2Idx), occupantsTh: ul2Occupants.map((p) => GRAHA_TH[p.graha]), toneTh: ul2Tone },
+      second: { signTh: signTh(ul2Idx), occupantsTh: ul2Occupants.map((p) => GRAHA_TH[p.graha]), toneTh: ul2Tone, tone: ulTone },
     },
     d9: {
       venus: { signTh: signTh(venusD9), dignity: dignityInSign("venus", venusD9) },
       seventhLord: { grahaTh: GRAHA_TH[seventhLordGraha], signTh: signTh(lordD9), dignity: dignityInSign(seventhLordGraha, lordD9) },
-      noteTh:
-        dignityInSign("venus", venusD9) !== "neutral" || dignityInSign(seventhLordGraha, lordD9) !== "neutral"
-          ? "ดาวฝ่ายคู่แข็งแรงใน D9 — สัญญาณหนุนคุณภาพชีวิตคู่ระยะยาว"
-          : "ดาวฝ่ายคู่ใน D9 โทนกลาง — คุณภาพชีวิตคู่ขึ้นกับการดูแลกันมากกว่าแต้มดวง",
+      noteTh: {
+        strong: "ดาวฝ่ายคู่แข็งแรงใน D9 — สัญญาณหนุนคุณภาพชีวิตคู่ระยะยาว",
+        weak: "ดาวฝ่ายคู่อ่อนแรงใน D9 (ราศีนิจ) — ควรใส่ใจดูแลความสัมพันธ์ระยะยาวเป็นพิเศษ (ไม่ใช่คำตัดสิน)",
+        mixed: "ดาวฝ่ายคู่ใน D9 มีทั้งจุดแข็งและจุดอ่อน — ชีวิตคู่มีทั้งด้านหนุนและด้านที่ต้องดูแล",
+        neutral: "ดาวฝ่ายคู่ใน D9 โทนกลาง — คุณภาพชีวิตคู่ขึ้นกับการดูแลกันมากกว่าแต้มดวง",
+      }[d9Strength],
+      strength: d9Strength,
     },
     nakshatra: { nameTh: nak.nameTh, idx: nak.idx + 1 },
     currentDasha: curMd ? { mdTh: GRAHA_TH[curMd.lord], adTh: curAd ? GRAHA_TH[curAd.lord] : "-" } : null,

@@ -29,7 +29,7 @@ import {
 } from "@/lib/soulmate/store";
 import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
-import { soulmateJyotish, type SoulmateJyotish } from "@/lib/engine/jyotish";
+import { soulmateJyotish, soulmateConvergence, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
 import { provinceByKey } from "@/lib/provinces";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { generate } from "@/lib/ai";
@@ -198,6 +198,9 @@ export async function POST(req: Request) {
     const reading = lagna
       ? soulmateReading(lagna, profile.dominant, profile.missing, ownName)
       : soulmateElementReading(profile.dominant, profile.missing, ownName);
+    // กลไก 3: ตัวชี้ความสอดคล้องระหว่างศาสตร์ (เฉพาะโหมดลัคนาที่มีชั้น Jyotish)
+    const convergence: ConvergenceResult | null =
+      jyotish && reading.mode === "lagna" ? soulmateConvergence(reading.chemistry.score.final_score, jyotish) : null;
     // ธาตุของ "คู่" สำหรับโทนภาพ: ชั้นลัคนา = ธาตุราศีที่ 7 · ชั้นธาตุ = ธาตุอันดับ 1 ที่เกื้อหนุน
     const partnerElement: Element5 =
       reading.mode === "lagna" ? reading.partner.element : reading.rankedElements[0].element;
@@ -476,6 +479,9 @@ export async function POST(req: Request) {
                 นักษัตรเกิด: jyotish.nakshatra.nameTh,
                 ทศาปัจจุบัน: jyotish.currentDasha,
                 จังหวะเวลาเรื่องคู่: jyotish.windows,
+                ...(convergence
+                  ? { ความสอดคล้องระหว่างศาสตร์: { ป้าย: convergence.label, คำอธิบาย: convergence.detailTh } }
+                  : {}),
               },
             }
           : {}),
@@ -523,6 +529,13 @@ export async function POST(req: Request) {
         maxTokens: 1600,
       });
       reply = ai2.text;
+      // ตัวชี้ความสอดคล้อง: ระบบแนบเองเสมอ (Flash ข้ามบรรทัดบังคับได้ — พิสูจน์จากการทดสอบ 24 ส.ค. 2569)
+      if (convergence && !reply.includes("ความสอดคล้องระหว่างศาสตร์")) {
+        reply += `
+
+🧭 ความสอดคล้องระหว่างศาสตร์: ${convergence.label}
+${convergence.detailTh}`;
+      }
     } catch (e) {
       console.warn("[soulmate] AI ล้มเหลว — ใช้ผลคำนวณล้วน", e);
       reply =
@@ -558,6 +571,7 @@ export async function POST(req: Request) {
       reply,
       reading,
       jyotish,
+      convergence,
       partnerElement,
       ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
     });
