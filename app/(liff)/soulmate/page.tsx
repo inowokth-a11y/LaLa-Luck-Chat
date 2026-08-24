@@ -20,6 +20,7 @@ interface JyotishLayer {
   seventhSign: string;
   seventhLord: { grahaTh: string; house: number; houseMeaningTh: string; arenaTh: string };
   planetsIn7th: { grahaTh: string; traitTh: string }[];
+  appearance: { th: string[]; en: string[] };
   darakaraka: { grahaTh: string; archetypeTh: string };
   upapada: { signTh: string; second: { signTh: string; occupantsTh: string[]; toneTh: string } };
   d9: { noteTh: string };
@@ -393,6 +394,13 @@ export default function SoulmatePage() {
                   <div>
                     <strong>ดาวในภพคู่ครอง:</strong>{" "}
                     {res.jyotish.planetsIn7th.map((pp) => `${pp.grahaTh} — ${pp.traitTh}`).join(" · ")}
+                  </div>
+                )}
+                {res.jyotish.appearance.th.length > 0 && (
+                  <div>
+                    <strong>แนวโน้มรูปลักษณ์เพิ่ม (จากดาวในภพคู่ครอง):</strong>{" "}
+                    {res.jyotish.appearance.th.join(" · ")}
+                    <span style={{ opacity: 0.75 }}> — เสริมจากนรลักษณ์ ค.1 ไม่ใช่คำระบุตัวบุคคล</span>
                   </div>
                 )}
                 <div><strong>ภาพตัวแทนคู่ (Darakaraka {res.jyotish.darakaraka.grahaTh}):</strong> {res.jyotish.darakaraka.archetypeTh}</div>

@@ -3,6 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert";
 import {
+  PLANET_APPEARANCE,
   navamsaIdx, arudhaOfHouse, upapadaLagna, charaKarakas, darakaraka,
   moonNakshatra, vimshottariMahadashas, antardashas, buildJyotishChart,
   soulmateJyotish, SIGN_LORD, GRAHA_TH, JYOTISH_CAVEAT, JYOTISH_TIMING_CAVEAT,
@@ -92,6 +93,18 @@ test("soulmateJyotish — ประกอบครบ + caveat บังคั�
   assert.ok(j.caveats.includes(JYOTISH_CAVEAT) && j.caveats.includes(JYOTISH_TIMING_CAVEAT), "caveat ครบ");
   // ทุก window อยู่ในอนาคต (จาก nowMs) และมีเหตุผล
   for (const w of j.windows) assert.ok(w.reasonTh.includes("ทศา"));
+});
+
+test("PLANET_APPEARANCE — ครบ 9 ดาว + appearance เข้าใน soulmateJyotish", () => {
+  assert.equal(Object.keys(PLANET_APPEARANCE).length, 9);
+  for (const v of Object.values(PLANET_APPEARANCE)) {
+    assert.ok(v.th.length > 5 && v.en.length > 5);
+  }
+  const jd = jdUtc(1986, 10, 6, 23, 28);
+  const j = soulmateJyotish(jd, Date.UTC(1986, 9, 6, 23, 28), "กันย์", Date.UTC(2026, 7, 24), "male");
+  // ดวงนี้ราหูอยู่ภพ 7 (ตรง Swiss Ephemeris) → appearance ต้องมีวลีราหู
+  assert.ok(j.appearance.th.some((t) => t.includes("ราหู")), "ราหูในภพ 7 ต้องขึ้นใน appearance");
+  assert.equal(j.appearance.en.length, j.planetsIn7th.slice(0, 3).length);
 });
 
 test("SIGN_LORD คลาสสิก — กุมภ์=เสาร์ (ไม่ใช่ราหูแบบธรรมเนียมไทย — จงใจ ตามระบบ Jyotish)", () => {

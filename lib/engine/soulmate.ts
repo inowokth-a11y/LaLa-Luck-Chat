@@ -516,6 +516,8 @@ export function soulmateCollagePrompt(opts: {
   gender: PartnerGender;
   element: Element5;
   look?: string | null;
+  /** วลีรูปลักษณ์เสริมจากชั้น Jyotish (PLANET_APPEARANCE en — มาจาก enum ของ engine เท่านั้น) */
+  extraTraitsEn?: readonly string[];
 }): string {
   const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : LOOK_STYLES.thai.en;
   const phys = PHYSIOGNOMY_BY_ELEMENT[opts.element];
@@ -527,7 +529,9 @@ export function soulmateCollagePrompt(opts: {
     `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
     `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
-    `${phys.promptEn}, ${look}, modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
+    `${phys.promptEn}, ${look}, ` +
+    (opts.extraTraitsEn && opts.extraTraitsEn.length ? `${opts.extraTraitsEn.join(", ")}, ` : "") +
+    `modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
     `highly detailed natural skin texture with visible pores, photorealistic, ` +
     `no text, no words, no letters, no watermark`
   );

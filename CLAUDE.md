@@ -1358,6 +1358,13 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
   ราหูในภพ 7 · จันทร์วิศาขา · ศุกร์ตุลย์→D9 พฤษภ (own) — **ตรง Swiss Ephemeris ทุกดวง** (spot-check
   แยกอีกชั้น) · ทศาปัจจุบันเกตุ/จันทร์ · หน้าต่างคู่ พ.ค.2574-ส.ค.2577 (ศุกร์/ศุกร์) · AI เล่าหัวข้อ
   "มุมมองจากดวงดาว (ชั้นเสริม)" + ช่วง พ.ศ. ตรงข้อมูล ไม่การันตี
+- **รูปลักษณ์/นิสัยจากชั้น Jyotish (ผู้ใช้ถาม 24 ส.ค. 2569 — ทำแล้ว):** `PLANET_APPEARANCE`
+  9 ดาว (ฐาน Sārāvalī/ธรรมเนียมนักปฏิบัติ — ชั้นเสริม **ไม่แทน ค.1**): ดาวในภพ 7 → วลีรูปลักษณ์
+  th (แถวบนหน้า + context narrator "รูปลักษณ์เพิ่มจากดาวในภพ7_ชั้นเสริม") + en ≤3 วลีป้อน
+  `soulmateCollagePrompt({extraTraitsEn})` (enum จาก engine เท่านั้น — ไม่ส่ง = prompt เดิมเป๊ะ
+  เทสต์ล็อก 512) · E2E จริง: ราหูภพ 7 → "ลุคแปลกใหม่สะดุดตา" ขึ้นหน้า + "distinctive striking
+  look with an exotic touch" เข้า prompt จริง (ตรวจจาก image_generation_log) + FLUX ออกคอลลาจ
+  ปกติ (รอบแรกกริดเบิ้ล 1 ครั้ง = variance ยิงซ้ำหาย ไม่ใช่ systematic)
 - ⬜ ค้าง: โหมด match ยังไม่ใส่ชั้น Jyotish (v1 เฉพาะคำทำนายหลัก) · Upapada ผูกเทรนด์ราศี ข.2 เพิ่มได้ ·
   derived houses (ฐานะ/อาชีพคู่ 2nd/10th from 7th) รอรอบถัดไป — เปิดได้จะแก้หัวข้อปิด "ฐานะ" ด้วย
 
@@ -1685,7 +1692,7 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 511/511 (24 ส.ค. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 512/512 (24 ส.ค. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 

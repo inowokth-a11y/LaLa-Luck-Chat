@@ -307,6 +307,20 @@ export const DK_ARCHETYPE_TH: Record<Graha, string> = {
   ketu: "คู่แนวเรียบง่าย ปล่อยวาง มีมิติทางจิตใจ",
 };
 
+/** รูปลักษณ์ที่ดาวในภพ 7 "เติม" ให้คู่ (ฐาน Sārāvalī + ธรรมเนียมนักปฏิบัติ — ชั้นเสริม
+ *  🔴 ไม่แทนตาราง ค.1 ของตำรา — ใช้เป็นตัวเสริมทั้งในคำทำนายและ prompt ภาพ) */
+export const PLANET_APPEARANCE: Record<Graha, { th: string; en: string }> = {
+  sun: { th: "สง่าผ่าเผย บุคลิกโดดเด่นเห็นแล้วจำได้", en: "dignified commanding presence" },
+  moon: { th: "ใบหน้าอ่อนโยน ผิวพรรณผ่องใส ดวงตาเด่น", en: "gentle attractive face with luminous skin and expressive eyes" },
+  mars: { th: "โครงหน้าคม รูปร่างกระชับแข็งแรง", en: "sharp defined features, fit athletic build" },
+  mercury: { th: "ดูอ่อนกว่าวัย สดใสคล่องแคล่ว", en: "youthful fresh lively look" },
+  jupiter: { th: "ภูมิฐาน รูปร่างสมบูรณ์ อบอุ่นน่าเกรงใจ", en: "dignified warm presence with a full well-built figure" },
+  venus: { th: "งดงาม มีเสน่ห์ แต่งตัวมีรสนิยม", en: "beautiful refined charming appearance with tasteful style" },
+  saturn: { th: "สูงโปร่ง/เพรียว ดูเป็นผู้ใหญ่กว่าวัย", en: "tall lean composed mature appearance" },
+  rahu: { th: "ลุคแปลกใหม่สะดุดตา อาจมีกลิ่นอายต่างถิ่น", en: "distinctive striking look with an exotic touch" },
+  ketu: { th: "เรียบง่าย สมถะ ดูลึกซึ้ง", en: "simple understated serene look" },
+};
+
 export const HOUSE_MEANING_TH: Record<number, string> = {
   1: "ตัวตน/ร่างกาย", 2: "ทรัพย์/ครอบครัว/วาจา", 3: "ความกล้า/การสื่อสาร", 4: "บ้าน/แม่/ความสุขใจ",
   5: "บุตร/ความรัก/ความคิดสร้างสรรค์", 6: "อุปสรรค/งานบริการ/สุขภาพ", 7: "คู่ครอง/หุ้นส่วน",
@@ -336,6 +350,8 @@ export interface SoulmateJyotish {
   seventhSign: ZodiacSign;
   seventhLord: { grahaTh: string; house: number; houseMeaningTh: string; arenaTh: string };
   planetsIn7th: { grahaTh: string; traitTh: string }[];
+  /** แนวโน้มรูปลักษณ์เพิ่มจากดาวในภพ 7 (ชั้นเสริม — ไม่แทน ค.1) · en ใช้ป้อน prompt ภาพ */
+  appearance: { th: string[]; en: string[] };
   darakaraka: { grahaTh: string; archetypeTh: string };
   upapada: {
     signTh: ZodiacSign;
@@ -420,6 +436,10 @@ export function soulmateJyotish(
       arenaTh: SEVENTH_LORD_ARENA_TH[lordPos.house],
     },
     planetsIn7th: in7.map((p) => ({ grahaTh: GRAHA_TH[p.graha], traitTh: PLANET_IN_7TH_TH[p.graha] })),
+    appearance: {
+      th: in7.map((p) => `${GRAHA_TH[p.graha]}: ${PLANET_APPEARANCE[p.graha].th}`),
+      en: in7.slice(0, 3).map((p) => PLANET_APPEARANCE[p.graha].en),
+    },
     darakaraka: { grahaTh: GRAHA_TH[dk], archetypeTh: DK_ARCHETYPE_TH[dk] },
     upapada: {
       signTh: signTh(ulIdx),

@@ -232,6 +232,11 @@ test("คอลลาจรูปเดียวหลายอิริยา�
   for (const el of ["Wood", "Fire", "Earth", "Metal", "Water"] as const) {
     assert.ok(/build|figure|waist|shoulders/.test(PHYSIOGNOMY_BY_ELEMENT[el].promptEn), `ธาตุ ${el} ต้องมีวลีรูปร่างใน promptEn`);
   }
+  // วลีเสริมจากชั้น Jyotish เข้า prompt · ไม่ส่ง = prompt เดิมเป๊ะ (backward compat)
+  const plain = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai" });
+  const withTraits = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", extraTraitsEn: ["tall lean composed mature appearance"] });
+  assert.ok(withTraits.includes("tall lean composed mature appearance"));
+  assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", extraTraitsEn: [] }), plain);
   const evil = soulmateCollagePrompt({ gender: "male", element: "Earth", look: "Kim Soo-hyun lookalike" });
   const def = soulmateCollagePrompt({ gender: "male", element: "Earth", look: null });
   assert.equal(evil, def, "look นอก preset ต้องเท่ากับ default ไทย");

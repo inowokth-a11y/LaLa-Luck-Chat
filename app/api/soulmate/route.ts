@@ -339,7 +339,14 @@ export async function POST(req: Request) {
       }
 
       // คอลลาจรูปเดียว-หลายอิริยาบถ (ผู้ใช้เคาะ 23 ส.ค. 2569) — คนเดียวกันทุกมุม · 1 gen
-      const prompts = [soulmateCollagePrompt({ gender: partnerGender, element: partnerElement, look: body.look ?? null })];
+      const prompts = [
+        soulmateCollagePrompt({
+          gender: partnerGender,
+          element: partnerElement,
+          look: body.look ?? null,
+          extraTraitsEn: jyotish?.appearance.en ?? [],
+        }),
+      ];
       const captions = soulmateImageCaptions(reading);
       const images = await falSoulmateImages(prompts);
 
@@ -459,6 +466,7 @@ export async function POST(req: Request) {
                 เจ้าเรือน7อยู่ภพ: `${jyotish.seventhLord.house} (${jyotish.seventhLord.houseMeaningTh})`,
                 บริบทที่มักพบคู่: jyotish.seventhLord.arenaTh,
                 ดาวในภพ7: jyotish.planetsIn7th,
+                รูปลักษณ์เพิ่มจากดาวในภพ7_ชั้นเสริม: jyotish.appearance.th,
                 Darakaraka: jyotish.darakaraka,
                 Upapada: {
                   ราศี: jyotish.upapada.signTh,
