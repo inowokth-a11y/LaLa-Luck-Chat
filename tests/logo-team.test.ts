@@ -13,6 +13,7 @@ import {
 } from "../lib/engine/logo-team";
 import { wuXingScore } from "../lib/engine/element";
 import { nameElement } from "../lib/engine/naming";
+import { brandNameTaksa } from "../lib/engine/logo-team";
 import { DIRECTION_TO_ELEMENT } from "../lib/engine/fengshui";
 
 test("teamMemberFromBirthDate — สูตรคนจริง · พ.ศ./รูปแบบผิด = null", () => {
@@ -99,4 +100,18 @@ test("logoExternalPrompt — มีชื่อแบรนด์เป็นต
   for (const el of ["Wood", "Fire", "Earth", "Metal", "Water", "Unknown"]) {
     assert.ok(logoExternalPrompt(el, "X").length > 100);
   }
+});
+
+
+test("brandNameTaksa — ชื่อแบรนด์เช็คกาลกิณีของเจ้าของ (24 ส.ค. 2569) · ข้อมูลไม่ครบ = null", () => {
+  // เจ้าของเกิด 1986-10-07 = อังคาร → กาลกิณี ก ข ค ฆ ง → "กาแฟดี" มี ก
+  const r = brandNameTaksa("กาแฟดี", "1986-10-07")!;
+  assert.ok(r.kalakiniChars.includes("ก"));
+  assert.ok(r.verdictTh.includes("วรรคห้ามใช้"));
+  // ชื่อผ่าน: "มีทรัพย์" (ไม่มีอักษร ก ข ค ฆ ง) กับเจ้าของวันอังคาร
+  const ok = brandNameTaksa("มีทรัพย์", "1986-10-07")!;
+  assert.equal(ok.kalakiniChars.length, 0);
+  assert.equal(brandNameTaksa("", "1986-10-07"), null);
+  assert.equal(brandNameTaksa("กาแฟดี", null), null);
+  assert.equal(brandNameTaksa("กาแฟดี", "2529-10-07"), null, "พ.ศ. = null ไม่เดา");
 });

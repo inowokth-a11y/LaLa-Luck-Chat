@@ -16,6 +16,7 @@ import {
   teamMemberFromBirthDate,
   scoreStylesForTeam,
   directionOwnerAdvice,
+  brandNameTaksa,
   OFFICE_DIRECTIONS,
   OFFICE_DIRECTION_HELP,
   MAX_TEAM_MEMBERS,
@@ -160,6 +161,8 @@ export default function LogoPage() {
     return scoreStylesForTeam({ members, brandName: brand, direction: direction || null });
   }, [ownerBirth, partners, brand, direction]);
   const owner = useMemo(() => teamMemberFromBirthDate("เจ้าของ", ownerBirth || null), [ownerBirth]);
+  // ทักษาปกรณ์ของชื่อแบรนด์เทียบวันเกิดเจ้าของ (ชั้นเสริม — เตือนอักษรกาลกิณี)
+  const brandTaksa = useMemo(() => brandNameTaksa(brand, ownerBirth || null), [brand, ownerBirth]);
 
   // ดีฟอลต์สไตล์ = สไตล์แนะนำของทีม → ธาตุเจ้าของ → Earth
   const chosen = style ?? team.recommended ?? me?.dominant ?? "Earth";
@@ -268,6 +271,12 @@ export default function LogoPage() {
           </details>
           {direction && owner && (
             <p style={{ ...S.note, marginTop: "0.3rem" }}>🧭 {directionOwnerAdvice(owner.dominant, owner.missing, direction)}</p>
+          )}
+          {brandTaksa && (
+            <p style={{ ...S.note, marginTop: "0.3rem", color: brandTaksa.kalakiniChars.length ? "var(--bad,#a83a1e)" : "#4a6b3f" }}>
+              ✍️ ทักษาปกรณ์ (ชื่อแบรนด์ × วันเกิดเจ้าของ): {brandTaksa.verdictTh}
+              {brandTaksa.kalakiniChars.length > 0 && ` · อักษรแนะนำแทน — เดช: ${brandTaksa.suggestLetters[0].letters} · ศรี: ${brandTaksa.suggestLetters[1].letters}`}
+            </p>
           )}
         </div>
 

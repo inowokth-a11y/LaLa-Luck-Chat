@@ -106,3 +106,32 @@ test("timing personal — ธาตุวัตถุ/ชื่อกิจก�
   const rn = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai", businessName: "รุ่งเรือง" });
   assert.ok(rn.caveat.includes("เลขกลุ่มอักษร"), "ใช้ธาตุชื่อ → caveat ที่มาตาราง (ทาง ค) ต้องติดมา");
 });
+
+
+test("ตาราจรเฉพาะบุคคล (24 ส.ค. 2569) — มีวันเกิด = มีโน้ตตาราทุกวัน · คะแนนต่างจากไม่ใส่ · เศษ 3/5/7 = −1", () => {
+  const range = { fromISO: "2026-09-01", toISO: "2026-09-27", emphasis: "any" as const };
+  const noBirth = rankAuspiciousDays(range);
+  const withBirth = rankAuspiciousDays({ ...range, birthDate: "1986-10-07" });
+  let taraNotes = 0, diff = 0, minus = 0, plus = 0;
+  const noByIso = new Map(noBirth.days.map((d) => [d.dateISO, d.score]));
+  for (const d of withBirth.days) {
+    const note = (d.personalNotes ?? []).find((n) => n.includes("ตาราจร"));
+    if (note) taraNotes++;
+    if (note?.includes("−1") || note?.includes("(-1)") || note?.includes("(−1)")) minus++;
+    if (note?.includes("+1")) plus++;
+    if (d.score !== noByIso.get(d.dateISO)) diff++;
+  }
+  assert.equal(taraNotes, withBirth.days.length, "ทุกวันต้องมีโน้ตตาราจรเมื่อรู้วันเกิด");
+  assert.ok(plus > 0 && minus > 0, "รอบ 27 วันต้องมีทั้งวันเกื้อและวันไม่เกื้อ (5 ดี/3 ร้าย/1 กลาง ต่อ 9)");
+  assert.ok(diff > 0, "คะแนนต้องเปลี่ยนจากชั้นตารา");
+  assert.ok(withBirth.caveat.includes("ตาราจร"), "caveat ประกาศชั้นตาราจร");
+});
+
+test("รอยต่อยุคชีวิต (ทศาสันธิ) เข้า /timing — มีวันเกิด+เวลา และอยู่รอยต่อ = ขึ้นโน้ตใน caveat", () => {
+  // ดวง 1992-05-14 21:45 อยู่ปลายยุคพฤหัส 96% (ทดลองรอบ 2) = รอยต่อ ณ ส.ค. 2569
+  const r = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-07", emphasis: "any", birthDate: "1992-05-14", birthTime: "21:45" });
+  assert.ok(r.caveat.includes("รอยต่อระหว่างยุคชีวิต"), "ต้องเตือนทศาสันธิ");
+  // ไม่มีเวลาเกิด = ไม่มีชั้นนี้ (ไม่เดา)
+  const r2 = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-07", emphasis: "any", birthDate: "1992-05-14" });
+  assert.ok(!r2.caveat.includes("รอยต่อระหว่างยุคชีวิต"));
+});

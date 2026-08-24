@@ -36,6 +36,7 @@ export default function TimingPage() {
 
   // ช่องเสริมรายหมวด (ผู้ใช้สั่ง 22 ส.ค. 2569) — ทุกช่องไม่บังคับ ใส่แล้วแม่นขึ้น
   const [birthDate, setBirthDate] = useState("");
+  const [birthTime, setBirthTime] = useState("");
   const [prefilled, setPrefilled] = useState(false);
   const [partnerBirthDate, setPartnerBirthDate] = useState("");
   const [refNumber, setRefNumber] = useState("");
@@ -47,6 +48,7 @@ export default function TimingPage() {
       setBirthDate(profile.birth_date);
       setPrefilled(true);
     }
+    if (profile?.birth_time && !birthTime) setBirthTime(profile.birth_time.slice(0, 5));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
@@ -63,9 +65,10 @@ export default function TimingPage() {
         refNumber: fields.refLabel ? refNumber || null : null,
         refLabel: activityKey === "housewarming" ? "บ้าน" : "รถ",
         activityKey,
+        birthTime: birthTime || null,
         businessName: fields.businessName ? businessName || null : null,
       }),
-    [fromISO, toISO, activity.emphasis, birthDate, partnerBirthDate, refNumber, businessName, fields.partnerBirthDate, fields.refLabel, fields.businessName, activityKey]
+    [fromISO, toISO, activity.emphasis, birthDate, birthTime, partnerBirthDate, refNumber, businessName, fields.partnerBirthDate, fields.refLabel, fields.businessName, activityKey]
   );
 
   const recommended = days.filter((d) => d.score > 0).slice(0, 12);
@@ -101,6 +104,10 @@ export default function TimingPage() {
           <label style={S.field}>
             <span style={S.label}>วันเกิดของคุณ ไม่บังคับ — ใส่แล้วเช็คกาลกิณี+ธาตุให้ด้วย{prefilled ? " · ✓ จากบัญชี" : ""}</span>
             <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} style={S.input} />
+          </label>
+          <label style={S.field}>
+            <span style={S.label}>เวลาเกิด ไม่บังคับ — ใส่แล้วเช็ครอยต่อยุคชีวิตให้ด้วย</span>
+            <input type="time" value={birthTime} onChange={(e) => setBirthTime(e.target.value)} style={S.input} />
           </label>
           {fields.partnerBirthDate && (
             <label style={S.field}>

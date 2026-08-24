@@ -15,6 +15,7 @@ import {
   type Element5,
 } from "./element";
 import { thaiDayOfWeek } from "./card-id";
+import { analyzeNameTaksa, type TaksaNameResult } from "./taksa-naming";
 import { DIRECTION_TO_ELEMENT, ELEMENT_TO_COLORS, type Direction } from "./fengshui";
 import { nameElement } from "./naming";
 import { bridgeElement } from "./network-holistic";
@@ -148,4 +149,22 @@ export function directionOwnerAdvice(
   }
   if (r.final_score >= 2) return `ทิศ${direction} (ธาตุ${dirTh}) เกื้อหนุนธาตุเจ้าของ (+${r.final_score})`;
   return `ทิศ${direction} (ธาตุ${dirTh}) กับธาตุเจ้าของ: ${r.relation_th}`;
+}
+
+
+/**
+ * ทักษาปกรณ์ของชื่อแบรนด์เทียบวันเกิดเจ้าของ (รอบ "ไล่ทีละข้อ" 24 ส.ค. 2569)
+ * ธรรมเนียมตั้งชื่อกิจการใช้ทักษาเจ้าของกิจการ — เตือนเมื่อชื่อมีอักษรวรรคกาลกิณีของเจ้าของ
+ * (ชั้นเสริม — คนละระบบกับธาตุชื่อ/คะแนนสไตล์ อ่านแยกชั้น) · null เมื่อข้อมูลไม่ครบ/วันไม่ถูกต้อง
+ */
+export function brandNameTaksa(brandName: string | null | undefined, ownerBirthDate: string | null | undefined): TaksaNameResult | null {
+  if (!brandName?.trim() || !ownerBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(ownerBirthDate)) return null;
+  // normalization layer: กัน พ.ศ./ปีเสีย (บทเรียน data-quality §5.1 — แพทเทิร์นเดียว teamMemberFromBirthDate)
+  const y = Number(ownerBirthDate.slice(0, 4));
+  if (y < 1900 || y > new Date().getUTCFullYear()) return null;
+  try {
+    return analyzeNameTaksa(brandName.trim(), thaiDayOfWeek(ownerBirthDate));
+  } catch {
+    return null;
+  }
 }
