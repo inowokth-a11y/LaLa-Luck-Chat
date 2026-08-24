@@ -12,6 +12,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { useStoredProfile } from "../_components/useStoredProfile";
+import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
+import { moonEclipticLongitude } from "@/lib/engine/daily";
+import { lahiriAyanamsa } from "@/lib/engine/ascendant";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
 import {
   calculateElementSeed,
@@ -197,6 +200,7 @@ export default function CompatibilityPage() {
           chemistry: s.result,
           element: s.entity.element,
           personMissing: pseed.missing_th,
+          koota: kootaAtNoon(birthDate, s.entity.birthDate),
         });
         continue;
       }
@@ -213,7 +217,7 @@ export default function CompatibilityPage() {
       });
     }
     return parts;
-  }, [seed, selfElement, selfMissing, selfNumberStr, scored]);
+  }, [seed, selfElement, selfMissing, selfNumberStr, scored, birthDate]);
 
   const coherence = useMemo(() => analyzeCoherence(holisticParts), [holisticParts]);
   const advice = useMemo(
@@ -242,6 +246,9 @@ export default function CompatibilityPage() {
           ? { วัน: p.omen.dayTh, ดี: p.omen.good, ร้าย: p.omen.bad, หมายเหตุ: p.omen.note, ยามเมื่อทราบเวลา: p.omen.timeVerdict }
           : null,
         ธาตุที่บุคคลนี้ขาด: p.personMissing ?? null,
+        คะแนนคู่36_ชั้นเสริม: p.koota
+          ? { รวม: `${p.koota.total}/36`, เกณฑ์: p.koota.bandTh, จุดต้องดูแล: p.koota.doshaFlags }
+          : null,
       })),
       ความสอดคล้องรายด้าน: coherence.map((c) => ({
         ด้าน: c.labelTh, เฉลี่ย: c.avg, ต่ำสุด: `${c.weakest.label} (${c.min})`, สูงสุด: `${c.strongest.label} (${c.max})`, tone: c.tone,
@@ -269,6 +276,22 @@ export default function CompatibilityPage() {
       })
       .finally(() => setNarrLoading(false));
   }, [wantNarration, seed, advice, holisticParts, coherence]);
+
+  /** คะแนนคู่ 36 (Ashtakoota) จากวันเกิดสองฝ่าย ณ เที่ยงไทย — ฿0 client ล้วน (วันเกิดบุคคลไม่ขึ้น server) */
+  function kootaAtNoon(dateA: string, dateB: string): AshtakootaResult | null {
+    try {
+      const moonOf = (dISO: string) => {
+        const [y, m, d] = dISO.split("-").map(Number);
+        const jd = (Date.UTC(y, m - 1, d, 5) ) / 86400000 + 2440587.5;
+        const lon = moonEclipticLongitude(jd) - lahiriAyanamsa(jd);
+        return ((lon % 360) + 360) % 360;
+      };
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateA) || !/^\d{4}-\d{2}-\d{2}$/.test(dateB)) return null;
+      return ashtakoota(moonOf(dateA), moonOf(dateB), { aIsGroom: null, noBirthTime: true });
+    } catch {
+      return null;
+    }
+  }
 
   /** คำนวณธาตุ+เลขตัวตนจากวันเกิด — คืน seed หรือ null (พร้อม set error) · reuse ทั้งปุ่มแยกและปุ่มรวม */
   function computeSelf(): ElementSeedResult | null {
@@ -759,6 +782,20 @@ export default function CompatibilityPage() {
                           <div className={styles.detailRow}>
                             <span>ธาตุที่เขาขาด</span>
                             <b>{part.personMissing.length ? part.personMissing.join(", ") : "ครบทั้ง 4"}</b>
+                          </div>
+                        )}
+                        {part.koota && (
+                          <div style={{ fontSize: "0.82rem", lineHeight: 1.6, margin: "0.4rem 0", padding: "0.4rem 0.6rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
+                            <b>🌙 คะแนนคู่ 36 (Ashtakoota — ชั้นเสริมสากล): {part.koota.total}/36</b>
+                            <br />{part.koota.bandTh} · นักษัตร {part.koota.aNakshatraTh} × {part.koota.bNakshatraTh}
+                            {part.koota.doshaFlags.map((f, fi) => <span key={fi}><br />⚠️ {f}</span>)}
+                            <details style={{ marginTop: "0.25rem" }}>
+                              <summary style={{ cursor: "pointer" }}>ดูรายกูฏทั้ง 8</summary>
+                              <ul style={{ margin: "0.2rem 0 0", paddingLeft: "1.1rem" }}>
+                                {part.koota.kootas.map((k) => <li key={k.key}>{k.nameTh}: {k.got}/{k.max} — {k.noteTh}</li>)}
+                              </ul>
+                            </details>
+                            <span style={{ opacity: 0.7, display: "block", marginTop: "0.2rem" }}>{part.koota.caveats.join(" · ")}</span>
                           </div>
                         )}
                         <AspectBars

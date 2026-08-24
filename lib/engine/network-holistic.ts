@@ -181,6 +181,8 @@ export interface HolisticPart {
   omen?: StartOmen | null;
   /** ธาตุที่บุคคลนี้ขาด (เฉพาะส่วนที่เป็นคน — จาก ElementSeed ของเขา) */
   personMissing?: string[] | null;
+  /** คะแนนคู่ 36 Ashtakoota (เฉพาะบุคคล — รอบ 3 แผน Jyotish · ชั้นเสริม อ่านแยกจากคะแนน 5 ด้าน) */
+  koota?: import("./ashtakoota").AshtakootaResult | null;
 }
 
 export type CoherenceTone = "strong" | "caution" | "neutral";

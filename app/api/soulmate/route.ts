@@ -30,6 +30,9 @@ import {
 import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
 import { soulmateJyotish, soulmateConvergence, overlapWindows, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
+import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
+import { moonEclipticLongitude } from "@/lib/engine/daily";
+import { lahiriAyanamsa } from "@/lib/engine/ascendant";
 import { provinceByKey } from "@/lib/provinces";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { generate } from "@/lib/ai";
@@ -92,6 +95,10 @@ const LALA_MATCH_SYSTEM = `${LALA_PERSONA}
    ข้อมูลระบุคำนี้ไว้จริงเท่านั้น (ห้ามตีความความหมายอื่นมาสวมคำนี้) — เมื่อมีจริงต้องชูเป็นจุดเด่น
 4. ภพปัตนิ: ตรง = อธิบายว่าตามตำราถือเป็นสัญญาณเกื้อหนุน (ราศีเขาอยู่ในเรือนคู่ครองของคุณ) ·
    ไม่ตรง = บอกชัดว่าไม่ใช่ลางร้าย เป็นเพียงชั้นหนึ่งจากหลายชั้น
+4.4 ถ้ามี "คะแนนคู่36_Ashtakoota_ชั้นเสริม" — เล่าหัวข้อสั้น "คะแนนคู่ตามเกณฑ์ดวงจันทร์ (ชั้นเสริมสากล)":
+   รายงานคะแนนรวม x/36 ตามที่ให้ + จุดเด่น 2-3 กูฏ + จุดต้องดูแล (ธงโทษ) แบบนุ่มนวลพร้อมทางดูแล ·
+   ห้ามเฉลี่ยรวมกับคะแนน 5 ด้าน/เคมีธาตุ (คนละระบบ) · นาฑี = "พลังชีวิต" ห้ามคำแพทย์ ·
+   ห้ามใช้คะแนนนี้ฟันธงรับ/ปฏิเสธความสัมพันธ์
 4.5 ถ้ามี "จังหวะเวลาสองฝ่าย_ชั้นJyotishเสริม" — เล่าเป็นหัวข้อสั้น "จังหวะเวลาของทั้งคู่"
    ใช้ช่วง พ.ศ. ตามข้อมูลเท่านั้น · ช่วงทับซ้อน = "จังหวะที่เรื่องคู่มีน้ำหนักทั้งสองฝ่าย"
    ห้ามการันตีว่าจะคบกัน/แต่งงาน · เป็นชั้นเสริมสากล ไม่ใช่ตำราหลัก
@@ -241,6 +248,22 @@ export async function POST(req: Request) {
         partnerWindows: { fromTh: string; toTh: string }[];
         overlaps: { fromTh: string; toTh: string }[];
       } | null = null;
+      // รอบ 3: คะแนนคู่ 36 (Ashtakoota) จากดวงจันทร์สองฝ่าย — ต้องมีเวลาเกิดทั้งคู่
+      let matchKoota: AshtakootaResult | null = null;
+      if (birthChart && partnerChart) {
+        try {
+          const moonOf = (jd: number) => {
+            const lon = moonEclipticLongitude(jd) - lahiriAyanamsa(jd);
+            return ((lon % 360) + 360) % 360;
+          };
+          const aIsGroom =
+            body.userGender === "male" && partnerGender === "female" ? true
+              : body.userGender === "female" && partnerGender === "male" ? false : null;
+          matchKoota = ashtakoota(moonOf(birthChart.jd), moonOf(partnerChart.jd), { aIsGroom });
+        } catch (e) {
+          console.warn("[soulmate] ashtakoota คำนวณไม่สำเร็จ — ข้าม", e);
+        }
+      }
       if (jyotish && partnerChart) {
         try {
           const pj = soulmateJyotish(partnerChart.jd, partnerChart.birthUtcMs, partnerChart.sign, Date.now(), null);
@@ -292,6 +315,17 @@ export async function POST(req: Request) {
           จุดแข็ง: match.advice.strengths,
           ข้อควรระวัง: match.advice.cautions,
           คำแนะนำ: match.advice.tips,
+          ...(matchKoota
+            ? {
+                คะแนนคู่36_Ashtakoota_ชั้นเสริม: {
+                  รวม: `${matchKoota.total}/36`,
+                  เกณฑ์: matchKoota.bandTh,
+                  นักษัตร: `${matchKoota.aNakshatraTh} × ${matchKoota.bNakshatraTh}`,
+                  รายกูฏ: matchKoota.kootas.map((k) => `${k.nameTh} ${k.got}/${k.max} — ${k.noteTh}`),
+                  จุดต้องดูแล: matchKoota.doshaFlags.length ? matchKoota.doshaFlags : "ไม่มีธงโทษ",
+                },
+              }
+            : {}),
           ...(matchTiming
             ? {
                 จังหวะเวลาสองฝ่าย_ชั้นJyotishเสริม: {
@@ -348,6 +382,7 @@ export async function POST(req: Request) {
         reply,
         match,
         matchTiming,
+        matchKoota,
         ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       });
     }

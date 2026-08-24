@@ -67,6 +67,11 @@ interface ReadingResponse {
 
 interface MatchResponse {
   reply?: string;
+  matchKoota?: {
+    total: number; bandTh: string; aNakshatraTh: string; bNakshatraTh: string;
+    kootas: { key: string; nameTh: string; got: number; max: number; noteTh: string }[];
+    doshaFlags: string[]; caveats: string[];
+  } | null;
   matchTiming?: {
     userWindows: { fromTh: string; toTh: string }[];
     partnerWindows: { fromTh: string; toTh: string }[];
@@ -642,6 +647,21 @@ export default function SoulmatePage() {
                 </div>
               ))}
             </details>
+            {matchRes.matchKoota && (
+              <div style={{ fontSize: "0.85rem", lineHeight: 1.7, marginTop: "0.7rem", padding: "0.5rem 0.7rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
+                <strong>🌙 คะแนนคู่ตามเกณฑ์ดวงจันทร์ (Ashtakoota — ชั้นเสริมสากล): {matchRes.matchKoota.total}/36</strong>
+                <br />{matchRes.matchKoota.bandTh} · นักษัตร {matchRes.matchKoota.aNakshatraTh} × {matchRes.matchKoota.bNakshatraTh}
+                <ul style={{ margin: "0.3rem 0 0", paddingLeft: "1.2rem" }}>
+                  {matchRes.matchKoota.kootas.map((k) => (
+                    <li key={k.key}>{k.nameTh}: {k.got}/{k.max} — {k.noteTh}</li>
+                  ))}
+                </ul>
+                {matchRes.matchKoota.doshaFlags.length > 0 && (
+                  <div style={{ marginTop: "0.3rem" }}>{matchRes.matchKoota.doshaFlags.map((f, i) => <div key={i}>⚠️ {f}</div>)}</div>
+                )}
+                <span style={{ opacity: 0.75, display: "block", marginTop: "0.3rem" }}>{matchRes.matchKoota.caveats[0]}</span>
+              </div>
+            )}
             {matchRes.matchTiming && (
               <div style={{ fontSize: "0.85rem", lineHeight: 1.7, marginTop: "0.7rem", padding: "0.5rem 0.7rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
                 <strong>🪐 จังหวะเวลาสองฝ่าย (ชั้น Jyotish สากล — ชั้นเสริม)</strong>
