@@ -239,7 +239,7 @@ export function rankAuspiciousDays(opts: {
     if (persons.some((p) => p.kalakini && p.kalakini.signs.length === 0)) {
       caveat += " · ผู้เกิดวันศุกร์ (กาลกิณีคือราหู) ตรวจเรือนกาลกิณีไม่ได้ตามหลักดั้งเดิม";
     }
-    if (nameEl) caveat += " · ธาตุจากชื่อกิจการใช้เกณฑ์เลขกลุ่ม→ดาว→ธาตุประจำวัน (รอเจ้าของตำรายืนยันขั้นสุดท้าย)";
+    if (nameEl) caveat += " · ธาตุจากชื่อกิจการใช้เกณฑ์เลขกลุ่มอักษร→ดาวประจำเลข→ธาตุประจำวัน";
   }
   return { days, caveat };
 }

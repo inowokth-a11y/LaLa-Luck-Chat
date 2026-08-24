@@ -104,5 +104,5 @@ test("timing personal — ธาตุวัตถุ/ชื่อกิจก�
   const r = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai", refNumber: "จง 6266", refLabel: "รถ" });
   assert.ok(r.days.some((d) => (d.personalNotes ?? []).some((n) => n.includes("รถ"))), "ต้องมีวันที่ธาตุวันมีผลกับรถ");
   const rn = rankAuspiciousDays({ fromISO: "2026-09-01", toISO: "2026-09-14", emphasis: "thanchai", businessName: "รุ่งเรือง" });
-  assert.ok(rn.caveat.includes("รอเจ้าของตำรายืนยัน"), "ใช้ธาตุชื่อ → caveat ที่มาตาราง (ทาง ค) ต้องติดมา");
+  assert.ok(rn.caveat.includes("เลขกลุ่มอักษร"), "ใช้ธาตุชื่อ → caveat ที่มาตาราง (ทาง ค) ต้องติดมา");
 });
