@@ -91,11 +91,12 @@ test("prompt ภาพเนื้อคู่ — สุภาพ/ผู้ใ�
   assert.ok(SOULMATE_IMAGE_DISCLAIMER.includes("ไม่ได้มาจากตำรา"));
 });
 
-test("ขอบเขต — SCOPE_NOTE เหลือ 4 หัวข้อ (รูปลักษณ์เปิดแล้วด้วยตาราง ค.1) + นรลักษณ์ครบ 5 ธาตุ", () => {
-  for (const topic of ["พื้นเพ", "ฐานะ", "อายุ", "ช่วงเวลา"]) {
+test("ขอบเขต — SCOPE_NOTE เหลือ 3 หัวข้อปิด (รูปลักษณ์เปิดด้วย ค.1 · ช่วงเวลา/บริบทเปิดด้วยชั้น Jyotish) + นรลักษณ์ครบ 5 ธาตุ", () => {
+  for (const topic of ["พื้นเพ", "ฐานะ", "อายุ"]) {
     assert.ok(SOULMATE_SCOPE_NOTE.includes(topic), `SCOPE_NOTE ต้องมี "${topic}"`);
   }
   assert.ok(!SOULMATE_SCOPE_NOTE.includes("รูปลักษณ์"), "รูปลักษณ์เปิดแล้ว — ห้ามอยู่ในรายการปิด");
+  assert.ok(SOULMATE_SCOPE_NOTE.includes("Jyotish"), "ต้องประกาศว่าช่วงเวลา/บริบทเปิดผ่านชั้น Jyotish (ชั้นเสริม)");
   // ตาราง ค.1 คัดลอกตรงตำรา (spot-check คำต่อคำ)
   assert.equal(Object.keys(PHYSIOGNOMY_BY_ELEMENT).length, 5);
   assert.equal(PHYSIOGNOMY_BY_ELEMENT.Fire.faceTh, "รูปสามเหลี่ยมหรือรูปไข่, หน้าผากกว้างและสูง, คางเล็กแหลม");

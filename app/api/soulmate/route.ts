@@ -29,6 +29,7 @@ import {
 } from "@/lib/soulmate/store";
 import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
+import { soulmateJyotish, type SoulmateJyotish } from "@/lib/engine/jyotish";
 import { provinceByKey } from "@/lib/provinces";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { generate } from "@/lib/ai";
@@ -55,12 +56,18 @@ const LALA_SOULMATE_SYSTEM = `${LALA_PERSONA}
 กฎเหล็ก:
 1. ใช้ได้เฉพาะข้อมูลใน <ผลคำนวณเนื้อคู่> — ห้ามแต่งลักษณะนิสัย ราศี ธาตุ หรือคะแนนขึ้นเอง
 2. 🔴 ห้ามทำนายสิ่งที่ระบบไม่ได้คำนวณเด็ดขาด: พื้นเพครอบครัว · ฐานะการเงิน ·
-   อายุมาก/น้อยกว่า · ช่วงเวลา/อายุที่จะพบ — ถ้าผู้ใช้อยากรู้ ให้บอกตรงๆ ว่าหัวข้อเหล่านี้
-   ยังไม่เปิดเพราะรอข้อมูลจากตำราต้นทาง · ส่วน "รูปลักษณ์" พูดได้**เฉพาะ**จากข้อมูล
-   "แนวโน้มรูปลักษณ์ตามนรลักษณ์" ที่ให้มา (ตาราง ค.1) และต้องเรียกว่า "แนวโน้ม" ห้ามฟันธง
+   อายุมาก/น้อยกว่า — บอกตรงๆ ว่าหัวข้อเหล่านี้ยังไม่เปิดเพราะรอข้อมูลจากตำราต้นทาง ·
+   ส่วน "รูปลักษณ์" พูดได้**เฉพาะ**จากข้อมูล "แนวโน้มรูปลักษณ์ตามนรลักษณ์" ที่ให้มา
+   (ตาราง ค.1) และต้องเรียกว่า "แนวโน้ม" ห้ามฟันธง · "บริบทที่มักพบคู่" และ
+   "จังหวะเวลาเรื่องคู่" พูดได้**เฉพาะ**เมื่อมีข้อมูล "ชั้นJyotishสากล_ชั้นเสริม" และต้อง
+   บอกว่ามาจากชั้นเสริมสากล (ไม่ใช่ตำราหลัก) — จังหวะเวลา = "ช่วงที่เรื่องคู่มีน้ำหนัก"
+   ห้ามพูดเป็นคำการันตีว่าจะพบคู่
 3. ห้ามฟันธง ห้ามการันตีว่าจะพบรัก ห้ามระบุตัวบุคคล
 4. โครงคำตอบ: ① นิสัยคู่ชั้นราศี (จาก "ลักษณะนิสัยคู่") ② นิสัยชั้นลึกจากดาวเจ้าเรือน
-   ③ เคมีธาตุคุณ↔เขา อธิบายคะแนนที่ระบบให้ ③.5 ถ้ามี "ธาตุจากชื่อผู้ใช้_ชั้นเสริม" — เพิ่มหัวข้อสั้น
+   ③ เคมีธาตุคุณ↔เขา อธิบายคะแนนที่ระบบให้ ③.3 ถ้ามี "ชั้นJyotishสากล_ชั้นเสริม" — เพิ่มหัวข้อ
+   "มุมมองจากดวงดาว (ชั้นเสริมสากล)": บริบทที่มักพบคู่ (เจ้าเรือน 7) · ลักษณะเพิ่มจากดาวในภพ 7 ·
+   ภาพตัวแทนคู่จาก Darakaraka · ความยั่งยืนจาก Upapada/D9 · ปิดด้วยจังหวะเวลาเรื่องคู่
+   (ระบุช่วง พ.ศ. ตามข้อมูล ห้ามแต่งเพิ่ม ห้ามการันตี) ③.5 ถ้ามี "ธาตุจากชื่อผู้ใช้_ชั้นเสริม" — เพิ่มหัวข้อสั้น
    "พลังจากชื่อของคุณ" เล่าจากการ์ด/เลขศาสตร์/ความเข้ากันที่ให้**เท่านั้น** · ถ้ามี "เนื้อคู่มุมธาตุชื่อ"
    ให้เล่าต่อว่ามุมธาตุชื่อชี้ไปที่คู่แบบไหน (นิสัยแนวโน้ม/แนวโน้มรูปลักษณ์ ค.1/สไตล์การแต่งกาย
    ตามข้อมูลที่ให้เท่านั้น เรียกว่า "แนวโน้ม" เสมอ) และบอกชัดว่าทั้งหมดเป็นชั้นเสริม
@@ -103,6 +110,8 @@ interface SoulmateBody {
   partnerName?: string;
   /** ชื่อ-นามสกุลของผู้ใช้เอง (ไม่บังคับ) — ชั้นเสริมธาตุจากชื่อ · คำนวณชั่วขณะ ไม่จัดเก็บเพิ่ม */
   name?: string;
+  /** เพศผู้ใช้ (ไม่บังคับ — "female" เพิ่มพฤหัสเป็น karaka ตามธรรมเนียม Strī Jātaka ของชั้น Jyotish) */
+  userGender?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;
@@ -110,14 +119,23 @@ interface SoulmateBody {
 }
 
 /** คำนวณลัคนา (นิรายนะ — verify กับ Swiss Ephemeris แล้ว §5.2) จากวันเกิด+เวลา+จังหวัด */
-function lagnaFrom(birthDate: string, birthTime: string, provinceKey: string): ZodiacSign | null {
+function birthChartFrom(
+  birthDate: string,
+  birthTime: string,
+  provinceKey: string
+): { sign: ZodiacSign; jd: number; birthUtcMs: number } | null {
   if (!/^\d{2}:\d{2}$/.test(birthTime)) return null;
   const [y, m, d] = birthDate.split("-").map(Number);
   const [hh, mm] = birthTime.split(":").map(Number);
   if (hh > 23 || mm > 59) return null;
   const p = provinceByKey(provinceKey);
-  const jd = julianDay(Date.UTC(y, m - 1, d, hh, mm, 0) - 7 * 3600000); // เวลาไทย → UT
-  return calculateAscendant(jd, p.lat, p.lon, "sidereal").sign;
+  const birthUtcMs = Date.UTC(y, m - 1, d, hh, mm, 0) - 7 * 3600000; // เวลาไทย → UT
+  const jd = julianDay(birthUtcMs);
+  return { sign: calculateAscendant(jd, p.lat, p.lon, "sidereal").sign, jd, birthUtcMs };
+}
+
+function lagnaFrom(birthDate: string, birthTime: string, provinceKey: string): ZodiacSign | null {
+  return birthChartFrom(birthDate, birthTime, provinceKey)?.sign ?? null;
 }
 
 export async function POST(req: Request) {
@@ -165,7 +183,17 @@ export async function POST(req: Request) {
     }
 
     // ---- คำนวณ engine ฿0 (ใช้ร่วมทั้งสองโหมด) ----
-    const lagna = body.birthTime && body.province ? lagnaFrom(body.birthDate!, body.birthTime, body.province) : null;
+    const birthChart = body.birthTime && body.province ? birthChartFrom(body.birthDate!, body.birthTime, body.province) : null;
+    const lagna = birthChart?.sign ?? null;
+    // ชั้น Jyotish สากล (ชั้นเสริม ฿0) — ต้องมีเวลาเกิด · พังห้ามล้มคำทำนายหลัก
+    let jyotish: SoulmateJyotish | null = null;
+    if (birthChart) {
+      try {
+        jyotish = soulmateJyotish(birthChart.jd, birthChart.birthUtcMs, birthChart.sign, Date.now(), body.userGender ?? null);
+      } catch (e) {
+        console.warn("[soulmate] ชั้น Jyotish คำนวณไม่สำเร็จ — ข้าม (คำทำนายหลักไม่กระทบ)", e);
+      }
+    }
     const ownName = typeof body.name === "string" ? body.name.trim().slice(0, 100) : null;
     const reading = lagna
       ? soulmateReading(lagna, profile.dominant, profile.missing, ownName)
@@ -423,6 +451,26 @@ export async function POST(req: Request) {
               ทิศที่เกื้อหนุน: reading.supportDirections,
               แนวโน้มรูปลักษณ์ตามนรลักษณ์_ค1: { ใบหน้า: reading.appearance.faceTh, รูปร่าง: reading.appearance.bodyTh },
             }),
+        ...(jyotish
+          ? {
+              ชั้นJyotishสากล_ชั้นเสริม: {
+                ภพ7_ราศี: jyotish.seventhSign,
+                เจ้าเรือน7: jyotish.seventhLord.grahaTh,
+                เจ้าเรือน7อยู่ภพ: `${jyotish.seventhLord.house} (${jyotish.seventhLord.houseMeaningTh})`,
+                บริบทที่มักพบคู่: jyotish.seventhLord.arenaTh,
+                ดาวในภพ7: jyotish.planetsIn7th,
+                Darakaraka: jyotish.darakaraka,
+                Upapada: {
+                  ราศี: jyotish.upapada.signTh,
+                  ความยั่งยืนชีวิตคู่_ภพ2จากUL: jyotish.upapada.second.toneTh,
+                },
+                D9: jyotish.d9.noteTh,
+                นักษัตรเกิด: jyotish.nakshatra.nameTh,
+                ทศาปัจจุบัน: jyotish.currentDasha,
+                จังหวะเวลาเรื่องคู่: jyotish.windows,
+              },
+            }
+          : {}),
         ...(reading.nameLayer
           ? {
               ธาตุจากชื่อผู้ใช้_ชั้นเสริม: {
@@ -501,6 +549,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       reply,
       reading,
+      jyotish,
       partnerElement,
       ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
     });

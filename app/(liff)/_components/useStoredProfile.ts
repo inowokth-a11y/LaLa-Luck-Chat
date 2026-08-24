@@ -14,6 +14,7 @@ export interface StoredProfile {
   birth_date: string | null;
   birth_time: string | null;
   birth_province: string | null;
+  gender: string | null;
 }
 
 export function useStoredProfile() {
@@ -29,7 +30,7 @@ export function useStoredProfile() {
         if (data.user) {
           const { data: prof } = await supabase
             .from("user_profiles_e")
-            .select("first_name,last_name,birth_date,birth_time,birth_province")
+            .select("first_name,last_name,birth_date,birth_time,birth_province,gender")
             .eq("auth_uid", data.user.id)
             .maybeSingle();
           if (active) setProfile((prof as StoredProfile | null) ?? null);

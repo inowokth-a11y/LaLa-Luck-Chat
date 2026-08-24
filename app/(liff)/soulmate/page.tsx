@@ -16,8 +16,22 @@ import { shareLinks } from "@/lib/share";
 import { LOOK_STYLES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
 import styles from "./soulmate.module.css";
 
+interface JyotishLayer {
+  seventhSign: string;
+  seventhLord: { grahaTh: string; house: number; houseMeaningTh: string; arenaTh: string };
+  planetsIn7th: { grahaTh: string; traitTh: string }[];
+  darakaraka: { grahaTh: string; archetypeTh: string };
+  upapada: { signTh: string; second: { signTh: string; occupantsTh: string[]; toneTh: string } };
+  d9: { noteTh: string };
+  nakshatra: { nameTh: string; idx: number };
+  currentDasha: { mdTh: string; adTh: string } | null;
+  windows: { fromTh: string; toTh: string; reasonTh: string }[];
+  caveats: string[];
+}
+
 interface ReadingResponse {
   reply?: string;
+  jyotish?: JyotishLayer | null;
   reading?: {
     mode: "lagna" | "element";
     lagnaSign?: string;
@@ -132,6 +146,7 @@ export default function SoulmatePage() {
           province: birthTime ? province : undefined,
           partnerGender,
           name: ownName.trim() || undefined,
+          userGender: profile?.gender || undefined,
         }),
       });
       const data = (await r.json()) as ReadingResponse;
@@ -362,6 +377,47 @@ export default function SoulmatePage() {
             </div>
           )}
           <div className={styles.reply}>{res.reply}</div>
+
+          {/* ชั้น Jyotish สากล (ชั้นเสริม — งานวิจัย 24 ส.ค. 2569) · แสดงเฉพาะมีเวลาเกิด */}
+          {res.jyotish && (
+            <details className={styles.fold ?? undefined} open style={{ marginTop: "1rem" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 700, fontSize: "0.95rem" }}>
+                🪐 มุมมองจากดวงดาว (ชั้น Jyotish สากล — ชั้นเสริม)
+              </summary>
+              <div style={{ fontSize: "0.88rem", lineHeight: 1.7, marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+                <div>
+                  <strong>เจ้าเรือนคู่ครอง ({res.jyotish.seventhLord.grahaTh}) อยู่ภพ {res.jyotish.seventhLord.house} — {res.jyotish.seventhLord.houseMeaningTh}</strong>
+                  <br />{res.jyotish.seventhLord.arenaTh}
+                </div>
+                {res.jyotish.planetsIn7th.length > 0 && (
+                  <div>
+                    <strong>ดาวในภพคู่ครอง:</strong>{" "}
+                    {res.jyotish.planetsIn7th.map((pp) => `${pp.grahaTh} — ${pp.traitTh}`).join(" · ")}
+                  </div>
+                )}
+                <div><strong>ภาพตัวแทนคู่ (Darakaraka {res.jyotish.darakaraka.grahaTh}):</strong> {res.jyotish.darakaraka.archetypeTh}</div>
+                <div><strong>ความยั่งยืนชีวิตคู่ (Upapada ราศี{res.jyotish.upapada.signTh}):</strong> {res.jyotish.upapada.second.toneTh}</div>
+                <div><strong>คุณภาพระยะยาว (D9):</strong> {res.jyotish.d9.noteTh}</div>
+                <div>
+                  <strong>จังหวะเวลาเรื่องคู่</strong> (นักษัตรเกิด: {res.jyotish.nakshatra.nameTh}
+                  {res.jyotish.currentDasha ? ` · ทศาปัจจุบัน: ${res.jyotish.currentDasha.mdTh}/${res.jyotish.currentDasha.adTh}` : ""})
+                  {res.jyotish.windows.length > 0 ? (
+                    <ul style={{ margin: "0.25rem 0 0", paddingLeft: "1.2rem" }}>
+                      {res.jyotish.windows.map((w, i) => (
+                        <li key={i}>{w.fromTh} – {w.toTh}: {w.reasonTh}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span> — ช่วง 8 ปีข้างหน้ายังไม่เข้าเงื่อนไขทศาเรื่องคู่เด่นชัด (ไม่ใช่ลางร้าย — เป็นเพียงจังหวะพลังงาน)</span>
+                  )}
+                </div>
+                <div className={styles.caveat} style={{ marginTop: "0.3rem" }}>
+                  {res.jyotish.caveats.map((c, i) => <p key={i}>⚠️ {c}</p>)}
+                </div>
+              </div>
+            </details>
+          )}
+
           {reading?.caveats?.length ? (
             <div className={styles.caveat}>{reading.caveats.map((c, i) => <p key={i}>⚠️ {c}</p>)}</div>
           ) : null}
