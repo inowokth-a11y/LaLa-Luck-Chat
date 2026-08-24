@@ -26,7 +26,8 @@ test("วันร้าย (อุบาทว์/โลกาวินาศ) 
   const avoid = r.days.filter((d) => d.verdict === "avoid");
   assert.ok(avoid.length > 0, "ทั้งปีควรมีวันที่ควรเลี่ยง");
   for (const d of avoid) {
-    assert.ok(d.badTypes.length > 0, "วัน avoid ต้องมีประเภทวันร้าย");
+    // ชั้นที่ 3 (ฤกษ์บน 24 ส.ค. 2569): วัน avoid มาจากวันร้ายกาลโยค หรือฤกษ์แตกขาด (โจโร/เพชฌฆาต/เทศาตรี)
+    assert.ok(d.badTypes.length > 0 || d.rerk.fit === "avoid", "วัน avoid ต้องมีวันร้ายกาลโยคหรือฤกษ์เลี่ยง");
     assert.ok(d.score < 0);
   }
 });

@@ -5,6 +5,7 @@
 //    · อุบากองมีแค่ยามกลางวัน (06:01-18:00) · ยังไม่รวมชั้นดวงส่วนตัว (ลัคนายังไม่ verify §5.2)
 
 import { checkDayKalaYoke } from "./kalayoke";
+import { moonRerkForDay, RERK_CAVEAT, type DayRerk } from "./rerk";
 import { bestTimeToday } from "./auspicious";
 import { thaiDayOfWeek } from "./card-id";
 import { calculateElementSeed, wuXingScore, DAY_ELEMENT, THAI_LABEL_4, type Element4, type Element5 } from "./element";
@@ -67,6 +68,8 @@ export interface DayRanking {
   bestHour: { range: string; yam: string; meaning: string; score: number };
   /** เหตุผลจากชั้นข้อมูลส่วนตัว/รายหมวด — มีเฉพาะเมื่อผู้ใช้กรอกข้อมูลเสริม */
   personalNotes?: string[];
+  /** ฤกษ์บน (ชั้นที่ 3 — เพิ่ม 24 ส.ค. 2569): ดวงจันทร์เสวยนักษัตร → นพเคราะห์ฤกษ์ทั้ง 9 */
+  rerk: { no: number; nakTh: string; groupTh: string; kindTh: string; fit: string; fitNoteTh: string };
 }
 
 /** จ.ศ. ที่ใช้ได้จริงของวันนั้น — ปีกาลโยคเปลี่ยน 16 เม.ย. (ก่อนหน้านั้นใช้ปีก่อน) §3.6
@@ -124,8 +127,10 @@ export function rankAuspiciousDays(opts: {
   /** เลขอ้างอิงของวัตถุ (บ้านเลขที่/ทะเบียน) → ธาตุวัตถุ (Logic 2)×ธาตุประจำวัน */
   refNumber?: string | null;
   refLabel?: string;
-  /** ชื่อกิจการ → ธาตุชื่อ (Logic 19 ⚠️ ตารางยังไม่ verify)×ธาตุประจำวัน */
+  /** ชื่อกิจการ → ธาตุชื่อ (Logic 19)×ธาตุประจำวัน */
   businessName?: string | null;
+  /** หมวดงาน (key จาก ACTIVITIES) — ใช้จับคู่ความเหมาะของฤกษ์บน · ไม่ให้ = general */
+  activityKey?: string | null;
 }): { days: DayRanking[]; caveat: string } {
   const { emphasis } = opts;
   const maxDays = Math.min(opts.maxDays ?? 92, 366);
@@ -210,10 +215,19 @@ export function rankAuspiciousDays(opts: {
       }
     }
 
+    // ชั้นที่ 3: ฤกษ์บน (นพเคราะห์ฤกษ์ทั้ง 9 จากดวงจันทร์จริง — ฿0 คำนวณทุกวันเสมอ)
+    // น้ำหนัก ±2: หนักกว่าชั้นธาตุ (±1) เบากว่ากาลโยค (±3) — ลดหลั่นตามลำดับความเชื่อถือของชั้น
+    const rerk = moonRerkForDay(y, m, d, opts.activityKey ?? "general");
+    if (rerk.fit === "good") score += 2;
+    else if (rerk.fit === "avoid") score -= 2;
+
     const bh = bestTimeToday(dayTh).best;
-    // กาลกิณีนับเป็นสัญญาณร้ายเทียบเท่าวันร้ายกาลโยค (หลักเดียวกับ Logic 8 ที่ถือเป็นวันควรระวัง)
+    // กาลกิณี/ฉินทฤกษ์ (โจโร/เพชฌฆาต — ทุกแหล่งตรงกันว่าห้ามงานมงคล) นับเป็นสัญญาณร้าย
+    // เทียบเท่าวันร้ายกาลโยค · เทศาตรีหักคะแนนอย่างเดียว (ดู hardAvoid ใน rerk.ts)
     const verdict: Verdict =
-      (badTypes.length > 0 || kalakiniHit) && score < 0 ? "avoid" : score >= 3 ? "excellent" : score >= 1 ? "good" : "neutral";
+      (badTypes.length > 0 || kalakiniHit || (rerk.fit === "avoid" && rerk.group.hardAvoid)) && score < 0
+        ? "avoid"
+        : score >= 3 ? "excellent" : score >= 1 ? "good" : "neutral";
 
     days.push({
       dateISO: iso,
@@ -223,6 +237,7 @@ export function rankAuspiciousDays(opts: {
       verdict,
       score,
       bestHour: { range: bh.time_range, yam: bh.yam_name, meaning: bh.meaning, score: bh.score },
+      rerk: { no: rerk.no, nakTh: rerk.nakTh, groupTh: rerk.group.nameTh, kindTh: rerk.group.kindTh, fit: rerk.fit, fitNoteTh: rerk.fitNoteTh },
       ...(hasPersonal ? { personalNotes } : {}),
     });
     cur.setUTCDate(cur.getUTCDate() + 1);
@@ -232,7 +247,7 @@ export function rankAuspiciousDays(opts: {
   days.sort((a, b) => b.score - a.score || b.bestHour.score - a.bestHour.score || a.dateISO.localeCompare(b.dateISO));
 
   // caveat เพิ่มตามชั้นที่ใช้จริง — บอกตรงว่าชั้นไหนรวมแล้ว/ยังไม่รวม + ข้อจำกัดราหู/ตารางชื่อ
-  let caveat = TIMING_CAVEAT;
+  let caveat = TIMING_CAVEAT + " · " + RERK_CAVEAT;
   if (hasPersonal) {
     caveat +=
       " · ชั้นดวงส่วนตัวที่รวมแล้ว: กาลกิณี (จันทร์จร ณ ประมาณเที่ยงวัน) + ธาตุประจำวัน — ยังไม่รวมชั้นลัคนารายชั่วโมง";

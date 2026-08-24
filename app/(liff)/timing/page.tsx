@@ -62,6 +62,7 @@ export default function TimingPage() {
         partnerBirthDate: fields.partnerBirthDate ? partnerBirthDate || null : null,
         refNumber: fields.refLabel ? refNumber || null : null,
         refLabel: activityKey === "housewarming" ? "บ้าน" : "รถ",
+        activityKey,
         businessName: fields.businessName ? businessName || null : null,
       }),
     [fromISO, toISO, activity.emphasis, birthDate, partnerBirthDate, refNumber, businessName, fields.partnerBirthDate, fields.refLabel, fields.businessName, activityKey]
@@ -158,6 +159,16 @@ function DayCard({ d }: { d: DayRanking }) {
         {d.goodTypes.length === 0 && d.badTypes.length === 0 && <span style={styles.note}>ไม่มีกาลโยคเด่นในวันนี้</span>}
       </div>
       <span style={styles.note}>🕐 ฤกษ์รายชั่วโมง (อุบากอง): {d.bestHour.range} — {d.bestHour.yam} ({d.bestHour.meaning})</span>
+      {d.rerk && (
+        <span
+          style={{
+            ...styles.note,
+            color: d.rerk.fit === "avoid" ? "var(--bad,#a83a1e)" : d.rerk.fit === "good" ? "#4a6b3f" : undefined,
+          }}
+        >
+          🌙 ฤกษ์บน: ฤกษ์ที่ {d.rerk.no} ({d.rerk.nakTh}) — {d.rerk.groupTh} · {d.rerk.fitNoteTh}
+        </span>
+      )}
       {d.personalNotes && d.personalNotes.length > 0 && (
         <div style={{ marginTop: "0.3rem", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
           {d.personalNotes.map((n, i) => (
