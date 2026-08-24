@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import FunctionChat from "../_components/FunctionChat";
 import { useStoredProfile } from "../_components/useStoredProfile";
+import { BODY_PREF, FACE_PREF, PERSONA_PREF } from "@/lib/engine/preference-match";
 import { provincesByRegion } from "@/lib/provinces";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
 import { shareLinks } from "@/lib/share";
@@ -39,6 +40,11 @@ interface ReadingResponse {
   reply?: string;
   jyotish?: JyotishLayer | null;
   convergence?: { label: string; detailTh: string } | null;
+  preference?: {
+    summaryTh: string;
+    items: { tagTh: string; matchedByTh: string[]; chemistryTh: string | null }[];
+    caveats: string[];
+  } | null;
   reading?: {
     mode: "lagna" | "element";
     lagnaSign?: string;
@@ -114,6 +120,10 @@ export default function SoulmatePage() {
   const [imgError, setImgError] = useState<string | null>(null);
   // สัญชาติ/สไตล์ลุคของภาพ (preset เท่านั้น — ไม่ใช่คำทำนาย · โครงหน้า/วัยให้ AI จัดตามเหมาะสม)
   const [look, setLook] = useState("thai");
+  // แท็กความชอบ (preset enum — Preference Overlap · 24 ส.ค. 2569)
+  const [prefBody, setPrefBody] = useState("");
+  const [prefFace, setPrefFace] = useState("");
+  const [prefPersona, setPrefPersona] = useState("");
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
   const [pBirthDate, setPBirthDate] = useState("");
@@ -164,6 +174,9 @@ export default function SoulmatePage() {
           partnerGender,
           name: ownName.trim() || undefined,
           userGender: profile?.gender || undefined,
+          prefBody: prefBody || undefined,
+          prefFace: prefFace || undefined,
+          prefPersona: prefPersona ? [prefPersona] : undefined,
         }),
       });
       const data = (await r.json()) as ReadingResponse;
@@ -195,6 +208,9 @@ export default function SoulmatePage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           mode: "images",
+          prefBody: prefBody || undefined,
+          prefFace: prefFace || undefined,
+          prefPersona: prefPersona ? [prefPersona] : undefined,
           birthDate,
           birthTime: birthTime || undefined,
           province: birthTime ? province : undefined,
@@ -317,6 +333,33 @@ export default function SoulmatePage() {
               <option value="any">ไม่ระบุ</option>
             </select>
           </label>
+          {/* แท็กความชอบ (ไม่บังคับ — Preference Overlap: เทียบความชอบกับแนวโน้มดวง + ปรับภาพ) */}
+          <details style={{ marginTop: "0.2rem" }}>
+            <summary style={{ cursor: "pointer", fontSize: "0.88rem", fontWeight: 600 }}>💗 สเปกที่คุณชอบ (ไม่บังคับ — ระบบจะเทียบกับแนวโน้มดวงให้ และใช้ปรับภาพ)</summary>
+            <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+              <label className={styles.field} style={{ flex: 1, minWidth: 150 }}>
+                <span>รูปร่างที่ชอบ</span>
+                <select className={styles.input} value={prefBody} onChange={(e) => setPrefBody(e.target.value)}>
+                  <option value="">— ไม่ระบุ —</option>
+                  {Object.entries(BODY_PREF).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
+                </select>
+              </label>
+              <label className={styles.field} style={{ flex: 1, minWidth: 150 }}>
+                <span>โครงหน้าที่ชอบ</span>
+                <select className={styles.input} value={prefFace} onChange={(e) => setPrefFace(e.target.value)}>
+                  <option value="">— ไม่ระบุ —</option>
+                  {Object.entries(FACE_PREF).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
+                </select>
+              </label>
+              <label className={styles.field} style={{ flex: 1, minWidth: 150 }}>
+                <span>บุคลิกที่ชอบ</span>
+                <select className={styles.input} value={prefPersona} onChange={(e) => setPrefPersona(e.target.value)}>
+                  <option value="">— ไม่ระบุ —</option>
+                  {Object.entries(PERSONA_PREF).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
+                </select>
+              </label>
+            </div>
+          </details>
           {error && <p className={styles.error}>{error}</p>}
           {needsLogin && (
             <div className={styles.ctaRow}>
@@ -456,6 +499,21 @@ export default function SoulmatePage() {
             </details>
           )}
 
+          {res.preference && (
+            <div style={{ fontSize: "0.88rem", lineHeight: 1.7, marginTop: "0.8rem", padding: "0.6rem 0.8rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
+              <strong>💗 มุมความชอบของคุณ ↔ แนวโน้มดวง</strong>
+              <br />{res.preference.summaryTh}
+              <ul style={{ margin: "0.3rem 0 0", paddingLeft: "1.2rem" }}>
+                {res.preference.items.map((it, i) => (
+                  <li key={i}>
+                    {it.tagTh}: {it.matchedByTh.length ? `ตรงกับ ${it.matchedByTh.join(" · ")}` : "จุดต่างจากแนวโน้มดวง"}
+                    {it.chemistryTh ? <><br /><span style={{ opacity: 0.8 }}>{it.chemistryTh}</span></> : null}
+                  </li>
+                ))}
+              </ul>
+              <span style={{ opacity: 0.75, display: "block", marginTop: "0.3rem" }}>⚠️ {res.preference.caveats[0]}</span>
+            </div>
+          )}
           {reading?.caveats?.length ? (
             <div className={styles.caveat}>{reading.caveats.map((c, i) => <p key={i}>⚠️ {c}</p>)}</div>
           ) : null}

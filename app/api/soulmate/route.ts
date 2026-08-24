@@ -31,6 +31,7 @@ import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
 import { soulmateJyotish, soulmateConvergence, overlapWindows, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
 import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
+import { preferenceOverlap, BODY_PREF, FACE_PREF, PERSONA_PREF, type PreferenceOverlap } from "@/lib/engine/preference-match";
 import { moonEclipticLongitude } from "@/lib/engine/daily";
 import { lahiriAyanamsa } from "@/lib/engine/ascendant";
 import { provinceByKey } from "@/lib/provinces";
@@ -123,6 +124,10 @@ interface SoulmateBody {
   name?: string;
   /** เพศผู้ใช้ (ไม่บังคับ — "female" เพิ่มพฤหัสเป็น karaka ตามธรรมเนียม Strī Jātaka ของชั้น Jyotish) */
   userGender?: string;
+  /** แท็กความชอบ (preset enum — ค่านอก enum ถูกเพิกเฉย) · ใช้ทั้ง overlap ในคำทำนายและ prompt ภาพ */
+  prefBody?: string;
+  prefFace?: string;
+  prefPersona?: string[];
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;
@@ -212,6 +217,26 @@ export async function POST(req: Request) {
     // กลไก 3: ตัวชี้ความสอดคล้องระหว่างศาสตร์ (เฉพาะโหมดลัคนาที่มีชั้น Jyotish)
     const convergence: ConvergenceResult | null =
       jyotish && reading.mode === "lagna" ? soulmateConvergence(reading.chemistry.score.final_score, jyotish) : null;
+    // ชั้นความชอบของผู้ใช้ ↔ แนวโน้มดวง (Preference Overlap — ฿0 · แท็ก enum เท่านั้น)
+    const grahaFromTh = (th: string) =>
+      (Object.entries({ sun: "อาทิตย์", moon: "จันทร์", mars: "อังคาร", mercury: "พุธ", jupiter: "พฤหัสบดี", venus: "ศุกร์", saturn: "เสาร์", rahu: "ราหู", ketu: "เกตุ" }).find(([, v]) => v === th)?.[0] ?? null) as
+        | "sun" | "moon" | "mars" | "mercury" | "jupiter" | "venus" | "saturn" | "rahu" | "ketu" | null;
+    const partnerElForPref: Element5 = reading.mode === "lagna" ? reading.partner.element : reading.rankedElements[0].element;
+    const preference: PreferenceOverlap | null =
+      body.prefBody || body.prefFace || (body.prefPersona && body.prefPersona.length)
+        ? preferenceOverlap(
+            { body: body.prefBody ?? null, face: body.prefFace ?? null, persona: body.prefPersona ?? null },
+            {
+              partnerElement: partnerElForPref,
+              seventhLord: jyotish ? grahaFromTh(jyotish.seventhLord.grahaTh) : null,
+              planetsIn7th: jyotish ? jyotish.planetsIn7th.map((x) => grahaFromTh(x.grahaTh)).filter((g): g is NonNullable<typeof g> => g !== null) : [],
+              darakaraka: jyotish ? grahaFromTh(jyotish.darakaraka.grahaTh) : null,
+              userDominant: profile.dominant as Element5,
+              userMissing: profile.missing as Element5[],
+            }
+          )
+        : null;
+
     // ธาตุของ "คู่" สำหรับโทนภาพ: ชั้นลัคนา = ธาตุราศีที่ 7 · ชั้นธาตุ = ธาตุอันดับ 1 ที่เกื้อหนุน
     const partnerElement: Element5 =
       reading.mode === "lagna" ? reading.partner.element : reading.rankedElements[0].element;
@@ -412,12 +437,21 @@ export async function POST(req: Request) {
       }
 
       // คอลลาจรูปเดียว-หลายอิริยาบถ (ผู้ใช้เคาะ 23 ส.ค. 2569) — คนเดียวกันทุกมุม · 1 gen
+      const prefForImage =
+        body.prefBody || body.prefFace || (body.prefPersona && body.prefPersona.length)
+          ? [
+              ...(body.prefBody && body.prefBody in BODY_PREF ? [BODY_PREF[body.prefBody].promptEn] : []),
+              ...(body.prefFace && body.prefFace in FACE_PREF ? [FACE_PREF[body.prefFace].promptEn] : []),
+              ...(body.prefPersona ?? []).filter((k) => k in PERSONA_PREF).slice(0, 2).map((k) => PERSONA_PREF[k].promptEn),
+            ]
+          : [];
       const prompts = [
         soulmateCollagePrompt({
           gender: partnerGender,
           element: partnerElement,
           look: body.look ?? null,
           extraTraitsEn: jyotish?.appearance.en ?? [],
+          preferenceEn: prefForImage,
         }),
       ];
       const captions = soulmateImageCaptions(reading);
@@ -560,6 +594,19 @@ export async function POST(req: Request) {
               },
             }
           : {}),
+        ...(preference
+          ? {
+              มุมความชอบของผู้ใช้_เทียบแนวโน้มดวง: {
+                สรุป: preference.summaryTh,
+                รายข้อ: preference.items.map((it) => ({
+                  ความชอบ: it.tagTh,
+                  ชั้นดวงที่ชี้ตรง: it.matchedByTh.length ? it.matchedByTh : "ไม่ตรงชั้นไหน (จุดต่าง)",
+                  เคมีของทางที่ชอบ: it.chemistryTh,
+                })),
+                หมายเหตุ: preference.caveats[0],
+              },
+            }
+          : {}),
         ...(reading.nameLayer
           ? {
               ธาตุจากชื่อผู้ใช้_ชั้นเสริม: {
@@ -647,6 +694,7 @@ ${convergence.detailTh}`;
       reading,
       jyotish,
       convergence,
+      preference,
       partnerElement,
       ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
     });

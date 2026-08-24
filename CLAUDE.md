@@ -1692,6 +1692,24 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
   โครงแน่น + ผิวมีรายละเอียดจริง (เทสต์ 503)
 - partnerMatchReading **ไม่ใส่รูปลักษณ์โดยเจตนา** — อีกฝ่ายเป็นคนจริง ไม่ทำนายหน้าตาเขา
 
+### ✅ Preference Overlap — "ความชอบของคุณ ↔ แนวโน้มดวง" (24 ส.ค. 2569 ผู้ใช้เคาะจากเคสตัวเอง)
+
+**ที่มา:** คำทำนายเนื้อคู่ของผู้ใช้มีสองศาสตร์ให้ภาพรูปร่างต่างกัน + ผู้ใช้มีสเปกส่วนตัวชัด →
+ตรรกะที่ลงตัว: ความชอบ = ข้อมูลผู้ใช้ ไม่ใช่คำทำนาย · ระบบเทียบว่าทับซ้อนกับชั้นดวงแค่ไหน +
+เคมีธาตุของ "ทางที่ชอบ" (พบว่าเคสผู้ใช้: ชอบเฟรมไม้ = +2 印 เท่ากับทางน้ำของภพปัตนิพอดี)
+- `lib/engine/preference-match.ts` (3 เทสต์ → รวม 542): แท็ก preset enum 3 ชุด (BODY/FACE 5 —
+  ผูกธาตุ ค.1 · PERSONA 5 — ผูกดาว+ธาตุ) · `preferenceOverlap()` เทียบกับ ชั้นดวงจริง (ธาตุคู่ ค.1/
+  เจ้าเรือน 7/ดาวในภพ 7/DK) → รายข้อ ตรงชั้นไหน/จุดต่าง + chemistryTh จาก wuXingScore จริง ·
+  ค่านอก enum เพิกเฉยทั้งหมด (เทสต์ล็อก) · PREFERENCE_CAVEAT "ไม่มีใครถูกหรือผิด"
+- **ภาพ:** soulmateCollagePrompt เพิ่ม `preferenceEn` — เลือกความชอบ = **แทนโครง ค.1** (ภาพคือ
+  ตัวเลือกการวาดตามความชอบ — precedent SOULMATE_LOOK_NOTE) · ไม่เลือก = prompt เดิมเป๊ะ (เทสต์ล็อก)
+- **wiring:** /api/soulmate รับ prefBody/prefFace/prefPersona (ทั้ง reading+images) · context
+  "มุมความชอบของผู้ใช้" + กฎ narrator ④.5 (จุดต่างไม่ใช่ความขัดแย้ง ห้ามตัดสิน) · หน้า /soulmate
+  <details> 💗 สเปกที่คุณชอบ (3 select ไม่บังคับ) + บล็อกผล overlap
+- **E2E จริง:** สเปกผู้ใช้ (สูงเพรียว/หน้าโครงชัด/ใจเย็นผู้ใหญ่) → ตรง 1/3 (พฤหัสเจ้าเรือน 7) ·
+  จุดต่างโชว์เคมี +2 · prompt ภาพมี "tall lean healthy...angular jawline" แทน ค.1 น้ำจริง (ตรวจจาก
+  image_generation_log) · FLUX ออกภาพเพรียวหน้ายาวตรงสเปก
+
 ### 🎯 แผนแม่บท "ชั้น Jyotish 4 โหมด" (ผู้ใช้เคาะ 24 ส.ค. 2569 — ทำทีละโหมด วิจัย→ทดลอง→จูน→เปิด)
 
 โครงสร้างกลางที่ verify แล้วใช้ซ้ำ: planets.ts (ephemeris 9 ดวง) · jyotish.ts (นักษัตร/ทศา/D9/arudha/
@@ -1791,7 +1809,7 @@ convergence) · สูตรสำเร็จ: ค้นกฎ cross-check ≥2
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 539/539 (24 ส.ค. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 542/542 (24 ส.ค. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
