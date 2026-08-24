@@ -58,7 +58,7 @@ test("scoreStylesForTeam — ธาตุชื่อแบรนด์ + ทิ
     assert.equal(f.brandScore, wuXingScore(brandEl, f.style, []).final_score);
     assert.equal(f.directionScore, wuXingScore(f.style, dirEl, []).final_score);
   }
-  assert.ok(r.caveats.some((c) => c.includes("ตารางกลุ่มอักษร")));
+  assert.ok(r.caveats.some((c) => c.includes("รอเจ้าของตำรายืนยัน")), "caveat ที่มาตารางชื่อ (ทาง ค) ต้องติดมา");
   assert.ok(r.recommended !== null);
   // ไม่มีข้อมูลเลย = ไม่เดาคำแนะนำ
   assert.equal(scoreStylesForTeam({ members: [] }).recommended, null);

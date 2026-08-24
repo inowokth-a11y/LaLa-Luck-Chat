@@ -55,10 +55,11 @@ def official_char_groups(name: str):
             out.append(CHAR_TO_GROUP[ch])
     return out
 
-# กลุ่มเลข 1-9 -> ธาตุ 5 ธาตุจีน (แมปตามจังหวะ 9 กลุ่ม / 5 ธาตุ โดยประมาณ — ออกแบบเอง
-# ยังไม่ verify กับตำรา ต้องตรวจสอบก่อนใช้จริงเหมือนกรณี BirthPower/NamePower)
-GROUP_TO_ELEMENT = {1: "Wood", 2: "Wood", 3: "Fire", 4: "Fire", 5: "Earth",
-                    6: "Earth", 7: "Metal", 8: "Metal", 9: "Water"}
+# กลุ่มเลข 1-9 -> ธาตุ
+# "ทาง ค" (24 ส.ค. 2569): เลขกลุ่ม→ดาวประจำเลข→ธาตุประจำวันตามตำรา · ราหู=ดิน เกตุ=ไฟ
+# (อนุมานผ่านดาวแม่แบบ — ดูคอมเมนต์เต็มใน lib/engine/naming.ts · แก้คู่กันตาม golden parity)
+GROUP_TO_ELEMENT = {1: "Fire", 2: "Water", 3: "Fire", 4: "Earth", 5: "Wood",
+                    6: "Water", 7: "Earth", 8: "Earth", 9: "Fire"}
 
 LOGO_STYLE_BY_ELEMENT = {
     "Wood": {"shape": "โค้งอินทรีย์ กิ่งก้าน", "color": "เขียว", "mood": "เติบโต สดใหม่"},
@@ -149,5 +150,5 @@ if __name__ == "__main__":
 
     print()
     print("✅ Logic 19 engine self-tests passed.")
-    print("⚠️  GROUP_TO_ELEMENT mapping (9 กลุ่มอักษร -> 5 ธาตุ) ยังไม่ verify กับตำรา")
+    print("GROUP_TO_ELEMENT = ทาง ค (เลขกลุ่ม→ดาว→ธาตุวันเกิด · ราหู=ดิน เกตุ=ไฟ อนุมานดาวแม่แบบ) — รอเจ้าของตำรายืนยันขั้นสุดท้าย")
     print("   ต้องตรวจสอบก่อนใช้จริง เหมือนที่เคยทำกับ BirthPower/NamePower")

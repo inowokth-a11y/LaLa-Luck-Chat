@@ -504,24 +504,24 @@ test("myMindCare — state ถูก normalize (ไทย→enum) · ค่า�
   assert.ok(ex.caveats[0]?.includes("ไม่ใช่การรักษา"));
 });
 
-test("myNameMatch — ธาตุชื่อจาก engine จริง (สมชาย=ทอง ไม่ใช่ที่ AI เคยเดาว่าไฟ) + validate ชื่อ", () => {
+test("myNameMatch — ธาตุชื่อจาก engine จริง (ทาง ค: สมชาย=ดิน) + validate ชื่อ", () => {
   const spec = PLAN_ALLOWLIST.myNameMatch;
   const ctx = { dominant: "Fire", missing: ["Water"], seed: null } as never;
   const ok = spec.check({ name: " สมชาย " });
   assert.ok(ok.ok && ok.args.name === "สมชาย", "trim ให้");
   const out = spec.run({ name: "สมชาย" }, ctx) as Record<string, unknown>;
-  assert.equal(out.name_element, "Metal"); // หลักกลุ่มอักษรจริง — จับรูรั่วที่ AI เคยเดาผิดเป็น Fire
+  // ทาง ค (24 ส.ค. 2569): กลุ่ม→ดาว→ธาตุวันเกิด — สมชาย = ส7(ดิน) ม5(ลม) ช2(น้ำ) า1(ไฟ) ย8(ราหู→ดิน)
+  assert.equal(out.name_element, "Earth");
   assert.equal(typeof out.ผลรวมเลขศาสตร์, "number");
-  // องค์ประกอบธาตุรายสัดส่วน — นับสระตามตารางทางการ (6 ส.ค. 2569):
-  // สมชาย = ส(ทอง) ม(ดิน) ช(ไม้) า(ไม้ กลุ่ม 1) ย(ทอง) → ทอง 40/ดิน 20/ไม้ 40
   const comp = out.องค์ประกอบธาตุ as Record<string, string>;
-  assert.equal(comp["ทอง"], "40%");
-  assert.equal(comp["ดิน"], "20%");
-  assert.equal(comp["ไม้"], "40%");
+  assert.equal(comp["ดิน"], "40%");
+  assert.equal(comp["ไม้"], "20%");
+  assert.equal(comp["น้ำ"], "20%");
+  assert.equal(comp["ไฟ"], "20%");
   assert.equal(typeof out.คะแนนรวมถ่วงน้ำหนัก, "number");
-  // ถ่วงน้ำหนักต้องตรงคณิต: 0.4×score(ทอง) + 0.2×score(ดิน) + 0.4×score(ไม้) — ผู้ใช้ไฟขาดน้ำ
-  // ไฟพิฆาตทอง=-2 · ไฟให้กำเนิดดิน(เราให้เขา)=+1 · ไม้ให้กำเนิดไฟ(เขาให้เรา)=+2 → -0.8+0.2+0.8 = 0.2
-  assert.equal(out.คะแนนรวมถ่วงน้ำหนัก, 0.2);
+  // ถ่วงน้ำหนักตรงคณิต (ผู้ใช้ไฟ ขาดน้ำ): ดิน +1×0.4 · ไม้ +2×0.2 · น้ำ Productive Clash +2×0.2 ·
+  // ไฟเดียวกัน +1×0.2 → 0.4+0.4+0.4+0.2 = 1.4
+  assert.equal(out.คะแนนรวมถ่วงน้ำหนัก, 1.4);
   // เลขศาสตร์นับสระด้วย: ส7+ม5+ช2+า1+ย8 = 23 (เดิม 22 ตอนไม่นับสระ)
   assert.equal(out.ผลรวมเลขศาสตร์, 23);
   assert.ok(!spec.check({ name: "" }).ok);

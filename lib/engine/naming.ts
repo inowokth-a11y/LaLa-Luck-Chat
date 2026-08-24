@@ -1,7 +1,14 @@
 // พอร์ตจาก legacy-python-engines/naming_branding_engine.py (Logic 19, CLAUDE.md §6)
 // คำนวณธาตุของชื่อ + aggregate + score + reverse-generate + logo prompt (ข้อความ ไม่มี image-gen)
 //
-// ⚠️ GROUP_TO_ELEMENT (9 กลุ่มอักษร → 5 ธาตุ) ออกแบบเอง ยังไม่ verify กับตำรา (CLAUDE.md §5)
+// GROUP_TO_ELEMENT — "ทาง ค" (ผู้ใช้เคาะ 24 ส.ค. 2569 หลังเอกสารทางเลือกรอบสอง):
+// เลขกลุ่ม 1-9 → ดาวประจำเลขตามเลขศาสตร์ไทย (1อาทิตย์…7เสาร์ 8ราหู 9เกตุ) → ธาตุประจำวัน
+// ตามตารางตำราที่ verify แล้ว (อาทิตย์/อังคาร=ไฟ · จันทร์/ศุกร์=น้ำ · พุธ/เสาร์=ดิน · พฤหัส=ลม)
+// ราหู=ดิน · เกตุ=ไฟ — อนุมานผ่าน "ดาวแม่แบบ" (งานวิจัย 24 ส.ค. 2569 cross-check ≥2 แหล่ง/ข้อ:
+// คติ Shanivat Rahu→เสาร์→ดิน + ทักษาไทย ราหู=พุธกลางคืน→ดิน สองเส้นบรรจบ · Kujavat Ketu→
+// อังคาร→ไฟ + ธรรมเนียมเกตุ=อัคนีตัตวะ ตรงกัน) — ไม่ใช่ตารางที่ตำราประกาศตรงตัว
+// ⚠️ ผลพวงเชิงโครงสร้าง: ธาตุชื่อไม่มีวันเป็น "ทอง" (4 ธาตุไทย — ข้อจำกัดเดียวกับตารางเลข→ธาตุ
+// ของ Logic 2 ที่มี precedent) · รอเจ้าของตำรายืนยันขั้นสุดท้าย (เอกสารทางเลือกส่งแล้ว)
 
 import { wuXingScore, type Element5, type WuXingResult } from "./element";
 import { officialCharValues } from "./card-id";
@@ -23,8 +30,15 @@ function nameGroups(name: string): number[] {
 }
 
 const GROUP_TO_ELEMENT: Record<number, Element5> = {
-  1: "Wood", 2: "Wood", 3: "Fire", 4: "Fire", 5: "Earth",
-  6: "Earth", 7: "Metal", 8: "Metal", 9: "Water",
+  1: "Fire",  // อาทิตย์
+  2: "Water", // จันทร์
+  3: "Fire",  // อังคาร
+  4: "Earth", // พุธ
+  5: "Wood",  // พฤหัส (ลม)
+  6: "Water", // ศุกร์
+  7: "Earth", // เสาร์
+  8: "Earth", // ราหู — อนุมาน: เสมือนเสาร์ + พุธกลางคืน (ทั้งคู่→ดิน)
+  9: "Fire",  // เกตุ — อนุมาน: เสมือนอังคาร + อัคนีตัตวะ (ทั้งคู่→ไฟ)
 };
 
 const LOGO_STYLE_BY_ELEMENT: Record<string, { shape: string; color: string; mood: string }> = {

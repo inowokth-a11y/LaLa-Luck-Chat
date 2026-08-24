@@ -1,12 +1,23 @@
 {
-  "name_kamon": "Wood",
-  "name_thanawat": "Earth",
-  "name_sophie": "Fire",
+  "name_kamon": "Fire",
+  "name_thanawat": "Wood",
+  "name_sophie": "Earth",
   "name_no_match": null,
   "aggregate_fire_team": "Fire",
   "aggregate_no_members": "Water",
   "score_kamon": {
     "name": "กมล",
+    "name_element": "Fire",
+    "target_element": "Fire",
+    "user_element": "Fire",
+    "object_element": "Fire",
+    "raw_score": 1,
+    "final_score": 1,
+    "productive_clash": false,
+    "relation_th": "ธาตุเดียวกัน (กลมกลืน)"
+  },
+  "score_thanawat": {
+    "name": "ธนวัฒน์",
     "name_element": "Wood",
     "target_element": "Fire",
     "user_element": "Fire",
@@ -16,20 +27,9 @@
     "productive_clash": false,
     "relation_th": "ไม้ ให้กำเนิด ไฟ (★บำรุงเรา ดีที่สุด★)"
   },
-  "score_thanawat": {
-    "name": "ธนวัฒน์",
-    "name_element": "Earth",
-    "target_element": "Fire",
-    "user_element": "Fire",
-    "object_element": "Earth",
-    "raw_score": 1,
-    "final_score": 1,
-    "productive_clash": false,
-    "relation_th": "ไฟ ให้กำเนิด ดิน (ดีแบบผู้ให้ — เราเป็นฝ่ายส่งพลัง อาจเหนื่อย)"
-  },
   "reverse_water": [
-    "Rin",
-    "Ice"
+    "Kanya",
+    "Fahsai"
   ],
   "logo_water": "minimalist flat vector logo mark for 'AquaFlow', คลื่นลื่นไหล ไร้เหลี่ยม, primary color น้ำเงิน, mood: ยืดหยุ่น ลึกซึ้ง, clean geometric icon, no text, scalable simple icon suitable for app logo, white background"
 }
