@@ -141,7 +141,7 @@ export const SOULMATE_CAVEAT =
 export const SOULMATE_SCOPE_NOTE =
   "หัวข้อ 'อายุของคู่' ไม่เปิดในทุกเวอร์ชัน — ตำราต้นทางไม่มีข้อมูล และโหราศาสตร์ระบุอายุแน่นอน" +
   "ไม่ได้ (บอกได้เพียงวุฒิภาวะ) — ส่วน บริบทที่มักพบคู่ · จังหวะเวลาเรื่องคู่ · แนวโน้มพื้นเพ/ฐานะ/" +
-  "การงานฝั่งคู่ เปิดให้ผ่านชั้น Jyotish สากลซึ่งเป็นชั้นเสริม (แนวโน้มกว้างๆ มี caveat กำกับแยก " +
+  "การงานฝั่งคู่ เปิดผ่านชั้นคำนวณตำแหน่งดาวซึ่งเป็นชั้นเสริม (แนวโน้มกว้างๆ มี caveat กำกับแยก " +
   "— ไม่ใช่คำระบุตัวเลขทรัพย์สินหรือฟันธง)";
 
 // ---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ export const PHYSIOGNOMY_BY_ELEMENT: Record<Element5, Physiognomy> = {
 
 /** caveat บังคับเมื่อพูดถึงรูปลักษณ์ — เป็นแนวโน้มตามศาสตร์ ไม่ใช่คำระบุตัวบุคคล */
 export const APPEARANCE_CAVEAT =
-  "รูปลักษณ์เป็นแนวโน้มกว้างๆ ตามหลักนรลักษณ์กายา 5 ธาตุ (ตำราภาคผนวก ค.1) — " +
+  "รูปลักษณ์เป็นแนวโน้มกว้างๆ ตามหลักโหงวเฮ้ง-ธาตุ (นรลักษณ์กายา) จากตำราต้นทาง — " +
   "ไม่ใช่คำระบุรูปร่างหน้าตาของบุคคลใดบุคคลหนึ่งแน่นอน";
 
 /** ป้ายบังคับของภาพเนื้อคู่ทุกรูป (ผู้ใช้สั่ง 21 ส.ค. 2569) */
@@ -754,11 +754,12 @@ export function soulmateDualPath(
   userDominant: Element5,
   userMissing: Element5[],
   tamraElement: Element5,
-  preferredElement: Element5 | null | undefined
+  preferredElement: Element5 | null | undefined,
+  sourceBTh?: string
 ): SoulmateDualPath | null {
   if (!preferredElement || preferredElement === tamraElement) return null;
-  const a = buildPath("ก", tamraElement, "ทางที่ตำราชี้ (ภพปัตนิ/ชั้นหลัก)", userDominant, userMissing);
-  const b = buildPath("ข", preferredElement, "ทางที่ใจคุณเลือก (จากสเปกที่ระบุ — ดวงรองรับผ่านเคมีธาตุ)", userDominant, userMissing);
+  const a = buildPath("ก", tamraElement, "ทางที่ตำราชี้ (เรือนคู่ครอง — ชั้นหลัก)", userDominant, userMissing);
+  const b = buildPath("ข", preferredElement, sourceBTh ?? "ทางที่ใจคุณเลือก (จากสเปกที่ระบุ — ดวงรองรับผ่านเคมีธาตุ)", userDominant, userMissing);
   const sa = a.chemistry.final_score, sb = b.chemistry.final_score;
   const comparisonTh =
     sa === sb

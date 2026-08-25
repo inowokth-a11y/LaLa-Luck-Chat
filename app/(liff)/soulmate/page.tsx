@@ -451,7 +451,7 @@ export default function SoulmatePage() {
           {res.jyotish && (
             <details className={styles.fold ?? undefined} open style={{ marginTop: "1rem" }}>
               <summary style={{ cursor: "pointer", fontWeight: 700, fontSize: "0.95rem" }}>
-                🪐 มุมมองจากดวงดาว (ชั้น Jyotish สากล — ชั้นเสริม)
+                🪐 มุมมองจากตำแหน่งดาว ณ เวลาเกิด (ชั้นคำนวณเสริม)
               </summary>
               <div style={{ fontSize: "0.88rem", lineHeight: 1.7, marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
                 {res.convergence && (
@@ -755,7 +755,7 @@ export default function SoulmatePage() {
             </details>
             {matchRes.matchKoota && (
               <div style={{ fontSize: "0.85rem", lineHeight: 1.7, marginTop: "0.7rem", padding: "0.5rem 0.7rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
-                <strong>🌙 คะแนนคู่ตามเกณฑ์ดวงจันทร์ (Ashtakoota — ชั้นเสริมสากล): {matchRes.matchKoota.total}/36</strong>
+                <strong>🌙 คะแนนคู่ตามเกณฑ์ดวงจันทร์สองฝ่าย (ชั้นเสริม): {matchRes.matchKoota.total}/36</strong>
                 <br />{matchRes.matchKoota.bandTh} · นักษัตร {matchRes.matchKoota.aNakshatraTh} × {matchRes.matchKoota.bNakshatraTh}
                 <ul style={{ margin: "0.3rem 0 0", paddingLeft: "1.2rem" }}>
                   {matchRes.matchKoota.kootas.map((k) => (
@@ -770,7 +770,7 @@ export default function SoulmatePage() {
             )}
             {matchRes.matchTiming && (
               <div style={{ fontSize: "0.85rem", lineHeight: 1.7, marginTop: "0.7rem", padding: "0.5rem 0.7rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
-                <strong>🪐 จังหวะเวลาสองฝ่าย (ชั้น Jyotish สากล — ชั้นเสริม)</strong>
+                <strong>🪐 จังหวะเวลาสองฝ่าย (ชั้นคำนวณเสริมจากตำแหน่งดาว)</strong>
                 <br />ช่วงจังหวะของคุณ: {matchRes.matchTiming.userWindows.map((w) => `${w.fromTh}–${w.toTh}`).join(" · ") || "—"}
                 <br />ช่วงจังหวะของเขา: {matchRes.matchTiming.partnerWindows.map((w) => `${w.fromTh}–${w.toTh}`).join(" · ") || "—"}
                 <br /><strong>ช่วงทับซ้อน (น้ำหนักทั้งคู่):</strong>{" "}

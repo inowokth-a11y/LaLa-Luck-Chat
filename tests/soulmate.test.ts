@@ -95,7 +95,7 @@ test("ขอบเขต — SCOPE_NOTE เหลือปิดหัวข้�
   assert.ok(SOULMATE_SCOPE_NOTE.includes("อายุ"), "อายุยังปิด (ระบุแน่นอนไม่ได้)");
   assert.ok(SOULMATE_SCOPE_NOTE.includes("พื้นเพ") && SOULMATE_SCOPE_NOTE.includes("ฐานะ"), "พื้นเพ/ฐานะต้องประกาศว่าเปิดผ่านชั้นเสริม");
   assert.ok(!SOULMATE_SCOPE_NOTE.includes("รูปลักษณ์"), "รูปลักษณ์เปิดแล้ว — ห้ามอยู่ในรายการปิด");
-  assert.ok(SOULMATE_SCOPE_NOTE.includes("Jyotish"), "ต้องประกาศชั้น Jyotish (ชั้นเสริม)");
+  assert.ok(SOULMATE_SCOPE_NOTE.includes("ชั้นเสริม") && !SOULMATE_SCOPE_NOTE.includes("Jyotish"), "ประกาศชั้นเสริมโดยไม่เอ่ยชื่อศาสตร์ (ผู้ใช้สั่ง 25 ส.ค. 2569)");
   // ตาราง ค.1 คัดลอกตรงตำรา (spot-check คำต่อคำ)
   assert.equal(Object.keys(PHYSIOGNOMY_BY_ELEMENT).length, 5);
   assert.equal(PHYSIOGNOMY_BY_ELEMENT.Fire.faceTh, "รูปสามเหลี่ยมหรือรูปไข่, หน้าผากกว้างและสูง, คางเล็กแหลม");
