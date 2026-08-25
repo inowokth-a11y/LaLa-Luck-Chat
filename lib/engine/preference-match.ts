@@ -140,3 +140,14 @@ export function preferenceOverlap(
       : " — สองมุมพูดเรื่องเดียวกัน");
   return { items, matched, total: items.length, summaryTh, promptEn, caveats: [PREFERENCE_CAVEAT] };
 }
+
+
+/** วลีรูปลักษณ์แบบเข้มรายธาตุ — ใช้เมื่อผู้ใช้เลือกเส้นทางภาพ ก/ข ชัดเจน (รวม body+face
+ *  ของธาตุนั้นจากตาราง preset เดิม) เพื่อให้โมเดลภาพตามแบบที่เลือกจริง ไม่ drift */
+export const ELEMENT_APPEARANCE_STRONG_EN: Record<Element5, string> = Object.fromEntries(
+  (["Wood", "Fire", "Earth", "Metal", "Water"] as Element5[]).map((el) => {
+    const body = Object.values(BODY_PREF).find((t) => t.element === el)?.promptEn ?? "";
+    const face = Object.values(FACE_PREF).find((t) => t.element === el)?.promptEn ?? "";
+    return [el, [face, body].filter(Boolean).join(", ")];
+  })
+) as Record<Element5, string>;

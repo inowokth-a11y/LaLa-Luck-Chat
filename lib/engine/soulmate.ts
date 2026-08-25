@@ -531,9 +531,10 @@ export function soulmateCollagePrompt(opts: {
     `front close-up portrait smiling, side profile view, seated relaxed pose, full-body standing pose with arms crossed showing the body build. ` +
     `Each panel shows that person completely alone, exactly one person per panel, never two people together. ` +
     `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
+    `The person clearly and unmistakably has: ${opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn} — this face shape and body type must be visible in every panel. ` +
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
     `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
-    `${opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn}, ${look}, ` +
+    `${look}, ` +
     (opts.extraTraitsEn && opts.extraTraitsEn.length ? `${opts.extraTraitsEn.join(", ")}, ` : "") +
     `modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
     `highly detailed natural skin texture with visible pores, photorealistic, ` +

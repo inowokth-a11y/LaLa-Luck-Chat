@@ -31,7 +31,7 @@ import { calculateAscendant, type ZodiacSign } from "@/lib/engine/ascendant";
 import { julianDay } from "@/lib/engine/lagna";
 import { soulmateJyotish, soulmateConvergence, overlapWindows, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
 import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
-import { preferenceOverlap, BODY_PREF, FACE_PREF, PERSONA_PREF, type PreferenceOverlap } from "@/lib/engine/preference-match";
+import { preferenceOverlap, BODY_PREF, FACE_PREF, PERSONA_PREF, ELEMENT_APPEARANCE_STRONG_EN, type PreferenceOverlap } from "@/lib/engine/preference-match";
 import { soulmateDualPath, type SoulmateDualPath } from "@/lib/engine/soulmate";
 import { moonEclipticLongitude } from "@/lib/engine/daily";
 import { lahiriAyanamsa } from "@/lib/engine/ascendant";
@@ -488,8 +488,8 @@ export async function POST(req: Request) {
           element: imageElement,
           look: body.look ?? null,
           extraTraitsEn: jyotish?.appearance.en ?? [],
-          // เลือกเส้นทางแล้ว = ใช้นรลักษณ์ของทางนั้นทั้งใบ (ไม่ปน preference รายชิ้น)
-          preferenceEn: body.pathChoice && dualPath ? [] : prefForImage,
+          // เลือกเส้นทางแล้ว = วลีรูปลักษณ์แบบเข้มของธาตุทางนั้น (แก้ภาพ drift — ผู้ใช้รายงาน 25 ส.ค. 2569)
+          preferenceEn: body.pathChoice && dualPath ? [ELEMENT_APPEARANCE_STRONG_EN[imageElement]] : prefForImage,
         }),
       ];
       const captions = soulmateImageCaptions(reading);
@@ -543,7 +543,7 @@ export async function POST(req: Request) {
           imageUrl: img.url,
           stored: shareUrl !== null,
           prompt: prompts[i],
-          brandElement: partnerElement,
+          brandElement: imageElement,
         });
       });
       return NextResponse.json({
