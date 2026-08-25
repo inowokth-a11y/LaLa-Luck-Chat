@@ -698,3 +698,76 @@ export function partnerMatchReading(input: {
     caveats,
   };
 }
+
+
+// ---------------------------------------------------------------------------
+// สองเส้นทางเนื้อคู่ (Dual Path — ผู้ใช้เคาะ 25 ส.ค. 2569)
+// เมื่อ "ทางที่ตำราชี้" กับ "ทางที่ใจผู้ใช้เลือก" เป็นคนละธาตุ → เล่าสองทางเทียบกัน
+// แล้วให้เจ้าของดวงเลือกเอง (รวมถึงเลือกสร้างภาพตามแบบ ก หรือ ข)
+// 🔴 ไม่ใช่สูตรใหม่ — รันเอนจินเดิม (ค.1/persona/wuXing/ทิศ) ทางละธาตุ · ทางตำราติดป้ายแกนหลักเสมอ
+// ---------------------------------------------------------------------------
+
+export interface SoulmatePath {
+  key: "ก" | "ข";
+  element: Element5;
+  elementTh: string;
+  /** ที่มาของเส้นทาง — ทางตำรา (ภพปัตนิ) หรือทางที่ใจเลือก (ดวงรองรับผ่านเคมี) */
+  sourceTh: string;
+  chemistry: WuXingResult;
+  traitsTh: string;
+  appearance: Physiognomy;
+  styleTh: string;
+  supportDirections: Direction[];
+}
+
+export interface SoulmateDualPath {
+  a: SoulmatePath; // ก = ทางตำรา
+  b: SoulmatePath; // ข = ทางที่ใจเลือก
+  comparisonTh: string;
+  caveats: string[];
+}
+
+export const DUAL_PATH_CAVEAT =
+  "สองเส้นทางคือการอ่านดวงเดียวกันคนละเส้นทาง — ทางตำรา (ภพปัตนิ) เป็นแกนหลักเสมอ " +
+  "ส่วนทางที่ใจเลือกคือเส้นที่ดวงรองรับผ่านเคมีธาตุ · การเลือกเป็นของเจ้าของดวง ระบบไม่เลือกแทน";
+
+function buildPath(key: "ก" | "ข", el: Element5, sourceTh: string, userDominant: Element5, userMissing: Element5[]): SoulmatePath {
+  return {
+    key,
+    element: el,
+    elementTh: THAI_LABEL_5[el],
+    sourceTh,
+    chemistry: wuXingScore(userDominant, el, [...userMissing]),
+    traitsTh: ELEMENT_PERSONA[el].นิสัยเด่น,
+    appearance: PHYSIOGNOMY_BY_ELEMENT[el],
+    styleTh: OUTFIT_MOOD_TH[el],
+    supportDirections: ALL_DIRECTIONS.filter((d) => DIRECTION_TO_ELEMENT[d] === el),
+  };
+}
+
+/**
+ * สองเส้นทางเนื้อคู่ — คืน null เมื่อไม่มีทางแยกจริง (ธาตุที่ใจเลือกตรงกับทางตำรา หรือไม่ได้ระบุ)
+ * @param tamraElement ธาตุจากภพปัตนิ (หรืออันดับ 1 ของโหมดธาตุ)
+ * @param preferredElement ธาตุจากสเปกที่ผู้ใช้เลือก (แท็ก body/face — enum ของ engine เท่านั้น)
+ */
+export function soulmateDualPath(
+  userDominant: Element5,
+  userMissing: Element5[],
+  tamraElement: Element5,
+  preferredElement: Element5 | null | undefined
+): SoulmateDualPath | null {
+  if (!preferredElement || preferredElement === tamraElement) return null;
+  const a = buildPath("ก", tamraElement, "ทางที่ตำราชี้ (ภพปัตนิ/ชั้นหลัก)", userDominant, userMissing);
+  const b = buildPath("ข", preferredElement, "ทางที่ใจคุณเลือก (จากสเปกที่ระบุ — ดวงรองรับผ่านเคมีธาตุ)", userDominant, userMissing);
+  const sa = a.chemistry.final_score, sb = b.chemistry.final_score;
+  const comparisonTh =
+    sa === sb
+      ? `ทั้งสองทางได้เคมีเท่ากัน (${sa >= 0 ? "+" : ""}${sa}) — ต่างกันที่ "แบบของความเกื้อหนุน": ` +
+        `ทาง ก ${a.chemistry.relation_th} · ทาง ข ${b.chemistry.relation_th} — เลือกตามใจได้โดยไม่ฝืนดวง`
+      : sa > sb
+        ? `ทาง ก (ตำรา) เคมีสูงกว่า (${sa >= 0 ? "+" : ""}${sa} เทียบ ${sb >= 0 ? "+" : ""}${sb}) — ` +
+          `ทาง ข ยังเดินได้ เพียงต้องอาศัยการดูแลกันมากขึ้น`
+        : `ทาง ข (ใจเลือก) เคมีสูงกว่า (${sb >= 0 ? "+" : ""}${sb} เทียบ ${sa >= 0 ? "+" : ""}${sa}) — ` +
+          `ส่วนทาง ก มีน้ำหนักของตำราหนุน — สองมุมคนละแบบ ไม่หักล้างกัน`;
+  return { a, b, comparisonTh, caveats: [DUAL_PATH_CAVEAT, APPEARANCE_CAVEAT] };
+}

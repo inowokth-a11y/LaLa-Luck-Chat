@@ -32,6 +32,7 @@ import { julianDay } from "@/lib/engine/lagna";
 import { soulmateJyotish, soulmateConvergence, overlapWindows, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
 import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
 import { preferenceOverlap, BODY_PREF, FACE_PREF, PERSONA_PREF, type PreferenceOverlap } from "@/lib/engine/preference-match";
+import { soulmateDualPath, type SoulmateDualPath } from "@/lib/engine/soulmate";
 import { moonEclipticLongitude } from "@/lib/engine/daily";
 import { lahiriAyanamsa } from "@/lib/engine/ascendant";
 import { provinceByKey } from "@/lib/provinces";
@@ -128,6 +129,8 @@ interface SoulmateBody {
   prefBody?: string;
   prefFace?: string;
   prefPersona?: string[];
+  /** เลือกเส้นทางภาพ "a" (ทางตำรา) | "b" (ทางที่ใจเลือก — ใช้ได้เมื่อสเปกทำให้เกิดทางแยกจริง) */
+  pathChoice?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;
@@ -236,6 +239,19 @@ export async function POST(req: Request) {
             }
           )
         : null;
+
+    // สองเส้นทางเนื้อคู่ (Dual Path — 25 ส.ค. 2569): ธาตุจากสเปกที่เลือก (body ก่อน face)
+    // ต่างจากทางตำรา → เล่าสองทางเทียบกัน + ให้เลือกสร้างภาพแบบ ก/ข
+    const prefElement =
+      (body.prefBody && body.prefBody in BODY_PREF ? BODY_PREF[body.prefBody].element : null) ??
+      (body.prefFace && body.prefFace in FACE_PREF ? FACE_PREF[body.prefFace].element : null) ??
+      null;
+    const dualPath: SoulmateDualPath | null = soulmateDualPath(
+      profile.dominant as Element5,
+      profile.missing as Element5[],
+      partnerElForPref,
+      prefElement
+    );
 
     // ธาตุของ "คู่" สำหรับโทนภาพ: ชั้นลัคนา = ธาตุราศีที่ 7 · ชั้นธาตุ = ธาตุอันดับ 1 ที่เกื้อหนุน
     const partnerElement: Element5 =
@@ -437,6 +453,9 @@ export async function POST(req: Request) {
       }
 
       // คอลลาจรูปเดียว-หลายอิริยาบถ (ผู้ใช้เคาะ 23 ส.ค. 2569) — คนเดียวกันทุกมุม · 1 gen
+      // แบบ ข = สลับธาตุทั้งใบ (หน้า/รูปร่าง/ชุด/โทนสี ตามธาตุของทางที่เลือก — ภาพสอดคล้องในตัว)
+      const imageElement: Element5 =
+        body.pathChoice === "b" && dualPath ? dualPath.b.element : partnerElement;
       const prefForImage =
         body.prefBody || body.prefFace || (body.prefPersona && body.prefPersona.length)
           ? [
@@ -448,10 +467,11 @@ export async function POST(req: Request) {
       const prompts = [
         soulmateCollagePrompt({
           gender: partnerGender,
-          element: partnerElement,
+          element: imageElement,
           look: body.look ?? null,
           extraTraitsEn: jyotish?.appearance.en ?? [],
-          preferenceEn: prefForImage,
+          // เลือกเส้นทางแล้ว = ใช้นรลักษณ์ของทางนั้นทั้งใบ (ไม่ปน preference รายชิ้น)
+          preferenceEn: body.pathChoice && dualPath ? [] : prefForImage,
         }),
       ];
       const captions = soulmateImageCaptions(reading);
@@ -594,6 +614,26 @@ export async function POST(req: Request) {
               },
             }
           : {}),
+        ...(dualPath
+          ? {
+              สองเส้นทางเนื้อคู่: {
+                ทาง_ก: {
+                  ที่มา: dualPath.a.sourceTh, ธาตุ: dualPath.a.elementTh,
+                  นิสัยแนวโน้ม: dualPath.a.traitsTh,
+                  รูปลักษณ์_ค1: `ใบหน้า${dualPath.a.appearance.faceTh} · รูปร่าง${dualPath.a.appearance.bodyTh}`,
+                  เคมี: `${dualPath.a.chemistry.final_score >= 0 ? "+" : ""}${dualPath.a.chemistry.final_score} (${dualPath.a.chemistry.relation_th})`,
+                },
+                ทาง_ข: {
+                  ที่มา: dualPath.b.sourceTh, ธาตุ: dualPath.b.elementTh,
+                  นิสัยแนวโน้ม: dualPath.b.traitsTh,
+                  รูปลักษณ์_ค1: `ใบหน้า${dualPath.b.appearance.faceTh} · รูปร่าง${dualPath.b.appearance.bodyTh}`,
+                  เคมี: `${dualPath.b.chemistry.final_score >= 0 ? "+" : ""}${dualPath.b.chemistry.final_score} (${dualPath.b.chemistry.relation_th})`,
+                },
+                เปรียบเทียบ: dualPath.comparisonTh,
+                หมายเหตุ: dualPath.caveats[0],
+              },
+            }
+          : {}),
         ...(preference
           ? {
               มุมความชอบของผู้ใช้_เทียบแนวโน้มดวง: {
@@ -695,6 +735,7 @@ ${convergence.detailTh}`;
       jyotish,
       convergence,
       preference,
+      dualPath,
       partnerElement,
       ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
     });

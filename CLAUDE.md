@@ -1710,6 +1710,21 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
   จุดต่างโชว์เคมี +2 · prompt ภาพมี "tall lean healthy...angular jawline" แทน ค.1 น้ำจริง (ตรวจจาก
   image_generation_log) · FLUX ออกภาพเพรียวหน้ายาวตรงสเปก
 
+### ✅ สองเส้นทางเนื้อคู่ (Dual Path) + ภาพเลือกแบบ ก/ข (25 ส.ค. 2569 ผู้ใช้เคาะ)
+
+**ที่มา:** เคสสองศาสตร์ให้ภาพต่างกัน (ตำรา=น้ำ · สเปกผู้ใช้=ไม้ ซึ่งเคมี +2 เท่ากันพอดี) →
+แทนที่จะบังคับทางเดียว เล่า**สองเส้นทางเทียบกันแล้วให้เจ้าของดวงเลือกเอง** รวมถึงเลือกภาพ
+- `soulmateDualPath()` (soulmate.ts — เทสต์ 546): trigger เฉพาะธาตุจากสเปก (body→face) ต่างจาก
+  ทางตำรา · รันเอนจินเดิมทางละธาตุ (ELEMENT_PERSONA + ค.1 + OUTFIT_MOOD_TH + wuXing + ทิศ —
+  **ไม่มีสูตรใหม่**) · ทาง ก = ตำราเสมอ (ลำดับชั้นไม่หาย) · comparisonTh 3 กิ่ง (เท่ากัน/ก สูง/ข สูง)
+  จากคะแนนจริง · DUAL_PATH_CAVEAT "การเลือกเป็นของเจ้าของดวง ระบบไม่เลือกแทน"
+- **ภาพแบบ ก/ข**: body.pathChoice "a"|"b" → สลับ element ทั้งใบเข้า soulmateCollagePrompt
+  (หน้า/รูปร่าง/ชุด/โทนสีสอดคล้องในตัว) · เลือกเส้นทางแล้ว preference รายชิ้นถูกละ (ภาพตามแบบล้วน)
+- narrator กฎ ④.4 ห้ามเลือกแทน/ห้ามบอกทางไหนถูกกว่า + **บรรทัดปิด "การเลือกเป็นของคุณ" ระบบแนบ
+  deterministic** (แพทเทิร์นเดียว convergence — E2E จับได้ว่า Flash เรียบเรียงหลุด)
+- **E2E จริง:** ดวงกันย์+สเปกไม้ → ก=น้ำ(+2) ข=ไม้(+2) · AI เล่าสองทาง · ภาพ pathChoice="b" →
+  prompt นรลักษณ์ไม้จริง ไม่มีวลีน้ำ (ตรวจจาก image_generation_log) + FLUX ออกสูงเพรียวหน้ายาวตรงสเปก
+
 ### ✅ เก็บงานต่อยอด Jyotish 3 ข้อ (24-25 ส.ค. 2569 ผู้ใช้สั่ง "ไล่ทีละข้ออย่างต่อเนื่อง")
 
 ① **ตาราจรเฉพาะบุคคลใน /timing**: PersonLayer เพิ่ม birthNak (จันทร์ ณ เที่ยงวันเกิด — convention
@@ -1823,7 +1838,7 @@ convergence) · สูตรสำเร็จ: ค้นกฎ cross-check ≥2
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 545/545 (25 ส.ค. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 546/546 (25 ส.ค. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 

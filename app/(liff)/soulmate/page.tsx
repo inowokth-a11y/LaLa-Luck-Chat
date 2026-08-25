@@ -45,6 +45,12 @@ interface ReadingResponse {
     items: { tagTh: string; matchedByTh: string[]; chemistryTh: string | null }[];
     caveats: string[];
   } | null;
+  dualPath?: {
+    a: { key: string; elementTh: string; sourceTh: string; traitsTh: string; appearance: { faceTh: string; bodyTh: string }; styleTh: string; chemistry: { final_score: number; relation_th: string } };
+    b: { key: string; elementTh: string; sourceTh: string; traitsTh: string; appearance: { faceTh: string; bodyTh: string }; styleTh: string; chemistry: { final_score: number; relation_th: string } };
+    comparisonTh: string;
+    caveats: string[];
+  } | null;
   reading?: {
     mode: "lagna" | "element";
     lagnaSign?: string;
@@ -124,6 +130,8 @@ export default function SoulmatePage() {
   const [prefBody, setPrefBody] = useState("");
   const [prefFace, setPrefFace] = useState("");
   const [prefPersona, setPrefPersona] = useState("");
+  // เลือกเส้นทางภาพ แบบ ก (ทางตำรา) / แบบ ข (ทางที่ใจเลือก) — เมื่อมีทางแยกจริง
+  const [pathChoice, setPathChoice] = useState<"a" | "b">("a");
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
   const [pBirthDate, setPBirthDate] = useState("");
@@ -208,6 +216,7 @@ export default function SoulmatePage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           mode: "images",
+          pathChoice: res?.dualPath ? pathChoice : undefined,
           prefBody: prefBody || undefined,
           prefFace: prefFace || undefined,
           prefPersona: prefPersona ? [prefPersona] : undefined,
@@ -499,6 +508,44 @@ export default function SoulmatePage() {
             </details>
           )}
 
+          {res.dualPath && (
+            <div style={{ marginTop: "0.8rem" }}>
+              <strong style={{ fontSize: "0.95rem" }}>🔀 สองเส้นทางเนื้อคู่ของคุณ</strong>
+              <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                {([res.dualPath.a, res.dualPath.b] as const).map((path) => (
+                  <div
+                    key={path.key}
+                    style={{
+                      flex: 1, minWidth: 240, padding: "0.6rem 0.8rem", borderRadius: 8,
+                      border: `2px solid ${(path.key === "ก" ? "a" : "b") === pathChoice ? "var(--gold)" : "rgba(184,134,11,0.3)"}`,
+                      background: "rgba(184,134,11,0.06)", fontSize: "0.85rem", lineHeight: 1.7,
+                    }}
+                  >
+                    <strong>แบบ {path.key} — ธาตุ{path.elementTh}</strong>
+                    <br /><span style={{ opacity: 0.8 }}>{path.sourceTh}</span>
+                    <br />นิสัยแนวโน้ม: {path.traitsTh}
+                    <br />รูปลักษณ์: ใบหน้า{path.appearance.faceTh} · รูปร่าง{path.appearance.bodyTh}
+                    <br />เคมีกับดวงคุณ: {path.chemistry.final_score >= 0 ? "+" : ""}{path.chemistry.final_score} ({path.chemistry.relation_th})
+                    <br />
+                    <button
+                      type="button"
+                      onClick={() => setPathChoice(path.key === "ก" ? "a" : "b")}
+                      style={{
+                        marginTop: "0.4rem", padding: "0.3rem 0.8rem", borderRadius: 999, cursor: "pointer",
+                        border: "1px solid var(--gold)", fontFamily: "var(--font-sans-thai)", fontSize: "0.8rem",
+                        background: (path.key === "ก" ? "a" : "b") === pathChoice ? "var(--gold)" : "transparent",
+                        color: (path.key === "ก" ? "a" : "b") === pathChoice ? "#fffdf8" : "inherit",
+                      }}
+                    >
+                      {(path.key === "ก" ? "a" : "b") === pathChoice ? "✓ ใช้แบบนี้สร้างภาพ" : `สร้างภาพตามแบบ ${path.key}`}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: "0.83rem", lineHeight: 1.6, margin: "0.5rem 0 0" }}>📊 {res.dualPath.comparisonTh}</p>
+              <p style={{ fontSize: "0.75rem", opacity: 0.8, margin: "0.3rem 0 0" }}>⚠️ {res.dualPath.caveats[0]}</p>
+            </div>
+          )}
           {res.preference && (
             <div style={{ fontSize: "0.88rem", lineHeight: 1.7, marginTop: "0.8rem", padding: "0.6rem 0.8rem", borderRadius: 8, background: "rgba(184,134,11,0.08)", border: "1px solid rgba(184,134,11,0.3)" }}>
               <strong>💗 มุมความชอบของคุณ ↔ แนวโน้มดวง</strong>
@@ -521,7 +568,8 @@ export default function SoulmatePage() {
           <div style={{ marginTop: "1.4rem" }}>
             <h2 className={styles.h2}>ภาพจินตนาการเนื้อคู่</h2>
             <p className={styles.note} style={{ marginTop: 0 }}>
-              AI วาดจากบุคลิก ธาตุ และรูปร่างตามนรลักษณ์ที่คำนวณ (คอลลาจ 1 รูป 4 มุม · ฟรีครั้งแรก แล้วครั้งละ 30 เครดิต) — เป็นภาพจินตนาการเท่านั้น
+              AI วาดจากบุคลิก ธาตุ และรูปร่างตามนรลักษณ์ที่คำนวณ (คอลลาจ 1 รูป 4 มุม · ฟรีครั้งแรก แล้วครั้งละ 30 เครดิต)
+              {res?.dualPath ? ` — กำลังใช้ "ภาพเนื้อคู่ตามดวงแบบ ${pathChoice === "a" ? "ก" : "ข"}"` : ""} — เป็นภาพจินตนาการเท่านั้น
               ไม่ใช่บุคคลจริง และไม่ได้มาจากตำรา
             </p>
             {/* สัญชาติ/สไตล์ลุค (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง ·

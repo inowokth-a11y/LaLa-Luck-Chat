@@ -281,3 +281,24 @@ test("ชั้นเสริมธาตุจากชื่อผู้ใ�
   // ชื่อว่าง/ช่องว่างล้วน → null
   assert.equal(soulmateReading("กันย์", "Fire", ["Water"], "   ").nameLayer, null);
 });
+
+
+test("สองเส้นทางเนื้อคู่ (Dual Path 25 ส.ค. 2569) — ทางแยกจริงเท่านั้น · ค่าจาก engine ล้วน · ตำรา = ทาง ก เสมอ", async () => {
+  const { soulmateDualPath, DUAL_PATH_CAVEAT, PHYSIOGNOMY_BY_ELEMENT, OUTFIT_MOOD_TH } = await import("../lib/engine/soulmate");
+  const { wuXingScore } = await import("../lib/engine/element");
+  // เคสจริงของผู้ใช้: ไฟเด่น ขาดน้ำ · ตำราชี้น้ำ · ใจเลือกไม้ → สองทาง +2 เท่ากัน
+  const dp = soulmateDualPath("Fire", ["Water"], "Water", "Wood")!;
+  assert.equal(dp.a.key, "ก");
+  assert.equal(dp.a.element, "Water", "ทาง ก = ทางตำราเสมอ");
+  assert.equal(dp.b.element, "Wood");
+  assert.equal(dp.a.chemistry.final_score, wuXingScore("Fire", "Water", ["Water"]).final_score);
+  assert.equal(dp.b.chemistry.final_score, wuXingScore("Fire", "Wood", ["Water"]).final_score);
+  assert.ok(dp.comparisonTh.includes("เท่ากัน"), "เคสนี้สองทาง +2 เท่ากัน");
+  assert.ok(dp.comparisonTh.includes("เลือกตามใจได้"), "ต้องสื่อว่าเลือกได้โดยไม่ฝืนดวง");
+  assert.equal(dp.a.appearance, PHYSIOGNOMY_BY_ELEMENT.Water, "รูปลักษณ์จาก ค.1 จริง");
+  assert.equal(dp.b.styleTh, OUTFIT_MOOD_TH.Wood);
+  assert.ok(dp.caveats.includes(DUAL_PATH_CAVEAT));
+  // ไม่มีทางแยก = null (ธาตุตรงกัน / ไม่ระบุ)
+  assert.equal(soulmateDualPath("Fire", ["Water"], "Water", "Water"), null);
+  assert.equal(soulmateDualPath("Fire", ["Water"], "Water", null), null);
+});
