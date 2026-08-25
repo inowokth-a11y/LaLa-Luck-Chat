@@ -14,7 +14,7 @@ import { BODY_PREF, FACE_PREF, PERSONA_PREF } from "@/lib/engine/preference-matc
 import { provincesByRegion } from "@/lib/provinces";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
 import { shareLinks } from "@/lib/share";
-import { LOOK_STYLES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
+import { LOOK_STYLES, SKIN_TONES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
 import styles from "./soulmate.module.css";
 
 interface JyotishLayer {
@@ -132,6 +132,7 @@ export default function SoulmatePage() {
   const [prefPersona, setPrefPersona] = useState("");
   // เลือกเส้นทางภาพ แบบ ก (ทางตำรา) / แบบ ข (ทางที่ใจเลือก) — เมื่อมีทางแยกจริง
   const [pathChoice, setPathChoice] = useState<"a" | "b">("a");
+  const [prefSkin, setPrefSkin] = useState("");
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
   const [pBirthDate, setPBirthDate] = useState("");
@@ -217,6 +218,7 @@ export default function SoulmatePage() {
         body: JSON.stringify({
           mode: "images",
           pathChoice: res?.dualPath ? pathChoice : undefined,
+          prefSkin: prefSkin || undefined,
           prefBody: prefBody || undefined,
           prefFace: prefFace || undefined,
           prefPersona: prefPersona ? [prefPersona] : undefined,
@@ -580,6 +582,15 @@ export default function SoulmatePage() {
                   <span>สัญชาติ/สไตล์ลุคของภาพ</span>
                   <select className={styles.input} value={look} onChange={(e) => setLook(e.target.value)}>
                     {Object.entries(LOOK_STYLES).map(([k, v]) => (
+                      <option key={k} value={k}>{v.th}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0, marginTop: "0.5rem" }}>
+                  <span>โทนผิวของภาพ (ตัวเลือกการวาด — ไม่ใช่คำทำนาย)</span>
+                  <select className={styles.input} value={prefSkin} onChange={(e) => setPrefSkin(e.target.value)}>
+                    <option value="">— ตามลุคที่เลือก —</option>
+                    {Object.entries(SKIN_TONES).map(([k, v]) => (
                       <option key={k} value={k}>{v.th}</option>
                     ))}
                   </select>

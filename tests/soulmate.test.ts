@@ -302,3 +302,30 @@ test("สองเส้นทางเนื้อคู่ (Dual Path 25 ส.�
   assert.equal(soulmateDualPath("Fire", ["Water"], "Water", "Water"), null);
   assert.equal(soulmateDualPath("Fire", ["Water"], "Water", null), null);
 });
+
+// --- นิสัยจากตาราง ค.1 (personaTh) + โทนผิวภาพ (SKIN_TONES) — 25 ส.ค. 2569 (ผู้ใช้เคาะ "ทั้งสองอย่าง") ---
+test("personaTh ค.1 คำต่อคำครบ 5 ธาตุ + dual-path/name-lens ใช้ ค.1 จริง", async () => {
+  const { PHYSIOGNOMY_BY_ELEMENT, soulmateDualPath } = await import("../lib/engine/soulmate");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Wood.personaTh, "มีความคิดสร้างสรรค์, ชอบเรียนรู้, มีความสามารถเฉพาะทาง, แต่อาจอ่อนไหวและเจ้าอารมณ์");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Fire.personaTh, "เป็นนักคิด, มีจินตนาการสูง, สติปัญญาดี, วางแผนเก่ง, แต่ก็อ่อนไหวและใจร้อนได้ง่าย");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Earth.personaTh, "มีความอดทนสูง, หนักแน่น, มีความรับผิดชอบ, ยึดมั่นในกฎระเบียบ, แต่ไม่ชอบการเปลี่ยนแปลง");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Metal.personaTh, "เป็นคนแข็งแกร่ง, ชัดเจน, ตรงไปตรงมา, เป็นนักจัดการที่ดี, ฉลาด, และกล้าหาญ");
+  assert.equal(PHYSIOGNOMY_BY_ELEMENT.Water.personaTh, "พูดเก่ง, มีมนุษยสัมพันธ์ดี, ปรับตัวเก่ง, อารมณ์ดีและสนุกสนาน");
+  // สองเส้นทางต้องเล่านิสัยด้วยข้อมูล ค.1 แท้ (ไม่ใช่เทมเพลต ELEMENT_PERSONA)
+  const dp = soulmateDualPath("Earth", ["Water"], "Water", "Wood");
+  assert.ok(dp, "น้ำ↔ไม้ ต้องเกิดทางแยก");
+  assert.equal(dp!.a.traitsTh, PHYSIOGNOMY_BY_ELEMENT.Water.personaTh);
+  assert.equal(dp!.b.traitsTh, PHYSIOGNOMY_BY_ELEMENT.Wood.personaTh);
+});
+
+test("SKIN_TONES — enum ปลอดภัย: ค่านอก enum = prompt เดิมเป๊ะ · ค่าจริง = วลีเข้า prompt", async () => {
+  const { SKIN_TONES, soulmateCollagePrompt } = await import("../lib/engine/soulmate");
+  assert.deepEqual(Object.keys(SKIN_TONES), ["fair", "medium", "tan", "deep"]);
+  const base = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai" });
+  // injection: ชื่อบุคคลจริง/ค่านอก enum ถูกเพิกเฉยทั้งหมด
+  assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", skin: "like a famous actress" }), base);
+  assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", skin: null }), base);
+  const withSkin = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", skin: "tan" });
+  assert.ok(withSkin.includes(SKIN_TONES.tan.en), "วลีโทนผิวต้องเข้า prompt");
+  assert.notEqual(withSkin, base);
+});

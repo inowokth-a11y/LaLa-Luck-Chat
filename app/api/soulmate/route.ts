@@ -137,6 +137,8 @@ interface SoulmateBody {
   prefPersona?: string[];
   /** เลือกเส้นทางภาพ "a" (ทางตำรา) | "b" (ทางที่ใจเลือก — ใช้ได้เมื่อสเปกทำให้เกิดทางแยกจริง) */
   pathChoice?: string;
+  /** โทนผิวของภาพ (key ของ SKIN_TONES — ตัวเลือกการวาดตามความชอบ ไม่ใช่คำทำนาย) */
+  prefSkin?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;

@@ -1725,6 +1725,17 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
 - **E2E จริง:** ดวงกันย์+สเปกไม้ → ก=น้ำ(+2) ข=ไม้(+2) · AI เล่าสองทาง · ภาพ pathChoice="b" →
   prompt นรลักษณ์ไม้จริง ไม่มีวลีน้ำ (ตรวจจาก image_generation_log) + FLUX ออกสูงเพรียวหน้ายาวตรงสเปก
 
+### ✅ โทนผิวภาพ (preset) + นิสัยสองเส้นทางจาก ค.1 แท้ (25 ส.ค. 2569 ผู้ใช้เคาะ "ทั้งสองอย่าง")
+
+① **SKIN_TONES** (soulmate.ts): โทนผิว 4 แบบ (ผิวขาวเหลือง/สองสี/แทน/เข้ม) เป็น**ตัวเลือกการวาดภาพ
+   ไม่ใช่คำทำนาย** — ตรวจกับตำราแล้ว ค.1 มี 3 คอลัมน์ (ใบหน้า/รูปร่าง/นิสัย) **ไม่มีข้อมูลสีผิว**
+   จึงห้ามทำนายสีผิว (ทั้งหลักตำราและหลักไม่ตัดสินรูปลักษณ์) · enum เท่านั้น — ค่านอก enum
+   = prompt เดิมเป๊ะ (เทสต์ล็อก injection) · ต่อครบทั้งเส้น: SoulmateBody.prefSkin → collage prompt
+   + select "โทนผิวของภาพ" บนหน้า /soulmate (default "ตามลุคที่เลือก")
+② **นิสัยสองเส้นทาง/เลนส์ชื่อ ใช้ ค.1 แท้**: เพิ่ม `personaTh` (ค.1 คอลัมน์นิสัย คำต่อคำ — เทสต์ล็อก
+   ทั้ง 5 ธาตุ) ใน PHYSIOGNOMY_BY_ELEMENT · dual-path traitsTh + name-lens เปลี่ยนจากเทมเพลต
+   ELEMENT_PERSONA → ค.1 จริง (ยกระดับจาก "ออกแบบเอง" เป็น "ข้อมูลตำรา") · เทสต์ 548
+
 ### ✅ แก้ภาพไม่ตรงแบบที่เลือก (25 ส.ค. 2569 ผู้ใช้รายงาน + ตรวจจาก log จริง)
 
 **อาการ:** เลือกแบบ ข (ไม้) → prompt ถูก (ตรวจ image_generation_log) แต่ FLUX วาดหน้ากลมนุ่ม
@@ -1874,7 +1885,7 @@ convergence) · สูตรสำเร็จ: ค้นกฎ cross-check ≥2
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 546/546 (25 ส.ค. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 548/548 (25 ส.ค. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 
