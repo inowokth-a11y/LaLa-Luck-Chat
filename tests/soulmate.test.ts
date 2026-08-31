@@ -145,7 +145,7 @@ test("คำบรรยายประจำภาพ — ถ้อยคำจ
 
 // ---- เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) ----
 import { partnerMatchReading, PARTNER_PRIVACY_NOTE, NAME_TABLE_CAVEAT, PHYSIOGNOMY_BY_ELEMENT, APPEARANCE_CAVEAT } from "../lib/engine/soulmate";
-import { personSeedFromBirthDate, birthPowerNumber } from "../lib/engine/network-holistic";
+import { personSeedFromBirthDate, personalEnergyNumber } from "../lib/engine/network-holistic";
 import { nameElement } from "../lib/engine/naming";
 
 test("partnerMatchReading — เคมี/เลขตัวตน/ธาตุเขา ตรง engine จริงทุกชั้น + caveat ครบ", () => {
@@ -154,7 +154,7 @@ test("partnerMatchReading — เคมี/เลขตัวตน/ธาตุ
   assert.ok(r);
   const pSeed = personSeedFromBirthDate("1992-05-20")!;
   assert.equal(r!.partner.dominantTh, {"Fire":"ไฟ","Earth":"ดิน","Wood":"ไม้","Water":"น้ำ"}[pSeed.dominant]);
-  assert.equal(r!.partner.identityNumber, String(birthPowerNumber("1992-05-20")).padStart(2, "0"));
+  assert.equal(r!.partner.identityNumber, String(personalEnergyNumber("1992-05-20", { name: "สมชาย" })).padStart(2, "0"));
   assert.equal(r!.chemistry.final_score, wuXingScore("Fire", pSeed.dominant, ["Water"]).final_score);
   assert.equal(r!.parts.length, 2);
   assert.equal(r!.coherence.length, 5);

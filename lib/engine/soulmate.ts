@@ -598,7 +598,7 @@ export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElement
 
 import {
   personSeedFromBirthDate,
-  birthPowerNumber,
+  personalEnergyNumber,
   partAspects,
   analyzeCoherence,
   holisticAdvice,
@@ -642,8 +642,12 @@ export function partnerMatchReading(input: {
   userDominant: Element5;
   userMissing: Element5[];
   userBirthDate: string;
+  /** เวลา/ชื่อ (ไม่บังคับ) — เข้าเลขตัวตนตามสูตรรวม "ส่วนที่ไม่มี = 0" (มติ 31 ส.ค. 2569) */
+  userBirthTime?: string | null;
+  userName?: string | null;
   userLagna?: ZodiacSign | null;
   partnerBirthDate: string;
+  partnerBirthTime?: string | null;
   partnerLagna?: ZodiacSign | null;
   partnerName?: string | null;
 }): PartnerMatchResult | null {
@@ -654,8 +658,12 @@ export function partnerMatchReading(input: {
   const chemistry = wuXingScore(input.userDominant, partnerElement, [...input.userMissing]);
 
   // คะแนน 5 ด้านจากเลขตัวตนทั้งคู่ (มุมผู้ใช้เป็นศูนย์กลาง — convention เดียวกับโหมดองค์รวม)
-  const userNum = String(birthPowerNumber(input.userBirthDate)).padStart(2, "0");
-  const partnerNum = String(birthPowerNumber(input.partnerBirthDate)).padStart(2, "0");
+  const userNum = String(
+    personalEnergyNumber(input.userBirthDate, { name: input.userName, birthTime: input.userBirthTime })
+  ).padStart(2, "0");
+  const partnerNum = String(
+    personalEnergyNumber(input.partnerBirthDate, { name: input.partnerName, birthTime: input.partnerBirthTime })
+  ).padStart(2, "0");
   const parts: HolisticPart[] = [
     {
       label: `ตัวคุณ (เลขตัวตน ${userNum})`,

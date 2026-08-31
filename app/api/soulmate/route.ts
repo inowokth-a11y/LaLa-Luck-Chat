@@ -341,8 +341,11 @@ export async function POST(req: Request) {
         userDominant: profile.dominant as Element5,
         userMissing: profile.missing as Element5[],
         userBirthDate: body.birthDate!,
+        userBirthTime: body.birthTime ?? null,
+        userName: body.name ?? null,
         userLagna: lagna,
         partnerBirthDate: body.partnerBirthDate,
+        partnerBirthTime: body.partnerBirthTime ?? null,
         partnerLagna,
         partnerName: body.partnerName ?? null,
       });

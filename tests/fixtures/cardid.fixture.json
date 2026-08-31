@@ -7,7 +7,7 @@
         "birthDate": "1986-10-07",
         "birthTime": "09:30"
       },
-      "expected": 4
+      "expected": 94
     },
     {
       "input": {
@@ -43,7 +43,7 @@
         "birthDate": "1988-08-29",
         "birthTime": "23:59"
       },
-      "expected": 93
+      "expected": 75
     },
     {
       "input": {
