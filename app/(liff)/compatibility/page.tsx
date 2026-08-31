@@ -35,6 +35,7 @@ import {
   type Entity,
   type EntityType,
 } from "@/lib/engine/compatibility";
+import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
 import {
   personalEnergyNumber,
   parseRefInput,
@@ -231,6 +232,9 @@ export default function CompatibilityPage() {
     const clip = (s: string | null | undefined) => (s ? s.slice(0, 120) : null);
     const ctx = {
       ตัวคุณ: { ธาตุเด่น: THAI_LABEL_4[seed.dominant], ธาตุที่ขาด: seed.missing_th },
+      แนวคำแนะนำสองแบบ: dualAdviceContextTh(
+        dualAdvicePaths(seed.dominant as Element5, seed.missing as Element5[])
+      ),
       parts: holisticParts.map((p) => ({
         label: p.label,
         icon: p.icon,

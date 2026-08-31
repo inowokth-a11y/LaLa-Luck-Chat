@@ -10,6 +10,7 @@ import { buildFirstReading, FIRST_READING_CAVEAT } from "@/lib/engine/first-read
 import { calculatePersonalYear, getPersonalYearGuidance } from "@/lib/engine/element";
 import type { Element5 } from "@/lib/engine/element";
 import type { LifeDasha } from "@/lib/engine/life-dasha";
+import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
 
 export const FIRST_READING_SYSTEM = `${LALA_PERSONA}
 
@@ -26,6 +27,9 @@ export const FIRST_READING_SYSTEM = `${LALA_PERSONA}
       พร้อมคะแนนจริง) — ห้ามข้ามส่วนนี้ · ถ้ามี "ยุคชีวิต_ชั้นเสริม" ให้เสริมท้ายส่วนนี้ 2-3 ประโยค:
       ยุคใหญ่ปัจจุบัน+ธีม+ช่วงย่อย โดยระบุว่าเป็น "ชั้น Jyotish สากล (ชั้นเสริม)" — ห้ามให้ขัด/แทน
       ปีส่วนบุคคล (ตำราเป็นแกน) · ยุคเสาร์/ราหู/เกตุ/อังคารต้องเล่าพร้อมด้านโอกาสเสมอ ห้ามเล่าเป็นลาง
+   ④.5 คำแนะนำปิดท้าย: เสนอเป็น **สองแนวสั้นๆ ให้ผู้ใช้เลือกจุดเน้นเอง** ตามบล็อก
+      "แนวคำแนะนำสองแบบ" ที่ให้ (แนวเสริมส่วนที่ขาด / แนวส่งเสริมจุดแข็ง — สี/เทคนิคจากบล็อกเท่านั้น)
+      · treatment เท่ากัน 🔴 ห้ามคำเชียร์ (ดีกว่า/เหมาะกว่า/ควรเลือก) + บอกว่าสองแนวใช้ร่วมกันได้
    ⑤ ปิดด้วย caveat 1 ประโยค แล้วชวนถามต่อ (บอกว่ามีคำถามฟรี 3 ข้อ) เสนอตัวอย่างคำถาม 2-3 ข้อ
 3. ถ้ามีข้อมูลการ์ดใน <พื้นดวง> ให้ผูกเรื่องบุคคลต้นแบบเข้ากับนิสัยเด่นได้ — ตามกติกาทะเบียนคำข้างล่าง
 4. ความยาวรวม 5-7 ย่อหน้าสั้น อ่านเพลินแบบโหรเล่าเรื่อง ไม่ใช่รายงาน
@@ -67,5 +71,6 @@ export function buildFirstReadingInput(opts: {
       : {}),
     หมายเหตุบังคับ: FIRST_READING_CAVEAT,
   };
-  return `<พื้นดวง>\n${JSON.stringify(data, null, 1).slice(0, 6000)}\n</พื้นดวง>\n\nเขียนคำทำนายแรกพบให้ผู้ใช้คนนี้`;
+  const dualBlock = dualAdviceContextTh(dualAdvicePaths(opts.dominant, [...opts.missing]));
+  return `<พื้นดวง>\n${JSON.stringify(data, null, 1).slice(0, 6000)}\n</พื้นดวง>\n\n<แนวคำแนะนำสองแบบ>\n${dualBlock}\n</แนวคำแนะนำสองแบบ>\n\nเขียนคำทำนายแรกพบให้ผู้ใช้คนนี้`;
 }

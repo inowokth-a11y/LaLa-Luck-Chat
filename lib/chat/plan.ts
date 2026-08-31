@@ -24,6 +24,7 @@ import { getMindCare, toMindState, MIND_STATE_TH, MIND_CARE_CAVEAT } from "../en
 import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work-toxic";
 import { DAY_ELEMENT } from "../engine/element";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
+import { SUPPORT_OF } from "../engine/dual-advice";
 import { phoneOfficialReading, PHONE_OFFICIAL_NOTE } from "../engine/phone-official";
 import { scoreCandidateName, nameComposition } from "../engine/naming";
 import { analyzeNameTaksa } from "../engine/taksa-naming";
@@ -786,14 +787,7 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
   },
 };
 
-// วงจรให้กำเนิด (相生) — ใครให้กำเนิดธาตุนี้ (印 บำรุงเรา = ทาง ค §5)
-const SUPPORT_OF: Record<Element5, Element5> = {
-  Fire: "Wood",
-  Earth: "Fire",
-  Metal: "Earth",
-  Water: "Metal",
-  Wood: "Water",
-};
+// วงจรให้กำเนิด (相生) — ย้ายไป lib/engine/dual-advice.ts (แหล่งเดียว — 31 ส.ค. 2569)
 
 const THAI_DAY_NAMES = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
