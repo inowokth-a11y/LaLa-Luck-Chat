@@ -352,3 +352,16 @@ test("คอลลาจ — เพศถูกย้ำทุกท่า/ท�
   assert.ok((m.match(/\bman\b/g) ?? []).length >= 3 && (m.match(/\bhis\b/g) ?? []).length >= 4);
   assert.ok(!/woman/.test(m), "prompt ชายห้ามมีคำ woman");
 });
+
+test("คำบรรยายภาพตามเส้นทางที่เลือก — ทุกช่องจาก SoulmatePath จริง + ตัวคั่น OG คงเดิม", async () => {
+  const { soulmateDualPath, soulmatePathImageCaptions, PHYSIOGNOMY_BY_ELEMENT, OUTFIT_MOOD_TH } = await import("../lib/engine/soulmate");
+  const dp = soulmateDualPath("Earth", ["Water"], "Water", "Wood");
+  assert.ok(dp);
+  const cap = soulmatePathImageCaptions(dp!.b);
+  assert.ok(cap[0].includes("แนวทาง ข") && cap[0].includes(dp!.b.traitsTh), "นิสัยต้องเป็นของทาง ข");
+  assert.ok(cap[0].includes(" · แนวโน้มรูปลักษณ์ตามนรลักษณ์: "), "ตัวคั่นสำหรับ OG /sm ต้องคงเดิม");
+  assert.ok(cap[0].includes(PHYSIOGNOMY_BY_ELEMENT.Wood.faceTh) && cap[0].includes(PHYSIOGNOMY_BY_ELEMENT.Wood.bodyTh), "รูปลักษณ์ต้องเป็น ค.1 ของธาตุทาง ข (ไม่ใช่ทางตำรา)");
+  assert.ok(!cap[0].includes(PHYSIOGNOMY_BY_ELEMENT.Water.bodyTh), "ห้ามปนรูปลักษณ์ทางตำราเมื่อเลือก ข");
+  assert.ok(cap[1].includes(OUTFIT_MOOD_TH.Wood));
+  assert.ok(cap[2].includes(dp!.b.chemistry.relation_th));
+});

@@ -32,7 +32,7 @@ import { julianDay } from "@/lib/engine/lagna";
 import { soulmateJyotish, soulmateConvergence, overlapWindows, type SoulmateJyotish, type ConvergenceResult } from "@/lib/engine/jyotish";
 import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
 import { preferenceOverlap, BODY_PREF, FACE_PREF, PERSONA_PREF, ELEMENT_APPEARANCE_STRONG_EN, type PreferenceOverlap } from "@/lib/engine/preference-match";
-import { soulmateDualPath, type SoulmateDualPath } from "@/lib/engine/soulmate";
+import { soulmateDualPath, soulmatePathImageCaptions, type SoulmateDualPath } from "@/lib/engine/soulmate";
 import { moonEclipticLongitude } from "@/lib/engine/daily";
 import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
 import { lahiriAyanamsa } from "@/lib/engine/ascendant";
@@ -502,7 +502,12 @@ export async function POST(req: Request) {
           preferenceEn: body.pathChoice && dualPath ? [ELEMENT_APPEARANCE_STRONG_EN[imageElement]] : prefForImage,
         }),
       ];
-      const captions = soulmateImageCaptions(reading);
+      // เลือกเส้นทาง ก/ข แล้ว → คำบรรยายต้องเป็นของเส้นทางนั้น (ตรงกับภาพ) ไม่ใช่ reading หลัก
+      const chosenPath =
+        dualPath && (body.pathChoice === "a" || body.pathChoice === "b")
+          ? (body.pathChoice === "b" ? dualPath.b : dualPath.a)
+          : null;
+      const captions = chosenPath ? soulmatePathImageCaptions(chosenPath) : soulmateImageCaptions(reading);
       const images = await falSoulmateImages(prompts);
 
       // เก็บถาวร + token หน้าแชร์ /sm/<token> (แชร์โซเชียลได้ — ผู้ใช้ขอ)

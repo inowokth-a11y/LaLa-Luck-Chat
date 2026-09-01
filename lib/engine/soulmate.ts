@@ -777,6 +777,18 @@ export interface SoulmatePath {
   supportDirections: Direction[];
 }
 
+/** คำบรรยายภาพตามเส้นทางที่ผู้ใช้เลือก (1 ก.ย. 2569 — ผู้ทดลองทัก: เลือกแบบ ข แต่คำบรรยาย
+ *  ยังเป็นของทางตำรา) — ทุกช่องมาจากข้อมูล SoulmatePath จริง (ค.1/เคมี/ทิศของธาตุทางนั้น)
+ *  ⚠️ คงตัวคั่น " · แนวโน้มรูปลักษณ์ตามนรลักษณ์: " เป๊ะ — OG/สตอรี่ /sm ใช้ split บรรทัดรูปลักษณ์ */
+export function soulmatePathImageCaptions(path: SoulmatePath): [string, string, string] {
+  const dirs = path.supportDirections.slice(0, 3).join("/");
+  return [
+    `นิสัยแนวโน้มของคู่ (แนวทาง ${path.key} — ธาตุ${path.elementTh}): ${path.traitsTh} · แนวโน้มรูปลักษณ์ตามนรลักษณ์: ใบหน้า${path.appearance.faceTh} · รูปร่าง${path.appearance.bodyTh}`,
+    `สไตล์และบรรยากาศของคู่แนวทางนี้: ${path.styleTh}`,
+    `เคมีธาตุของแนวทางนี้: ${path.chemistry.relation_th}${dirs ? ` · พลังเกื้อหนุนอยู่ทางทิศ${dirs}` : ""}`,
+  ];
+}
+
 export interface SoulmateDualPath {
   a: SoulmatePath; // ก = ทางตำรา
   b: SoulmatePath; // ข = ทางที่ใจเลือก
