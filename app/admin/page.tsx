@@ -14,6 +14,7 @@ import { computeAffiliateStats, type AffLinkRow, type AttributionRow, type Topup
 import AdminAssistant from "./AdminAssistant";
 import FeedbackAdmin from "./FeedbackAdmin";
 import AffiliateAdmin from "./AffiliateAdmin";
+import TesterAdmin from "./TesterAdmin";
 import { summarizeDemographics, GENDER_LABELS, type ProfileRow, type DemoQuestionRow } from "@/lib/admin/demographics";
 
 export const dynamic = "force-dynamic"; // อ่าน session + DB ทุกครั้ง
@@ -146,6 +147,8 @@ export default async function AdminPage() {
       </section>
 
       <AffiliateAdmin links={affStats} />
+
+      <TesterAdmin />
 
       <Card title="ต้นทุนรายวัน (14 วันล่าสุด)">
         {stats.byDay.length === 0 ? <Empty /> : (

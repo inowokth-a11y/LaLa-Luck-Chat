@@ -104,11 +104,15 @@ export interface CardIdInput {
 }
 
 /**
- * สูตร A: BirthPower + DayPower + TimePower + NamePower → reduce เหลือ 0-99
+ * สูตร A (= "พลังงานส่วนบุคคล" สูตรรวมทุกโหมด — ผู้ใช้เคาะ 31 ส.ค. 2569 หลังมีผู้ทดลองยืนยัน):
+ * BirthPower + DayPower + TimePower + NamePower → reduce เหลือ 0-99
  * - BirthPower = digitSum(วัน) + digitSum(เดือน) + digitSum(ปี ค.ศ.)
  * - DayPower   = วันในสัปดาห์ (อาทิตย์=1 ... เสาร์=7)
- * - TimePower  = digitSum(ชม.) + digitSum(นาที)  (0 ถ้าไม่ระบุเวลา)
- * - NamePower  = ผลรวมค่าอักษรของ ชื่อ+นามสกุล
+ * - TimePower  = digitSum(ชม.) + digitSum(นาที) **ลดทอนเหลือหลักเดียว** (0 ถ้าไม่ระบุเวลา)
+ *   (เปลี่ยน 31 ส.ค. 2569 — เดิมไม่ลดทอน: 18:30 เคยได้ 12 ตอนนี้ได้ 3 → การ์ดบางคนเปลี่ยนใบ)
+ * - NamePower  = ผลรวมค่าอักษรของ ชื่อ+นามสกุล (ตาราง Calculation_Constants ที่ verify แล้ว)
+ * - ไม่มีข้อยกเว้นเลขตอง/Master Number (ผู้ใช้เคาะ: ลดทอนปกติ — 11/22/33 อยู่ในช่วง 00-99 อยู่แล้ว)
+ * - องค์ประกอบที่ไม่มีข้อมูล = 0 (ใช้ผ่าน personalEnergyNumber ในโหมดที่มีแค่วันเกิด)
  */
 export function computeCardId(input: CardIdInput): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input.birthDate);
@@ -123,11 +127,31 @@ export function computeCardId(input: CardIdInput): number {
   let timePower = 0;
   if (input.birthTime) {
     const [hh, mm] = input.birthTime.split(":").map(Number);
-    if (!Number.isNaN(hh) && !Number.isNaN(mm)) timePower = digitSum(hh) + digitSum(mm);
+    if (!Number.isNaN(hh) && !Number.isNaN(mm)) {
+      timePower = digitSum(hh) + digitSum(mm);
+      while (timePower > 9) timePower = digitSum(timePower); // ลดทอนเหลือหลักเดียว (31 ส.ค. 2569)
+    }
   }
 
   const nPower = namePower(input.firstName + input.lastName);
   return reduceTo99(birthPower + dayPower + timePower + nPower);
+}
+
+/**
+ * พลังงานส่วนบุคคล 00-99 — สูตรเดียวกับ computeCardId แต่รับข้อมูลเท่าที่มี (ส่วนที่ไม่มี = 0):
+ * ใช้กับโหมดที่มีแค่วันเกิด (เลขตัวตนในองค์รวม/บุคคลที่สาม) ตามมติผู้ใช้ 31 ส.ค. 2569
+ * "สูตรเดียวทุกโหมด" (แทนที่นิยาม BirthPower ล้วนเดิมของ §4 ข้อ 1)
+ */
+export function personalEnergyNumber(
+  birthDate: string,
+  opts?: { name?: string | null; birthTime?: string | null }
+): number {
+  return computeCardId({
+    firstName: opts?.name ?? "",
+    lastName: "",
+    birthDate,
+    birthTime: opts?.birthTime ?? null,
+  });
 }
 
 /** คืนเลขการ์ดเป็นสองหลักเสมอ ("00"-"99") พร้อมใช้กับ cardImageUrl() */

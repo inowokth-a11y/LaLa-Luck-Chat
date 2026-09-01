@@ -8,7 +8,7 @@ import {
   personSeedFromBirthDate,
   startDateOmen,
   START_OMEN_CAVEAT,
-  birthPowerNumber,
+  personalEnergyNumber,
   parseRefInput,
   partAspects,
   analyzeCoherence,
@@ -21,12 +21,23 @@ import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../lib/engine/number-aspec
 import { wuXingScore } from "../lib/engine/element";
 import { checkDayKalaYoke } from "../lib/engine/kalayoke";
 
-test("birthPowerNumber — BirthPower ล้วน ผ่าน reduceTo99 (นิยามเลขตัวตน §4 ข้อ 1)", () => {
-  // 1986-10-07: digitSum(7)=7 + digitSum(10)=1 + digitSum(1986)=24 → 32
-  assert.equal(birthPowerNumber("1986-10-07"), 32);
-  // 1990-03-15: 6 + 3 + 19 = 28
-  assert.equal(birthPowerNumber("1990-03-15"), 28);
-  assert.throws(() => birthPowerNumber("15/03/1990"));
+test("personalEnergyNumber — สูตรรวม Birth+Name+Time+Day ส่วนที่ไม่มี = 0 (มติ 31 ส.ค. 2569)", () => {
+  // 1986-10-07 (อังคาร): Birth 7+1+24=32 + Day 3 = 35
+  assert.equal(personalEnergyNumber("1986-10-07"), 35);
+  // 1990-03-15 (พฤหัสบดี): Birth 6+3+19=28 + Day 5 = 33
+  assert.equal(personalEnergyNumber("1990-03-15"), 33);
+  // TimePower ลดทอนเหลือหลักเดียว: 18:30 → 1+8+3+0=12 → 3 (ไม่ใช่ 12)
+  assert.equal(
+    personalEnergyNumber("1990-03-15", { birthTime: "18:30" }),
+    personalEnergyNumber("1990-03-15") + 3
+  );
+  // NamePower เข้าเมื่อมีชื่อ (สมชาย=23 ตามตารางทางการ) — ไม่มีชื่อ = 0
+  assert.equal(
+    personalEnergyNumber("1990-03-15", { name: "สมชาย" }),
+    personalEnergyNumber("1990-03-15") + 23
+  );
+  // ไม่มีข้อยกเว้นเลขตอง — ผลรวม >99 ลดทอนปกติ (ผู้ใช้เคาะ)
+  assert.throws(() => personalEnergyNumber("15/03/1990"));
 });
 
 test("parseRefInput — คงเลข 0 นำหน้า + แยกอักษรป้ายไทย + ปฏิเสธเกิน 10 หลัก", () => {

@@ -60,7 +60,10 @@ function computeCardIdOfficial({ firstName, lastName, birthDate, birthTime }) {
   let timePower = 0;
   if (birthTime) {
     const [hh, mm] = birthTime.split(":").map(Number);
-    if (!Number.isNaN(hh) && !Number.isNaN(mm)) timePower = digitSum(hh) + digitSum(mm);
+    if (!Number.isNaN(hh) && !Number.isNaN(mm)) {
+      timePower = digitSum(hh) + digitSum(mm);
+      while (timePower > 9) timePower = digitSum(timePower); // ลดทอนเหลือหลักเดียว (มติ 31 ส.ค. 2569)
+    }
   }
   return reduceTo99(birthPower + dayPower + timePower + namePowerOfficial(firstName + lastName));
 }

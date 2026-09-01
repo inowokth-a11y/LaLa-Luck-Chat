@@ -15,6 +15,7 @@ import { generate, type GenerateResult } from "@/lib/ai";
 import { LALA_PERSONA } from "@/lib/ai/persona";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
+import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
 import {
   validateChatPlan,
   executePlan,
@@ -166,6 +167,9 @@ export function buildNarratorSystem(): string {
      เป็นสิ่งที่ผู้ใช้ควบคุมได้เอง (เสริม self-efficacy)
    - **ปิดด้วย "ก้าวเล็กๆ 1 อย่างที่ทำได้วันนี้"** ที่ดึงจากผลคำนวณจริง (เช่น เทคนิคหายใจของธาตุ /
      สีที่ใส่พรุ่งนี้ / จังหวะที่ควรเริ่ม) — ให้ผู้ใช้จบบทสนทนาแบบมีสิ่งที่ทำได้ ไม่ใช่แค่ความรู้
+   - ถ้ามีบล็อก <แนวคำแนะนำสองแบบ> ให้เสนอก้าวเล็กเป็น **สองแนวสั้นๆ ให้ผู้ใช้เลือกจุดเน้นเอง**
+     (แนวเสริมส่วนที่ขาด / แนวส่งเสริมจุดแข็ง — ใช้สี/เทคนิคจากบล็อกเท่านั้น) · treatment เท่ากัน
+     🔴 ห้ามคำเชียร์ (ดีกว่า/เหมาะกว่า/ควรเลือก) ห้ามเลือกแทน + บอกว่าสองแนวใช้ร่วมกันได้
 9. คำต้องห้ามและจริยธรรมการปลอบ (จาก KB จิตวิทยาของระบบ — 2 ส.ค. 2569):
    - **ห้ามใช้คำทางคลินิก**: "โรค" "ผิดปกติ" "วินิจฉัย" "อาการป่วย" "ซึมเศร้า" (ใช้ "ความรู้สึก/
      สภาวะ/ช่วงเวลา" แทน — เราไม่ใช่แพทย์ การติดป้ายมีแต่โทษ)
@@ -391,7 +395,13 @@ export async function runPlanChat(
     channel: "web",
     logicId: 0,
     system: buildNarratorSystem(),
-    input: (memoryBlock ? `${memoryBlock}\n\n` : "") + pageBlock + buildNarratorInput(question, interp.execution),
+    input:
+      (memoryBlock ? `${memoryBlock}\n\n` : "") +
+      pageBlock +
+      (profileCtx
+        ? `<แนวคำแนะนำสองแบบ>\n${dualAdviceContextTh(dualAdvicePaths(profileCtx.dominant, [...profileCtx.missing]))}\n</แนวคำแนะนำสองแบบ>\n\n`
+        : "") +
+      buildNarratorInput(question, interp.execution),
     // 1100 ไม่ใช่ 700 — gpt-5.5 ใช้ reasoning token ร่วมโควตานี้ input ยาว (hybrid มี pageContext)
     // เคยกินจนเนื้อความว่าง (2 ส.ค. 2569) · เผื่อแล้ว ตัวว่างยัง throw ที่ provider ให้ fallback ต่อ
     maxTokens: 1600, // โครงคำตอบสายเลข (กฎ 10) ยาวกว่าเดิม — 1100 เคยพอสำหรับคำตอบสั้น

@@ -35,8 +35,9 @@ import {
   type Entity,
   type EntityType,
 } from "@/lib/engine/compatibility";
+import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
 import {
-  birthPowerNumber,
+  personalEnergyNumber,
   parseRefInput,
   partAspects,
   analyzeCoherence,
@@ -170,10 +171,10 @@ export default function CompatibilityPage() {
     });
   }
 
-  // ---- โหมดองค์รวม: คะแนน 5 ด้านของทุกส่วน (ตนเอง = เลขตัวตนจาก BirthPower) ----
+  // ---- โหมดองค์รวม: คะแนน 5 ด้านของทุกส่วน (เลขตัวตน = สูตรรวม Birth+Day — ไม่มีชื่อ/เวลาในฟอร์มนี้) ----
   const selfNumberStr = useMemo(() => {
     if (!seed || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
-    return String(birthPowerNumber(birthDate)).padStart(2, "0");
+    return String(personalEnergyNumber(birthDate)).padStart(2, "0");
   }, [seed, birthDate]);
 
   const holisticParts = useMemo<HolisticPart[]>(() => {
@@ -192,7 +193,7 @@ export default function CompatibilityPage() {
       if (s.entity.birthDate) {
         const pseed = personSeedFromBirthDate(s.entity.birthDate);
         if (!pseed) continue;
-        const idNum = String(birthPowerNumber(s.entity.birthDate)).padStart(2, "0");
+        const idNum = String(personalEnergyNumber(s.entity.birthDate)).padStart(2, "0");
         parts.push({
           label: s.entity.name,
           icon: ENTITY_ICONS[s.entity.type],
@@ -231,6 +232,9 @@ export default function CompatibilityPage() {
     const clip = (s: string | null | undefined) => (s ? s.slice(0, 120) : null);
     const ctx = {
       ตัวคุณ: { ธาตุเด่น: THAI_LABEL_4[seed.dominant], ธาตุที่ขาด: seed.missing_th },
+      แนวคำแนะนำสองแบบ: dualAdviceContextTh(
+        dualAdvicePaths(seed.dominant as Element5, seed.missing as Element5[])
+      ),
       parts: holisticParts.map((p) => ({
         label: p.label,
         icon: p.icon,

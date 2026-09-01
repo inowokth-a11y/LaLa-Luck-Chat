@@ -34,6 +34,7 @@ import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
 import { preferenceOverlap, BODY_PREF, FACE_PREF, PERSONA_PREF, ELEMENT_APPEARANCE_STRONG_EN, type PreferenceOverlap } from "@/lib/engine/preference-match";
 import { soulmateDualPath, type SoulmateDualPath } from "@/lib/engine/soulmate";
 import { moonEclipticLongitude } from "@/lib/engine/daily";
+import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
 import { lahiriAyanamsa } from "@/lib/engine/ascendant";
 import { provinceByKey } from "@/lib/provinces";
 import { buildProfileContext } from "@/lib/chat/plan-run";
@@ -79,12 +80,16 @@ const LALA_SOULMATE_SYSTEM = `${LALA_PERSONA}
    🔴 **ห้ามคำเชียร์เชิงเปรียบเทียบ** (ดีกว่า/เหมาะกว่า/แนะนำทาง/ควรเลือก) — ทุกจุดต่างเล่าเป็น
    ข้อเท็จจริงจากข้อมูล ไม่ใช่คำตัดสิน · ห้ามยกแนวทางใดเหนือกว่า
    ④ **จุดร่วมและจุดต่าง**: 2-3 ประโยคจากบรรทัดเปรียบเทียบที่ให้
-   ⑤ **คำแนะนำ**: ทางปฏิบัติที่ใช้ได้กับทั้งสองทาง (ทิศ/จังหวะ/การดูแลใจ) 2-3 ข้อ →
+   ⑤ **คำแนะนำ**: ทางปฏิบัติที่ใช้ได้กับทั้งสองทาง (ทิศ/จังหวะ/การดูแลใจ) 2-3 ข้อ ·
+   ถ้ามี "แนวคำแนะนำสองแบบ" ให้ปิดส่วนนี้ด้วยสองแนวสั้นๆ ให้ผู้ใช้เลือกจุดเน้นเอง
+   (แนวเสริมส่วนที่ขาด / แนวส่งเสริมจุดแข็ง — สี/เทคนิคจากข้อมูลเท่านั้น ห้ามเชียร์ข้าง
+   บอกว่าสองแนวใช้ร่วมกันได้) →
    ปิดด้วย caveat ทุกข้อที่ให้มา (ห้ามตัดทิ้ง) + ชวนถามต่อ 1 ประโยค
    **กรณีไม่มีสองเส้นทาง — พอร์เทรตเดียวเต็มรูปแบบ:** นิสัยคู่ (ถักทุกชั้นเป็นคนเดียว) →
    แนวโน้มรูปลักษณ์ → เคมีธาตุ (ตัวเลขตามที่ให้ สเกล −2..+2 ห้ามแปลงสเกล) + ความยั่งยืน →
-   บริบทที่มักพบคู่ + จังหวะเวลา (ช่วง พ.ศ. ตามข้อมูล) → (ถ้ามี) พลังจากชื่อ → คำแนะนำ + caveat ครบ
-   + ชวนถามต่อ
+   บริบทที่มักพบคู่ + จังหวะเวลา (ช่วง พ.ศ. ตามข้อมูล) → (ถ้ามี) พลังจากชื่อ → คำแนะนำ
+   (ถ้ามี "แนวคำแนะนำสองแบบ" เสนอเป็นสองแนวสั้นๆ ให้ผู้ใช้เลือกจุดเน้นเอง — ห้ามเชียร์ข้าง
+   บอกว่าใช้ร่วมกันได้) + caveat ครบ + ชวนถามต่อ
 5. ถ้าโหมดเป็น "element" (ไม่มีเวลาเกิด) — บอกชัดตั้งแต่ต้นว่าคำนวณจากชั้นธาตุ (ยังไม่มีชั้นลัคนา)
 6. เพศของคู่: ใช้คำตามที่ผู้ใช้ระบุใน "เพศคู่ที่สนใจ" เท่านั้น — "ไม่ระบุ" ใช้คำกลางๆ ("เขาคนนั้น")`;
 
@@ -137,6 +142,8 @@ interface SoulmateBody {
   prefPersona?: string[];
   /** เลือกเส้นทางภาพ "a" (ทางตำรา) | "b" (ทางที่ใจเลือก — ใช้ได้เมื่อสเปกทำให้เกิดทางแยกจริง) */
   pathChoice?: string;
+  /** โทนผิวของภาพ (key ของ SKIN_TONES — ตัวเลือกการวาดตามความชอบ ไม่ใช่คำทำนาย) */
+  prefSkin?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;
@@ -339,8 +346,11 @@ export async function POST(req: Request) {
         userDominant: profile.dominant as Element5,
         userMissing: profile.missing as Element5[],
         userBirthDate: body.birthDate!,
+        userBirthTime: body.birthTime ?? null,
+        userName: body.name ?? null,
         userLagna: lagna,
         partnerBirthDate: body.partnerBirthDate,
+        partnerBirthTime: body.partnerBirthTime ?? null,
         partnerLagna,
         partnerName: body.partnerName ?? null,
       });
@@ -665,6 +675,9 @@ export async function POST(req: Request) {
               },
             }
           : {}),
+        แนวคำแนะนำสองแบบ: dualAdviceContextTh(
+          dualAdvicePaths(profile.dominant as Element5, profile.missing as Element5[])
+        ),
         ...(reading.nameLayer
           ? {
               ธาตุจากชื่อผู้ใช้_ชั้นเสริม: {

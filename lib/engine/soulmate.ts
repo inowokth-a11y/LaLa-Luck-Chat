@@ -154,6 +154,8 @@ export interface Physiognomy {
   faceTh: string;
   /** ลักษณะรูปร่าง (ค.1 คำต่อคำ) */
   bodyTh: string;
+  /** ลักษณะนิสัยและบุคลิกภาพ (ค.1 คำต่อคำ — คอลัมน์ที่ 3 ของตาราง เปิดใช้ 25 ส.ค. 2569) */
+  personaTh: string;
   /** คำบรรยายอังกฤษสำหรับ prompt ภาพ (แปลง ค.1 เป็นภาษาภาพเชิงบวก) */
   promptEn: string;
 }
@@ -162,26 +164,31 @@ export const PHYSIOGNOMY_BY_ELEMENT: Record<Element5, Physiognomy> = {
   Wood: {
     faceTh: "ยาวและแคบ, โหนกแก้มและกรามไม่เด่นชัด",
     bodyTh: "สูงโปร่ง",
+    personaTh: "มีความคิดสร้างสรรค์, ชอบเรียนรู้, มีความสามารถเฉพาะทาง, แต่อาจอ่อนไหวและเจ้าอารมณ์",
     promptEn: "long slender face with soft cheekbones, tall slim graceful build",
   },
   Fire: {
     faceTh: "รูปสามเหลี่ยมหรือรูปไข่, หน้าผากกว้างและสูง, คางเล็กแหลม",
     bodyTh: "ไหล่กว้าง เอวเล็ก",
+    personaTh: "เป็นนักคิด, มีจินตนาการสูง, สติปัญญาดี, วางแผนเก่ง, แต่ก็อ่อนไหวและใจร้อนได้ง่าย",
     promptEn: "oval face with a broad high forehead and delicate pointed chin, broad shoulders with a slim waist",
   },
   Earth: {
     faceTh: "รูปสี่เหลี่ยมจัตุรัส/ผืนผ้า, ใบหน้าใหญ่, มีเนื้อหนาแน่น",
     bodyTh: "โครงร่างใหญ่, แน่น, ดูมั่นคง",
+    personaTh: "มีความอดทนสูง, หนักแน่น, มีความรับผิดชอบ, ยึดมั่นในกฎระเบียบ, แต่ไม่ชอบการเปลี่ยนแปลง",
     promptEn: "strong square full face, solid sturdy dependable build",
   },
   Metal: {
     faceTh: "รูปไข่หรือค่อนข้างเหลี่ยมแต่มุมมน, โครงสร้างสมดุล",
     bodyTh: "สมส่วน, ดูแข็งแรง",
+    personaTh: "เป็นคนแข็งแกร่ง, ชัดเจน, ตรงไปตรงมา, เป็นนักจัดการที่ดี, ฉลาด, และกล้าหาญ",
     promptEn: "balanced oval face with softly angular refined features, well-proportioned athletic build",
   },
   Water: {
     faceTh: "ใบหน้ากลม, อูม, มีเนื้อเยอะ, หน้ากว้าง, คางสั้น",
     bodyTh: "ท้วม, มีเนื้อ",
+    personaTh: "พูดเก่ง, มีมนุษยสัมพันธ์ดี, ปรับตัวเก่ง, อารมณ์ดีและสนุกสนาน",
     promptEn: "soft round full face with gentle plump friendly features, soft gently curvy figure with radiant supple skin",
   },
 };
@@ -289,7 +296,7 @@ function buildOwnNameLayer(
       partnerElement: lensRanked.cand,
       partnerElementTh: THAI_LABEL_5[lensRanked.cand],
       relationTh: lensRanked.s.relation_th,
-      traitsTh: ELEMENT_PERSONA[lensRanked.cand].นิสัยเด่น,
+      traitsTh: PHYSIOGNOMY_BY_ELEMENT[lensRanked.cand].personaTh, // ค.1 แท้ (25 ส.ค. 2569 — เดิม ELEMENT_PERSONA ออกแบบเอง)
       appearance: PHYSIOGNOMY_BY_ELEMENT[lensRanked.cand],
       styleTh: OUTFIT_MOOD_TH[lensRanked.cand],
     },
@@ -399,6 +406,15 @@ const ELEMENT_ACCENT: Record<Element5, string> = {
 //     ยังไม่มีข้อมูล (SOULMATE_SCOPE_NOTE) · SOULMATE_LOOK_NOTE ต้องแสดงคู่ตัวเลือกเสมอ
 // ---------------------------------------------------------------------------
 
+/** โทนผิวของภาพ (ตัวเลือกการวาดตามความชอบ — **ไม่ใช่คำทำนาย** ตำราไม่มีข้อมูลสีผิว
+ *  ตรวจ ค.1 แล้ว 25 ส.ค. 2569 · ทุกตัวเลือกเฟรมเชิงบวกเท่ากัน — enum เท่านั้น) */
+export const SKIN_TONES: Record<string, { th: string; en: string }> = {
+  fair: { th: "ผิวขาวเหลือง", en: "fair luminous skin tone" },
+  medium: { th: "ผิวสองสี", en: "warm medium skin tone" },
+  tan: { th: "ผิวแทน", en: "sun-kissed tan glowing skin tone" },
+  deep: { th: "ผิวเข้ม", en: "rich deep radiant skin tone" },
+};
+
 export const SOULMATE_LOOK_NOTE =
   "ตัวเลือกรูปลักษณ์เป็นการตั้งค่าภาพตามความชอบของคุณเอง ไม่ใช่คำทำนายจากดวง " +
   "(ตำรายังไม่มีข้อมูลรูปลักษณ์เนื้อคู่ — อยู่ระหว่างสอบถามเจ้าของตำรา)";
@@ -472,10 +488,13 @@ export function soulmateImagePrompt(opts: {
   look?: string | null;
   face?: string | null;
   age?: string | null;
+  /** โทนผิว (key ของ SKIN_TONES เท่านั้น — ตัวเลือกการวาด ไม่ใช่คำทำนาย) */
+  skin?: string | null;
 }): string {
   const scene = IMAGE_VARIANT_SCENES[(opts.variant ?? 0) % IMAGE_VARIANT_SCENES.length];
   // default ไทย (พฤติกรรมเดิมของระบบ) — ค่านอก enum ก็ตกมาที่ไทย ไม่มีทางพา free-text เข้า prompt
   const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : LOOK_STYLES.thai.en;
+  const skinEn = opts.skin && opts.skin in SKIN_TONES ? SKIN_TONES[opts.skin].en : null;
   const face = opts.face && opts.face in FACE_STYLES ? FACE_STYLES[opts.face as FaceKey].en : null;
   const age = opts.age && opts.age in AGE_STYLES ? AGE_STYLES[opts.age as AgeKey].en : null;
   return (
@@ -486,6 +505,7 @@ export function soulmateImagePrompt(opts: {
     `${PHYSIOGNOMY_BY_ELEMENT[opts.element].promptEn}, ` +
     (face ? `${face}, ` : "") +
     `${look}, ` +
+    (skinEn ? `${skinEn}, ` : "") +
     `modest elegant everyday clothing, ${scene}, ` +
     `natural daylight, fresh airy atmosphere, highly detailed natural skin texture with visible pores, subtle skin imperfections, fine facial detail, ` +
     `subtle ${ELEMENT_ACCENT[opts.element]} color accents in clothing or surroundings, ` +
@@ -522,8 +542,11 @@ export function soulmateCollagePrompt(opts: {
   /** วลีจากแท็กความชอบของผู้ใช้ (preference-match enum เท่านั้น) — มี = ใช้แทนโครง ค.1
    *  (ภาพเป็น "ตัวเลือกการวาดตามความชอบ" ไม่ใช่คำทำนาย — precedent SOULMATE_LOOK_NOTE) */
   preferenceEn?: readonly string[];
+  /** โทนผิว (key ของ SKIN_TONES เท่านั้น — ค่านอก enum ถูกเพิกเฉย) */
+  skin?: string | null;
 }): string {
   const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : LOOK_STYLES.thai.en;
+  const skinEn = opts.skin && opts.skin in SKIN_TONES ? SKIN_TONES[opts.skin].en : null;
   const phys = PHYSIOGNOMY_BY_ELEMENT[opts.element];
   const om = OUTFIT_MOOD_BY_ELEMENT[opts.element];
   return (
@@ -535,6 +558,7 @@ export function soulmateCollagePrompt(opts: {
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
     `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
     `${look}, ` +
+    (skinEn ? `${skinEn}, ` : "") +
     (opts.extraTraitsEn && opts.extraTraitsEn.length ? `${opts.extraTraitsEn.join(", ")}, ` : "") +
     `modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
     `highly detailed natural skin texture with visible pores, photorealistic, ` +
@@ -574,7 +598,7 @@ export function soulmateImageCaptions(reading: SoulmateReading | SoulmateElement
 
 import {
   personSeedFromBirthDate,
-  birthPowerNumber,
+  personalEnergyNumber,
   partAspects,
   analyzeCoherence,
   holisticAdvice,
@@ -618,8 +642,12 @@ export function partnerMatchReading(input: {
   userDominant: Element5;
   userMissing: Element5[];
   userBirthDate: string;
+  /** เวลา/ชื่อ (ไม่บังคับ) — เข้าเลขตัวตนตามสูตรรวม "ส่วนที่ไม่มี = 0" (มติ 31 ส.ค. 2569) */
+  userBirthTime?: string | null;
+  userName?: string | null;
   userLagna?: ZodiacSign | null;
   partnerBirthDate: string;
+  partnerBirthTime?: string | null;
   partnerLagna?: ZodiacSign | null;
   partnerName?: string | null;
 }): PartnerMatchResult | null {
@@ -630,8 +658,12 @@ export function partnerMatchReading(input: {
   const chemistry = wuXingScore(input.userDominant, partnerElement, [...input.userMissing]);
 
   // คะแนน 5 ด้านจากเลขตัวตนทั้งคู่ (มุมผู้ใช้เป็นศูนย์กลาง — convention เดียวกับโหมดองค์รวม)
-  const userNum = String(birthPowerNumber(input.userBirthDate)).padStart(2, "0");
-  const partnerNum = String(birthPowerNumber(input.partnerBirthDate)).padStart(2, "0");
+  const userNum = String(
+    personalEnergyNumber(input.userBirthDate, { name: input.userName, birthTime: input.userBirthTime })
+  ).padStart(2, "0");
+  const partnerNum = String(
+    personalEnergyNumber(input.partnerBirthDate, { name: input.partnerName, birthTime: input.partnerBirthTime })
+  ).padStart(2, "0");
   const parts: HolisticPart[] = [
     {
       label: `ตัวคุณ (เลขตัวตน ${userNum})`,
@@ -739,7 +771,7 @@ function buildPath(key: "ก" | "ข", el: Element5, sourceTh: string, userDomin
     elementTh: THAI_LABEL_5[el],
     sourceTh,
     chemistry: wuXingScore(userDominant, el, [...userMissing]),
-    traitsTh: ELEMENT_PERSONA[el].นิสัยเด่น,
+    traitsTh: PHYSIOGNOMY_BY_ELEMENT[el].personaTh, // ค.1 แท้
     appearance: PHYSIOGNOMY_BY_ELEMENT[el],
     styleTh: OUTFIT_MOOD_TH[el],
     supportDirections: ALL_DIRECTIONS.filter((d) => DIRECTION_TO_ELEMENT[d] === el),
