@@ -263,7 +263,17 @@ test("ชั้นเสริมธาตุจากชื่อผู้ใ�
   assert.equal(withName.nameLayer!.namePower, np, "เลขศาสตร์ชื่อต้องตรง namePower");
   const card = lookup2digitFn(reduceTo99Fn(np));
   assert.equal(withName.nameLayer!.card.id, card.input);
-  assert.equal(withName.nameLayer!.card.name, card.energy_name, "การ์ดพลังชื่อต้องตรงตาราง Master Energy");
+  assert.equal(withName.nameLayer!.card.name, card.energy_name, "ไม่มี energy = การ์ดเลขชื่อ (พฤติกรรมเดิม)");
+  // มติ 31 ส.ค. 2569 + ผู้ทดลองทัก 1 ก.ย.: มีวันเกิด → การ์ดต้องเป็น "การ์ดพลังงานสูตรรวม"
+  // ตัวเดียวกับหน้า /profile (Birth+Name+Time+Day)
+  {
+    const { personalEnergyNumber } = require("../lib/engine/card-id");
+    const withEnergy = soulmateReading("กันย์", "Fire", ["Water"], "สมชาย รักดี", { birthDate: "1990-03-15", birthTime: "18:30" });
+    const expectCard = lookup2digitFn(personalEnergyNumber("1990-03-15", { name: "สมชาย รักดี", birthTime: "18:30" }));
+    assert.equal(withEnergy.nameLayer!.card.id, expectCard.input, "การ์ดชั้นชื่อต้องตรงการ์ดพลังงานสูตรรวม");
+    assert.equal(withEnergy.nameLayer!.namePower, np, "เลขศาสตร์ชื่อยังเป็น NamePower ของชื่อ (ไม่เปลี่ยน)");
+    assert.notEqual(withEnergy.nameLayer!.card.id, card.input, "เคสนี้สองการ์ดต้องต่างกันจริง (พิสูจน์ว่า energy มีผล)");
+  }
   // มุมธาตุชื่อ: ธาตุคู่ = อันดับ 1 ของ wuXingScore(ธาตุชื่อ, แต่ละธาตุ, ที่ขาด) + ตาราง ค.1/สไตล์ตรงธาตุนั้น
   const lens = withName.nameLayer!.lens!;
   assert.ok(lens, "โหมดเนื้อคู่ต้องมี lens");

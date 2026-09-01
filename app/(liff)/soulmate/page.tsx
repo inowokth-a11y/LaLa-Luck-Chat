@@ -426,7 +426,7 @@ export default function SoulmatePage() {
                 <span>ธาตุ{reading.nameLayer.elementTh} · {reading.nameLayer.fit.relation_th} ({reading.nameLayer.fit.final_score >= 0 ? "+" : ""}{reading.nameLayer.fit.final_score})</span>
               </div>
               <div className={styles.factRow}>
-                <span className={styles.factLabel}>เลขศาสตร์ · การ์ดพลังชื่อ ⚠️</span>
+                <span className={styles.factLabel}>เลขศาสตร์ชื่อ · การ์ดพลังงาน ⚠️</span>
                 <span>เลข {reading.nameLayer.namePower}{reading.nameLayer.card.name ? ` · การ์ด ${reading.nameLayer.card.id} "${reading.nameLayer.card.name}"` : ""}</span>
               </div>
               {reading.nameLayer.lens && (
@@ -749,7 +749,7 @@ export default function SoulmatePage() {
             )}
             {m.nameLayer && (
               <div className={styles.factRow}>
-                <span className={styles.factLabel}>เลขศาสตร์ · การ์ดพลังชื่อเขา ⚠️</span>
+                <span className={styles.factLabel}>เลขศาสตร์ชื่อเขา · การ์ดพลังงานเขา ⚠️</span>
                 <span>เลข {m.nameLayer.namePower}{m.nameLayer.card.name ? ` · การ์ด ${m.nameLayer.card.id} "${m.nameLayer.card.name}"` : ""}</span>
               </div>
             )}

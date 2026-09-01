@@ -248,7 +248,9 @@ export interface OwnNameLayer {
   fit: WuXingResult;
   /** เลขศาสตร์ชื่อจาก NamePower (สูตร verify กับตัวอย่างตำราแล้ว §5) */
   namePower: number;
-  /** การ์ดพลังงาน 00-99 ของเลขชื่อ — ตาราง Master Energy จริง (แบบเดียวการ์ดผลรวมสายเลข) */
+  /** การ์ดพลังงาน 00-99 — เมื่อมีข้อมูลวันเกิด (energy) = การ์ดพลังงานส่วนบุคคลสูตรรวม
+   *  (Birth+Name+Time+Day — **ตรงกับการ์ดพลังงานหน้า /profile** ตามมติ 31 ส.ค. 2569 ·
+   *  ผู้ทดลองทักว่าการ์ดสองจุดไม่ตรงกัน 1 ก.ย. 2569) · ไม่มี energy = การ์ดจากเลขชื่อล้วน (เดิม) */
   card: { id: string; name: string | null; essence: string | null };
   /** เนื้อคู่ในมุมธาตุจากชื่อ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ธาตุคู่ที่เกื้อหนุนธาตุชื่อที่สุด
    *  แล้วดึง นิสัย (เทมเพลตหลักธาตุ) + รูปร่างหน้าตา (ค.1 ตำราจริง) + สไตล์ (ชั้นเสริม)
@@ -265,24 +267,32 @@ export interface OwnNameLayer {
   };
 }
 
-/** เลขศาสตร์+การ์ดจากชื่อ — ใช้ร่วมทั้งชื่อผู้ใช้และชื่ออีกฝ่าย */
-function nameNumerology(nm: string): { power: number; card: OwnNameLayer["card"] } {
+/** เลขศาสตร์+การ์ด — เลขศาสตร์ = NamePower ของชื่อเสมอ · การ์ด = พลังงานส่วนบุคคลสูตรรวม
+ *  เมื่อมีวันเกิด (มติ 31 ส.ค. 2569 — ให้ตรงการ์ดพลังงานหลัก) หรือการ์ดเลขชื่อเมื่อไม่มี */
+function nameNumerology(
+  nm: string,
+  energy?: { birthDate: string; birthTime?: string | null } | null
+): { power: number; card: OwnNameLayer["card"] } {
   const power = namePower(nm);
-  const c = lookup2digit(reduceTo99(power));
+  const cardNum = energy
+    ? personalEnergyNumber(energy.birthDate, { name: nm, birthTime: energy.birthTime ?? null })
+    : reduceTo99(power);
+  const c = lookup2digit(cardNum);
   return { power, card: { id: c.input, name: c.energy_name, essence: c.essence } };
 }
 
 function buildOwnNameLayer(
   ownName: string | null | undefined,
   partnerElement: Element5,
-  userMissing: Element5[]
+  userMissing: Element5[],
+  energy?: { birthDate: string; birthTime?: string | null } | null
 ): OwnNameLayer | null {
   const nm = ownName?.trim();
   if (!nm) return null;
   const el = nameElement(nm);
   if (!el) return null;
   // มุมเดียวกับเคมีหลัก: ธาตุ(จากชื่อ)ของเรา ↔ ธาตุคู่ · ธาตุที่เราขาด = Productive Clash ได้
-  const num = nameNumerology(nm);
+  const num = nameNumerology(nm, energy);
   // มุมธาตุชื่อ: จัดอันดับธาตุคู่ที่เกื้อหนุน "ธาตุจากชื่อ" (กลไกเดียวกับ soulmateChemistry)
   const lensRanked = (Object.keys(THAI_LABEL_5) as Element5[])
     .map((cand) => ({ cand, s: wuXingScore(el, cand, [...userMissing]) }))
@@ -322,11 +332,12 @@ export function soulmateReading(
   lagnaSign: ZodiacSign,
   userDominant: Element5,
   userMissing: Element5[],
-  ownName?: string | null
+  ownName?: string | null,
+  energy?: { birthDate: string; birthTime?: string | null } | null
 ): SoulmateReading {
   const seventh = seventhSign(lagnaSign);
   const partner = ZODIAC_TRAITS[seventh];
-  const nameLayer = buildOwnNameLayer(ownName, partner.element, userMissing);
+  const nameLayer = buildOwnNameLayer(ownName, partner.element, userMissing, energy);
   return {
     mode: "lagna",
     lagnaSign,
@@ -360,10 +371,11 @@ export const SOULMATE_NO_TIME_NOTE =
 export function soulmateElementReading(
   userDominant: Element5,
   userMissing: Element5[],
-  ownName?: string | null
+  ownName?: string | null,
+  energy?: { birthDate: string; birthTime?: string | null } | null
 ): SoulmateElementReading {
   const c = soulmateChemistry(userDominant, userDominant, userMissing);
-  const nameLayer = buildOwnNameLayer(ownName, c.rankedElements[0].element, userMissing);
+  const nameLayer = buildOwnNameLayer(ownName, c.rankedElements[0].element, userMissing, energy);
   return {
     mode: "element",
     rankedElements: c.rankedElements,
@@ -708,11 +720,13 @@ export function partnerMatchReading(input: {
 
   // ธาตุชื่อ (ชั้นเสริม — ตารางยังไม่ verify)
   let nameLayer: PartnerMatchResult["nameLayer"] = null;
+  // การ์ดในชั้นชื่อเขา = พลังงานส่วนบุคคลของเขา (สูตรรวม — ส่วนที่ไม่มี = 0 · มติ 31 ส.ค. 2569)
+  const energy = { birthDate: input.partnerBirthDate, birthTime: input.partnerBirthTime ?? null };
   const nm = input.partnerName?.trim();
   if (nm) {
     const el = nameElement(nm);
     if (el) {
-      const num = nameNumerology(nm);
+      const num = nameNumerology(nm, energy);
       nameLayer = { elementTh: THAI_LABEL_5[el], fit: wuXingScore(input.userDominant, el, [...input.userMissing]), namePower: num.power, card: num.card };
     }
   }

@@ -228,8 +228,8 @@ export async function POST(req: Request) {
     }
     const ownName = typeof body.name === "string" ? body.name.trim().slice(0, 100) : null;
     const reading = lagna
-      ? soulmateReading(lagna, profile.dominant, profile.missing, ownName)
-      : soulmateElementReading(profile.dominant, profile.missing, ownName);
+      ? soulmateReading(lagna, profile.dominant, profile.missing, ownName, { birthDate: body.birthDate!, birthTime: body.birthTime ?? null })
+      : soulmateElementReading(profile.dominant, profile.missing, ownName, { birthDate: body.birthDate!, birthTime: body.birthTime ?? null });
     // กลไก 3: ตัวชี้ความสอดคล้องระหว่างศาสตร์ (เฉพาะโหมดลัคนาที่มีชั้น Jyotish)
     const convergence: ConvergenceResult | null =
       jyotish && reading.mode === "lagna" ? soulmateConvergence(reading.chemistry.score.final_score, jyotish) : null;
@@ -378,7 +378,7 @@ export async function POST(req: Request) {
                 ธาตุ: match.nameLayer.elementTh,
                 ความเข้ากัน: match.nameLayer.fit.relation_th,
                 เลขศาสตร์ชื่อ: match.nameLayer.namePower,
-                การ์ดพลังชื่อ: match.nameLayer.card,
+                การ์ดพลังงานของเขา_สูตรรวม: match.nameLayer.card,
               }
             : null,
           จุดแข็ง: match.advice.strengths,
@@ -685,7 +685,7 @@ export async function POST(req: Request) {
                 คะแนน: reading.nameLayer.fit.final_score,
                 ความสัมพันธ์: reading.nameLayer.fit.relation_th,
                 เลขศาสตร์ชื่อ: reading.nameLayer.namePower,
-                การ์ดพลังชื่อ: reading.nameLayer.card,
+                การ์ดพลังงานของคุณ_สูตรรวม: reading.nameLayer.card,
                 ...(reading.nameLayer.lens
                   ? {
                       เนื้อคู่มุมธาตุชื่อ: {
