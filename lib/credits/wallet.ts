@@ -5,6 +5,7 @@
 // 🔴 อ่านพัง → คืน 0 (ไม่ใช่ให้ใช้ฟรี) · หักพัง → คืน error ให้ route ตัดสินใจ
 
 import { createServiceClient } from "@/lib/supabase/server";
+import { isTesterAccount } from "./tester";
 
 // ── บัญชีเครดิตไม่จำกัด (ผู้ใช้สั่ง 10 ส.ค. 2569: แอดมิน whootthira@gmail.com) ──
 // ทำที่ชั้นกระเป๋าจุดเดียว → มีผลทุก route อัตโนมัติ (chat/dream/oracle/logo/label/vision)
@@ -25,7 +26,8 @@ export function hasUnlimitedCredits(authUid: string | null | undefined): boolean
 
 /** ยอดเครดิตคงเหลือ (0 ถ้ายังไม่มีกระเป๋า/อ่านล้มเหลว) */
 export async function getCreditBalance(authUid: string): Promise<number> {
-  if (hasUnlimitedCredits(authUid)) return UNLIMITED_BALANCE;
+  // กลุ่มผู้ทดลองใช้ (whitelist อีเมลใน DB — migration 043) ได้สิทธิ์เดียวกับบัญชีไม่จำกัด
+  if (hasUnlimitedCredits(authUid) || (await isTesterAccount(authUid))) return UNLIMITED_BALANCE;
   try {
     const svc = createServiceClient();
     const { data, error } = await svc
@@ -58,8 +60,10 @@ export async function spendCredits(
   action: string,
   ref?: string
 ): Promise<SpendResult> {
-  // บัญชีไม่จำกัด: ไม่หักจริง ไม่เขียน ledger (กันตัวเลขทดสอบของแอดมินปนสถิติรายรับ)
-  if (hasUnlimitedCredits(authUid)) return { ok: true, balance: UNLIMITED_BALANCE };
+  // บัญชีไม่จำกัด/ผู้ทดลองใช้: ไม่หักจริง ไม่เขียน ledger (กันตัวเลขทดสอบปนสถิติรายรับ)
+  if (hasUnlimitedCredits(authUid) || (await isTesterAccount(authUid))) {
+    return { ok: true, balance: UNLIMITED_BALANCE };
+  }
   try {
     const svc = createServiceClient();
     const { data, error } = await svc.rpc("spend_credits", {
