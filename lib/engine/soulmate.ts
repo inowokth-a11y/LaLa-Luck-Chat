@@ -569,14 +569,19 @@ export function soulmateCollagePrompt(opts: {
   const skinEn = opts.skin && opts.skin in SKIN_TONES ? SKIN_TONES[opts.skin].en : null;
   const phys = PHYSIOGNOMY_BY_ELEMENT[opts.element];
   const om = OUTFIT_MOOD_BY_ELEMENT[opts.element];
+  // วลีรูปลักษณ์ต้อง "ติดตัวบุคคล" ในประโยคแรกสุด (1 ก.ย. 2569 — ผู้ทดลองรายงานภาพไม่ตรงแบบ ข:
+  // ข้อความเพศที่เพิ่มไปดันวลีรูปลักษณ์ลึกเข้าไปใน prompt จนโมเดลภาพให้น้ำหนักน้อย) + ย้ำซ้ำระดับ panel
+  const traits = opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn;
+  const gw = GENDER_WORDS[opts.gender];
   return (
-    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} shown in four different poses and camera angles arranged in a 2x2 grid — ` +
-    `front close-up portrait of ${GENDER_WORDS[opts.gender].pos} face smiling, ${GENDER_WORDS[opts.gender].pos} side profile view, ` +
-    `${GENDER_WORDS[opts.gender].pos} seated relaxed pose, and ${GENDER_WORDS[opts.gender].pos} full-body standing pose with arms crossed showing ${GENDER_WORDS[opts.gender].pos} body build. ` +
-    `All four panels depict this exact same one ${GENDER_WORDS[opts.gender].noun} — the same ${GENDER_WORDS[opts.gender].noun} appears in every panel, same gender in all four panels, no other person appears anywhere in the collage. ` +
-    `Each panel shows ${GENDER_WORDS[opts.gender].pos} completely alone, exactly one person per panel, never two people together. ` +
+    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} who clearly and unmistakably has ${traits}, ` +
+    `shown in four different poses and camera angles arranged in a 2x2 grid — ` +
+    `front close-up portrait of ${gw.pos} face smiling, ${gw.pos} side profile view, ` +
+    `${gw.pos} seated relaxed pose, and ${gw.pos} full-body standing pose with arms crossed clearly showing ${gw.pos} body build exactly as described. ` +
+    `In every single panel ${gw.subj} has the exact same ${traits} — the same face shape and the same body silhouette in all four panels, no panel may deviate from this appearance. ` +
+    `All four panels depict this exact same one ${gw.noun} — the same ${gw.noun} appears in every panel, same gender in all four panels, no other person appears anywhere in the collage. ` +
+    `Each panel shows ${gw.pos} completely alone, exactly one person per panel, never two people together. ` +
     `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
-    `The person clearly and unmistakably has: ${opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn} — this face shape and body type must be visible in every panel. ` +
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
     `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
     `${look}, ` +
