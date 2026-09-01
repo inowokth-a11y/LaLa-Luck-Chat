@@ -1731,10 +1731,10 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
 - **E2E จริง:** ดวงกันย์+สเปกไม้ → ก=น้ำ(+2) ข=ไม้(+2) · AI เล่าสองทาง · ภาพ pathChoice="b" →
   prompt นรลักษณ์ไม้จริง ไม่มีวลีน้ำ (ตรวจจาก image_generation_log) + FLUX ออกสูงเพรียวหน้ายาวตรงสเปก
 
-### 🚧 กลุ่มผู้ทดลองใช้ (tester whitelist) — โค้ดเสร็จ 1 ก.ย. 2569 · ⛔ migration 043 ยังไม่ได้รัน (Supabase down)
+### ✅ กลุ่มผู้ทดลองใช้ (tester whitelist) — เสร็จ+verify prod ครบ 1 ก.ย. 2569
 
 ผู้ใช้สั่ง: หน้าแอดมินใส่อีเมลกลุ่มทดลอง → ใช้งานไม่หักเครดิต
-- `migration 043_tester_whitelist.sql` (**ยังไม่ได้รันบน prod — ดูเหตุการณ์ด้านล่าง**):
+- `migration 043_tester_whitelist.sql` (**รัน prod แล้ว** — หลังผู้ใช้ restore โปรเจกต์):
   ตาราง `tester_whitelist_e` (email pk lowercase · active · RLS ไม่มี policy = service role เท่านั้น)
   + RPC `is_tester_account(uuid)` SECURITY DEFINER join auth.users — เพิ่มอีเมลก่อนสมัครได้
   พอสมัครสิทธิ์ติดทันที · มี NOTIFY pgrst ตามบทเรียน PGRST202
@@ -1746,10 +1746,11 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
   ชิปจะโชว์ ⭐ 999999 เหมือนแอดมิน
 - `/api/admin/testers` (GET/POST/PATCH/DELETE · gate ADMIN_EMAILS) + `TesterAdmin.tsx`
   ส่วน "🧪 กลุ่มผู้ทดลองใช้" ใน /admin · เทสต์ 553 ผ่าน · build ผ่าน
-- ⬜ ค้างเมื่อ DB กลับมา: รัน migration 043 → verify (anon select 0/insert 42501 · RPC anon
-  ปฏิเสธ · เพิ่มอีเมลแอดมิน→RPC true→getCreditBalance 999999→ปิด active→false → ลบแถว)
+- **verify E2E กับ prod จริงครบ (test user + cleanup):** anon select 0 แถว · insert/RPC
+  ปฏิเสธ 42501 · เพิ่มอีเมล → isTester true → getCreditBalance 999999 → spend 40 no-op
+  ledger 0 แถว → ปิด active → false → ยอดกลับ 0 → ลบ user+แถวสะอาด
 
-### 🔴 เหตุการณ์ 1 ก.ย. 2569: Supabase โปรเจกต์เข้าถึงไม่ได้ทั้งระบบ (น่าจะ auto-pause)
+### ✅ เหตุการณ์ 1 ก.ย. 2569 (คลี่คลายแล้ว): Supabase auto-pause — ผู้ใช้ restore แล้ว prod ฟื้น
 
 หลักฐานที่ตรวจครบ (อย่าไล่ซ้ำ):
 - `umffopbnkqyvzbbjyrum.supabase.co` **NXDOMAIN จาก authoritative NS** (DoH dns.google ยืนยัน) ·
@@ -1759,8 +1760,9 @@ Dasha) → ประเมินแล้วเปิดเป็นงานว
 - ข้อสันนิษฐานหลัก: **free tier auto-pause หลังไม่มี activity 7 วัน** (เซสชันก่อนหน้า 25 ส.ค. →
   ตรวจพบ 1 ก.ย. = 7 วันพอดี) — cron warm-og รายวันอาจไม่นับเป็น DB activity/หรือ 401 เพราะ
   CRON_SECRET ยังไม่ได้ตั้ง (งานค้างฝั่งผู้ใช้)
-- 🔴 **ผู้ใช้ต้องทำ: เข้า supabase.com dashboard → Restore/Unpause โปรเจกต์** แล้วพิจารณา
-  อัปเกรด paid tier (กัน pause ซ้ำ) หรือ ตั้ง CRON_SECRET + cron ที่แตะ DB จริงทุกวัน
+- ✅ ผู้ใช้ restore แล้ว (1 ก.ย. 2569) — DNS กลับมา · /card/37 ตอบ 200 พร้อมชื่อการ์ดจาก DB
+- ⚠️ **กันเกิดซ้ำ (ยังไม่ได้ทำ):** อัปเกรด paid tier หรือ ตั้ง CRON_SECRET ใน Vercel ให้ cron
+  รายวันแตะ DB จริง — ไม่งั้นเงียบ 7 วันจะโดน pause อีก (prod ล่มเงียบๆ แบบรอบนี้)
 - บทเรียนเครือข่ายแถม: ISP วงนี้บล็อก cloudflare-dns.com (connection reset) — ตรวจ DNS ให้ใช้
   DoH ผ่าน dns.google · `timeout` ไม่มีบน macOS (ใช้ connectionTimeoutMillis ของ pg แทน)
 
