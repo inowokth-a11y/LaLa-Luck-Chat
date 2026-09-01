@@ -329,3 +329,16 @@ test("SKIN_TONES — enum ปลอดภัย: ค่านอก enum = promp
   assert.ok(withSkin.includes(SKIN_TONES.tan.en), "วลีโทนผิวต้องเข้า prompt");
   assert.notEqual(withSkin, base);
 });
+
+test("คอลลาจ — เพศถูกย้ำทุกท่า/ทุกช่อง (แก้เพศหลุด 1 ก.ย. 2569)", async () => {
+  const { soulmateCollagePrompt } = await import("../lib/engine/soulmate");
+  const f = soulmateCollagePrompt({ gender: "female", element: "Water", look: "thai" });
+  // "woman" ต้องปรากฏหลายครั้ง (ต้นเรื่อง + บังคับทุกช่อง) และสรรพนาม her ทอทุกท่า
+  assert.ok((f.match(/woman/g) ?? []).length >= 3, "ต้องย้ำ woman อย่างน้อย 3 ครั้ง");
+  assert.ok((f.match(/\bher\b/g) ?? []).length >= 4, "สรรพนาม her ต้องทอเข้าทุกท่า");
+  assert.ok(f.includes("same gender in all four panels"));
+  assert.ok(!/\bman\b/.test(f), "prompt หญิงห้ามมีคำ man เดี่ยวๆ (กันเหนี่ยวนำ)");
+  const m = soulmateCollagePrompt({ gender: "male", element: "Fire", look: "thai" });
+  assert.ok((m.match(/\bman\b/g) ?? []).length >= 3 && (m.match(/\bhis\b/g) ?? []).length >= 4);
+  assert.ok(!/woman/.test(m), "prompt ชายห้ามมีคำ woman");
+});

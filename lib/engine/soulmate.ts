@@ -387,6 +387,14 @@ const GENDER_PHRASE: Record<PartnerGender, string> = {
   any: "an adult person",
 };
 
+// สรรพนาม/คำนามเพศสำหรับทอเข้า prompt คอลลาจรายท่า (1 ก.ย. 2569 — ผู้ทดลองรายงานเพศหลุด
+// ใน 1 ช่อง: FLUX drift ตรงท่าที่บรรยายแบบไม่มีเพศ จึงต้องย้ำเพศทุกท่า + ทุกช่อง)
+const GENDER_WORDS: Record<PartnerGender, { noun: string; pos: string; subj: string }> = {
+  male: { noun: "man", pos: "his", subj: "he" },
+  female: { noun: "woman", pos: "her", subj: "she" },
+  any: { noun: "person", pos: "their", subj: "they" },
+};
+
 /** โทนสี/บรรยากาศตามธาตุของราศีคู่ — เชื่อมกับ ELEMENT ที่คำนวณ ไม่ใช่ให้ AI เดา */
 // ปรับ 23 ส.ค. 2569 (feedback ผู้ใช้: ภาพมืด/จัดฉาก/ไม่เป็นธรรมชาติ) — สีธาตุเป็นแค่ "สีเน้น"
 // ในเสื้อผ้า/ฉาก ไม่ใช่โทนคุมทั้งภาพ (โทนน้ำเงินเข้มทั้งภาพมาจาก mood เดิมของธาตุน้ำ)
@@ -551,8 +559,10 @@ export function soulmateCollagePrompt(opts: {
   const om = OUTFIT_MOOD_BY_ELEMENT[opts.element];
   return (
     `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} shown in four different poses and camera angles arranged in a 2x2 grid — ` +
-    `front close-up portrait smiling, side profile view, seated relaxed pose, full-body standing pose with arms crossed showing the body build. ` +
-    `Each panel shows that person completely alone, exactly one person per panel, never two people together. ` +
+    `front close-up portrait of ${GENDER_WORDS[opts.gender].pos} face smiling, ${GENDER_WORDS[opts.gender].pos} side profile view, ` +
+    `${GENDER_WORDS[opts.gender].pos} seated relaxed pose, and ${GENDER_WORDS[opts.gender].pos} full-body standing pose with arms crossed showing ${GENDER_WORDS[opts.gender].pos} body build. ` +
+    `All four panels depict this exact same one ${GENDER_WORDS[opts.gender].noun} — the same ${GENDER_WORDS[opts.gender].noun} appears in every panel, same gender in all four panels, no other person appears anywhere in the collage. ` +
+    `Each panel shows ${GENDER_WORDS[opts.gender].pos} completely alone, exactly one person per panel, never two people together. ` +
     `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
     `The person clearly and unmistakably has: ${opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn} — this face shape and body type must be visible in every panel. ` +
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
