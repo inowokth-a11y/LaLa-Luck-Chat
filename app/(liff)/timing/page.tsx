@@ -9,6 +9,7 @@ import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
 import { rankAuspiciousDays, ACTIVITIES, ACTIVITY_FIELDS, type DayRanking, type Verdict } from "@/lib/engine/timing";
 import { useStoredProfile } from "../_components/useStoredProfile";
+import IdentityLensNote from "../_components/IdentityLensNote";
 
 const TH_MONTH = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 function thDate(iso: string, dayTh: string): string {
@@ -82,6 +83,8 @@ export default function TimingPage() {
         <h1 style={S.h1}>หาฤกษ์ดี</h1>
         <p style={S.sub}>เลือกงานที่จะทำ + ช่วงวันที่ — ระบบจัดอันดับวันดีและฤกษ์รายชั่วโมงให้ (คำนวณจากกาลโยค + อุบากอง)</p>
       </header>
+
+      <IdentityLensNote mode="timing" />
 
       <div style={S.form}>
         <div>

@@ -137,22 +137,24 @@ export async function POST(req: Request) {
       let uid: string | null = null;
       let birthDate: string | null = null;
       let birthTime: string | null = null;
+      let fullName: string | null = null;
       try {
         const supabase = await createSupabaseServer();
         uid = (await supabase.auth.getUser()).data.user?.id ?? null;
         if (uid) {
           const { data } = await supabase
             .from("user_profiles_e")
-            .select("birth_date,birth_time")
+            .select("birth_date,birth_time,first_name,last_name")
             .eq("auth_uid", uid)
             .maybeSingle();
           birthDate = data?.birth_date ?? null;
           birthTime = data?.birth_time ?? null;
+          fullName = [data?.first_name, data?.last_name].filter(Boolean).join("") || null;
         }
       } catch {
         uid = null;
       }
-      const profileCtx = buildProfileContext(birthDate);
+      const profileCtx = buildProfileContext(birthDate, { name: fullName, birthTime });
       // ยุคชีวิต (ชั้น Jyotish สากล ฿0) — เฉพาะเมื่อมีเวลาเกิด · พังไม่ล้มคำทำนายแรกพบ
       let dashaLayer: ReturnType<typeof lifeDasha> = null;
       if (birthDate && birthTime) {
@@ -183,6 +185,7 @@ export async function POST(req: Request) {
           birthMonth: profileCtx.birthMonth,
           cardContext: body.context ?? undefined,
           lifeDasha: dashaLayer,
+          identity: profileCtx.identity ?? null,
         }),
         maxTokens: 1600,
       });
@@ -265,10 +268,13 @@ export async function POST(req: Request) {
         const supabase = await createSupabaseServer();
         const { data } = await supabase
           .from("user_profiles_e")
-          .select("birth_date")
+          .select("birth_date,birth_time,first_name,last_name")
           .eq("auth_uid", userId)
           .maybeSingle();
-        profileCtx = buildProfileContext(data?.birth_date);
+        profileCtx = buildProfileContext(data?.birth_date, {
+          name: [data?.first_name, data?.last_name].filter(Boolean).join("") || null,
+          birthTime: data?.birth_time ?? null,
+        });
       } catch (e) {
         console.warn("[chat/hybrid] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
       }
@@ -337,10 +343,13 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
     const supabase = await createSupabaseServer();
     const { data } = await supabase
       .from("user_profiles_e")
-      .select("birth_date")
+      .select("birth_date,birth_time,first_name,last_name")
       .eq("auth_uid", pool.userId)
       .maybeSingle();
-    profileCtx = buildProfileContext(data?.birth_date);
+    profileCtx = buildProfileContext(data?.birth_date, {
+      name: [data?.first_name, data?.last_name].filter(Boolean).join("") || null,
+      birthTime: data?.birth_time ?? null,
+    });
   } catch (e) {
     console.warn("[chat/plan] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
   }

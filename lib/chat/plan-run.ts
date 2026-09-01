@@ -16,6 +16,7 @@ import { LALA_PERSONA } from "@/lib/ai/persona";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
+import { identityLens } from "@/lib/engine/identity-lens";
 import {
   validateChatPlan,
   executePlan,
@@ -40,7 +41,10 @@ const ZODIAC_ANIMALS = [
 ];
 const zodiacAnimalFromYear = (yearAd: number) => ZODIAC_ANIMALS[(((yearAd - 2020) % 12) + 12) % 12];
 
-export function buildProfileContext(birthDate: string | null | undefined): PlanProfileContext | null {
+export function buildProfileContext(
+  birthDate: string | null | undefined,
+  extra?: { name?: string | null; birthTime?: string | null }
+): PlanProfileContext | null {
   if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
   const year = Number(birthDate.slice(0, 4));
   const month = Number(birthDate.slice(5, 7));
@@ -58,7 +62,20 @@ export function buildProfileContext(birthDate: string | null | undefined): PlanP
   });
   // ธาตุ 4-bucket (Fire/Earth/Wood/Water) เป็นสับเซ็ตของ Element5 อยู่แล้ว — ไม่มีทางเป็น Metal
   // birthDay/birthMonth ให้ myPersonalYear (แนวโน้มปี) — ยังอยู่ฝั่ง server เท่านั้น AI ไม่เห็น
-  return { dominant: seed.dominant, missing: seed.missing, seed, birthDay: day, birthMonth: month, dayOfWeekTh: thaiDayOfWeek(birthDate) };
+  // เลนส์เลขตัวตน (มติ 1 ก.ย. 2569) — คำนวณจากข้อมูลโปรไฟล์ชุดเดียวกับการ์ด /profile
+  // (extra ไม่ครบ = ส่วนที่ไม่มีเป็น 0 ตามสูตรรวม) · พังไม่ล้ม ctx หลัก
+  let identity: PlanProfileContext["identity"];
+  try {
+    identity = identityLens(birthDate, {
+      name: extra?.name ?? null,
+      birthTime: extra?.birthTime ?? null,
+      dominant: seed.dominant as PlanProfileContext["dominant"],
+      missing: seed.missing as PlanProfileContext["missing"],
+    });
+  } catch {
+    identity = undefined;
+  }
+  return { dominant: seed.dominant, missing: seed.missing, seed, birthDay: day, birthMonth: month, dayOfWeekTh: thaiDayOfWeek(birthDate), identity };
 }
 
 // ---------------------------------------------------------------------------

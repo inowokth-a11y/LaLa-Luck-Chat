@@ -25,6 +25,8 @@ import { getWorkShield, toWorkPattern, WORK_SHIELD_CAVEAT } from "../engine/work
 import { DAY_ELEMENT } from "../engine/element";
 import { numberAspects, NUMBER_ASPECTS_CAVEAT } from "../engine/number-aspects";
 import { SUPPORT_OF } from "../engine/dual-advice";
+import type { IdentityLens } from "../engine/identity-lens";
+import { IDENTITY_LENS_CAVEAT } from "../engine/identity-lens";
 import { phoneOfficialReading, PHONE_OFFICIAL_NOTE } from "../engine/phone-official";
 import { scoreCandidateName, nameComposition } from "../engine/naming";
 import { analyzeNameTaksa } from "../engine/taksa-naming";
@@ -56,6 +58,8 @@ export interface PlanProfileContext {
   birthMonth?: number;
   /** วันในสัปดาห์ของวันเกิด (ไทย) — ชั้นทักษาปกรณ์ของ myNameMatch · server เติมให้ AI ไม่เห็น */
   dayOfWeekTh?: string;
+  /** เลนส์เลขตัวตน (การ์ดพลังงานสูตรรวม — มติ 1 ก.ย. 2569) · server เติมจากโปรไฟล์ AI ไม่เห็นข้อมูลดิบ */
+  identity?: IdentityLens;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,6 +78,7 @@ export const PLAN_FN_NAMES = [
   "digitSumReduce",
   "wuXingScore",
   "myElementSeed",
+  "myIdentityAspects",
   "myWuXingVsElement",
   "myNumberScore",
   "myNumberAspects",
@@ -318,6 +323,22 @@ export const PLAN_ALLOWLIST: Record<PlanFnName, FnSpec> = {
   },
 
   // ---- ฟังก์ชัน "ของฉัน" — ใช้วันเกิดของผู้ใช้ที่ server เติม (AI ไม่ส่งวันเกิดมา) ----
+  myIdentityAspects: {
+    logic: 1,
+    description:
+      "เลขตัวตน 00-99 ของผู้ใช้ (การ์ดพลังงานสูตรรวม) + คะแนน 5 ด้าน + ธาตุจากเลขตัวตน (เลนส์ทางเลือก) — " +
+      "ใช้เมื่อถามเรื่อง 'เลขตัวตนของฉัน/เลขประจำตัวฉันดีมั้ย/พลังจากเลขของฉัน' หรือประกอบคำถามพื้นดวง",
+    argsHint: "{} (ไม่ต้องใส่อะไร — ระบบเติมจากโปรไฟล์ผู้ใช้เอง)",
+    caveat: IDENTITY_LENS_CAVEAT,
+    chartable: null,
+    needsProfile: true,
+    check: () => ({ ok: true, args: {} }),
+    run: (_a, ctx) =>
+      ctx!.identity ?? {
+        error: "โปรไฟล์ยังไม่มีข้อมูลพอคำนวณเลขตัวตน (ต้องมีวันเกิดในบัญชี)",
+      },
+    defaultLabel: () => "เลขตัวตนของฉัน (สองเลนส์)",
+  },
   myElementSeed: {
     logic: 1,
     description:

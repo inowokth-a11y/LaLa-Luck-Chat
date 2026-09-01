@@ -20,6 +20,7 @@ import { getWellnessPair, FRAMING_CAVEAT, type WellnessActivity } from "@/lib/en
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import styles from "./wellness.module.css";
+import IdentityLensNote from "../_components/IdentityLensNote";
 
 const ZODIAC_ANIMALS = ["ชวด","ฉลู","ขาล","เถาะ","มะโรง","มะเส็ง","มะเมีย","มะแม","วอก","ระกา","จอ","กุน"];
 const zodiacFromYear = (y: number) => ZODIAC_ANIMALS[(((y - 2020) % 12) + 12) % 12];
@@ -82,6 +83,8 @@ export default function WellnessPage() {
           คำนวณจากวันเกิดจริงตามตำราธาตุเจ้าเรือน ไม่ใช้ AI
         </p>
       </header>
+
+      <IdentityLensNote mode="wellness" />
 
       <section className={styles.panel}>
         <h2 className={styles.h2}>1. ธาตุของคุณ</h2>

@@ -11,6 +11,7 @@ import { calculatePersonalYear, getPersonalYearGuidance } from "@/lib/engine/ele
 import type { Element5 } from "@/lib/engine/element";
 import type { LifeDasha } from "@/lib/engine/life-dasha";
 import { dualAdvicePaths, dualAdviceContextTh } from "@/lib/engine/dual-advice";
+import { identityLensSummaryTh, type IdentityLens } from "@/lib/engine/identity-lens";
 
 export const FIRST_READING_SYSTEM = `${LALA_PERSONA}
 
@@ -21,6 +22,9 @@ export const FIRST_READING_SYSTEM = `${LALA_PERSONA}
 1. ใช้ได้เฉพาะข้อมูลใน <พื้นดวง> — ห้ามแต่งนิสัย อาชีพ ตัวเลข หรือคำทำนายเพิ่มเอง
 2. โครงคำตอบ (เรียงตามนี้ ใช้หัวข้อสั้น):
    ① ทักทาย + นิสัยเด่น/พลังพิเศษจากธาตุ (เล่าเหมือนโหรอ่านพื้นดวง ไม่ใช่ลอกลิสต์)
+   ①.5 ถ้ามี "มุมเลขตัวตน_เลนส์ทางเลือก" — เสริม 2-3 ประโยค: เลขตัวตน+การ์ด+คะแนนภาพรวม และ
+      ธาตุจากเลขตัวตนเป็น **อีกมุมหนึ่ง** เทียบกับธาตุกำเนิด (สองมุมนี้แสดงคู่กัน ห้ามเฉลี่ย
+      ห้ามบอกว่ามุมไหนถูกกว่า — ผู้ใช้เลือกจุดเน้นเอง) · ตัวเลขตามข้อมูลเป๊ะ
    ② จุดที่ต้องพยายาม (จากธาตุที่ขาด — น้ำเสียงให้กำลังใจ ไม่ตำหนิ)
    ③ อาชีพ/งานที่เข้าทาง (จากลิสต์ที่ให้ เลือกเล่า 2-3 แนว)
    ④ ช่วงนี้อะไรเด่น + ต้องระวังอะไร (จากปีส่วนบุคคล + สัปดาห์นี้: บอกวันเป็นมิตร/วันควรใจเย็น
@@ -46,6 +50,8 @@ export function buildFirstReadingInput(opts: {
   cardContext?: unknown;
   /** ยุคชีวิต Vimshottari (ชั้น Jyotish สากล — คำนวณเมื่อโปรไฟล์มีเวลาเกิด) — ไม่บังคับ */
   lifeDasha?: LifeDasha | null;
+  /** เลนส์เลขตัวตน (การ์ดพลังงานสูตรรวม — มติ 1 ก.ย. 2569) — ไม่บังคับ */
+  identity?: IdentityLens | null;
 }): string {
   const reading = buildFirstReading(opts.dominant, opts.missing);
   let year: Record<string, unknown> | null = null;
@@ -68,6 +74,9 @@ export function buildFirstReadingInput(opts: {
             caveat: opts.lifeDasha.caveats,
           },
         }
+      : {}),
+    ...(opts.identity
+      ? { มุมเลขตัวตน_เลนส์ทางเลือก: { สรุป: identityLensSummaryTh(opts.identity), caveat: opts.identity.caveats } }
       : {}),
     หมายเหตุบังคับ: FIRST_READING_CAVEAT,
   };

@@ -17,6 +17,7 @@ import { getDbUsage, bumpDbUsage, logicBucket } from "@/lib/chat/usage-db";
 import { decideCharge, creditCost, chargeDeniedMessage, freeLaunchMode } from "@/lib/credits/charge";
 import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { LALA_PERSONA } from "@/lib/ai/persona";
+import { identityLens, identityLensSummaryTh, type IdentityLens } from "@/lib/engine/identity-lens";
 import { FIGURE_TONE_PROMPT } from "@/lib/share";
 import { getMemoryBlock, rememberEvent } from "@/lib/memory";
 
@@ -37,7 +38,10 @@ const LALA_ORACLE_SYSTEM = `${LALA_PERSONA}
 5. ความยาว 3-4 ย่อหน้าสั้น ๆ ปิดท้ายด้วยข้อคิด 1 ประโยค
 6. คะแนนรวมเป็นเพียงตัวช่วยอ่านภาพรวม **ห้ามพูดเหมือนเป็นคำฟันธง**
 
-${FIGURE_TONE_PROMPT}`;
+${FIGURE_TONE_PROMPT}
+เพิ่มเติม: ถ้ามี "มุมเลขตัวตน_เลนส์ทางเลือก" — เสริมท้าย 1-2 ประโยคเชื่อมเลขตัวตน/การ์ดประจำตัว
+ของผู้ถามกับการ์ดที่เปิดได้ (ใช้ข้อมูลที่ให้เท่านั้น) และบอกว่าเป็น "อีกมุมหนึ่ง" คู่กับธาตุกำเนิด
+— ห้ามเฉลี่ยรวมสองมุม ห้ามบอกว่ามุมไหนถูกกว่า`;
 
 interface CardRow {
   energy_id: string;
@@ -82,11 +86,30 @@ export async function POST(req: Request) {
     //      โควตา cookie ที่ล้างแล้วได้ใหม่) · Safety Gate ต้องมาก่อนเสมอ ----
     let userId: string | null = null;
     let isGuest = false;
+    let lens: IdentityLens | null = null;
     try {
       const supabase = await createSupabaseServer();
       const u = (await supabase.auth.getUser()).data.user;
       userId = u?.id ?? null;
       isGuest = Boolean(u?.is_anonymous);
+      // เลนส์เลขตัวตน (มติ 1 ก.ย. 2569) — จากโปรไฟล์ชุดเดียวกับการ์ด /profile · พังไม่ล้มพิธี
+      if (userId) {
+        try {
+          const { data: prof } = await supabase
+            .from("user_profiles_e")
+            .select("birth_date,birth_time,first_name,last_name")
+            .eq("auth_uid", userId)
+            .maybeSingle();
+          if (prof?.birth_date) {
+            lens = identityLens(prof.birth_date, {
+              name: [prof.first_name, prof.last_name].filter(Boolean).join("") || null,
+              birthTime: prof.birth_time ?? null,
+              dominant: (body.dominant ?? "Earth") as Element5,
+              missing: (body.missing ?? []) as Element5[],
+            });
+          }
+        } catch {}
+      }
     } catch (e) {
       console.warn("[oracle] อ่าน session ไม่สำเร็จ — ถือว่าไม่ล็อกอิน", e);
     }
@@ -159,6 +182,7 @@ export async function POST(req: Request) {
         องค์ประกอบคะแนน: reading.components,
         คะแนนรวม: reading.aggregate,
         สรุปภาพรวม: reading.label,
+        ...(lens ? { มุมเลขตัวตน_เลนส์ทางเลือก: { สรุป: identityLensSummaryTh(lens), caveat: lens.caveats } } : {}),
       },
       null,
       1

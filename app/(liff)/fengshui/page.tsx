@@ -21,6 +21,7 @@ import { relationColorVar } from "@/lib/engine/compatibility";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
 import styles from "./fengshui.module.css";
 import FunctionChat from "../_components/FunctionChat";
+import IdentityLensNote from "../_components/IdentityLensNote";
 
 const ZODIAC_ANIMALS = ["ชวด","ฉลู","ขาล","เถาะ","มะโรง","มะเส็ง","มะเมีย","มะแม","วอก","ระกา","จอ","กุน"];
 const zodiacFromYear = (y: number) => ZODIAC_ANIMALS[(((y - 2020) % 12) + 12) % 12];
@@ -79,6 +80,8 @@ export default function FengShuiPage() {
           พร้อมวิธีปรับแก้ตามหลักเบญจธาตุ
         </p>
       </header>
+
+      <IdentityLensNote mode="fengshui" />
 
       <section className={styles.panel}>
         <h2 className={styles.h2}>1. ธาตุของคุณ</h2>
