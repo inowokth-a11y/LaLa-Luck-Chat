@@ -6,7 +6,7 @@
 // ขอบเขต v1 (ผู้ใช้เคาะ 21 ส.ค. 2569): 4 หัวข้อจากข้อมูลจริง (ข.2 + ดาวเจ้าเรือน + เคมีธาตุ + ทิศ)
 // เพศคู่ที่สนใจ = ผู้ใช้เลือกเองเสมอ ห้ามเดา · ภาพ AI ต้องมีป้ายกำกับทุกรูป
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
 import FunctionChat from "../_components/FunctionChat";
 import { useStoredProfile } from "../_components/useStoredProfile";
@@ -165,7 +165,6 @@ export default function SoulmatePage() {
     setNeedsTopup(false);
     setImages([]);
     setImgError(null);
-    if (!partnerGender) return setError("กรุณาเลือกเพศคู่ที่สนใจก่อนค่ะ");
     const year = Number(birthDate.slice(0, 4));
     if (!year) return setError("กรุณากรอกวันเกิดให้ครบ");
     if (year > 2400) return setError("กรุณากรอกเป็น ค.ศ. (เช่น 1995) ไม่ใช่ พ.ศ.");
@@ -209,6 +208,17 @@ export default function SoulmatePage() {
     }
   }
 
+  // เคาะ 2 ก.ย. 2569: ไม่มีทางแยก ก/ข = สร้างภาพให้เลยหลังคำทำนายขึ้น (ครั้งเดียวต่อชุดผล)
+  const autoGenKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (!res || res.dualPath || images.length || imgLoading) return;
+    const key = JSON.stringify([birthDate, birthTime, partnerGender]);
+    if (autoGenKey.current === key) return;
+    autoGenKey.current = key;
+    generateImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [res]);
+
   async function generateImages(choice?: "a" | "b") {
     if (imgLoading) return;
     setImgError(null);
@@ -230,7 +240,7 @@ export default function SoulmatePage() {
           birthDate,
           birthTime: birthTime || undefined,
           province: birthTime ? province : undefined,
-          partnerGender,
+          partnerGender: partnerGender || undefined,
           look: look || undefined,
         }),
       });
@@ -341,9 +351,9 @@ export default function SoulmatePage() {
             <input type="text" className={styles.input} value={ownName} onChange={(e) => setOwnName(e.target.value)} placeholder="เช่น สมชาย รักดี" maxLength={100} />
           </label>
           <label className={styles.field}>
-            <span>เพศคู่ที่สนใจ (ระบบจะไม่เดาให้)</span>
-            <select className={styles.input} value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)} required>
-              <option value="">— เลือก —</option>
+            <span>เพศคู่ที่สนใจ (ไม่เลือก = ระบบดูจากเพศในโปรไฟล์ของคุณ)</span>
+            <select className={styles.input} value={partnerGender} onChange={(e) => setPartnerGender(e.target.value)}>
+              <option value="">— ให้ระบบเลือกจากโปรไฟล์ —</option>
               <option value="male">ผู้ชาย</option>
               <option value="female">ผู้หญิง</option>
               <option value="any">ไม่ระบุ</option>

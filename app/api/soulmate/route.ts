@@ -178,8 +178,15 @@ export async function POST(req: Request) {
     const mode = body.mode === "images" ? "images" : body.mode === "match" ? "match" : "reading";
 
     // เพศคู่ที่สนใจ — ผู้ใช้ต้องเลือกเอง ห้ามเดา (กติกาในคิว §15) · โหมด match ไม่ใช้เพศ
-    const partnerGender = (body.partnerGender ?? "any") as PartnerGender;
-    if (mode !== "match" && (!body.partnerGender || !["male", "female", "any"].includes(body.partnerGender))) {
+    // เพศคู่: เลือกเอง = ตามนั้น · ไม่เลือก = อนุมานตรงข้ามจากเพศผู้ใช้ · ไม่มีข้อมูล = "any"
+    // (แบบรวม/ให้โมเดลเลือก — มติผู้ใช้ 2 ก.ย. 2569 ลดขั้นตอน ทับมติ "ห้ามเดา ไม่เลือก=400" 21 ส.ค.)
+    const partnerGender: PartnerGender =
+      body.partnerGender && ["male", "female", "any"].includes(body.partnerGender)
+        ? (body.partnerGender as PartnerGender)
+        : body.userGender === "male" ? "female"
+        : body.userGender === "female" ? "male"
+        : "any";
+    if (mode !== "match" && body.partnerGender && !["male", "female", "any"].includes(body.partnerGender)) {
       return NextResponse.json({ error: "กรุณาเลือกเพศคู่ที่สนใจก่อนค่ะ (ระบบจะไม่เดาให้)" }, { status: 400 });
     }
 
