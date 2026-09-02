@@ -574,11 +574,11 @@ export function soulmateCollagePrompt(opts: {
   const traits = opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn;
   const gw = GENDER_WORDS[opts.gender];
   return (
-    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} who clearly and unmistakably has ${traits}, ` +
+    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]}, fully dressed in modest clothing with covered shoulders, who clearly and unmistakably has ${traits}, ` +
     `shown in four different poses and camera angles arranged in a 2x2 grid — ` +
     `front close-up portrait of ${gw.pos} face smiling, ${gw.pos} side profile view, ` +
-    `${gw.pos} seated relaxed pose, and ${gw.pos} full-body standing pose with arms crossed clearly showing ${gw.pos} body build exactly as described. ` +
-    `In every single panel ${gw.subj} has the exact same ${traits} — the same face shape and the same body silhouette in all four panels, no panel may deviate from this appearance. ` +
+    `${gw.pos} seated relaxed pose, and ${gw.pos} full-body standing pose with arms crossed. ` +
+    `In every single panel ${gw.subj} has the exact same ${traits} — the same face shape and the same overall build in all four panels, no panel may deviate from this appearance. ` +
     `All four panels depict this exact same one ${gw.noun} — the same ${gw.noun} appears in every panel, same gender in all four panels, no other person appears anywhere in the collage. ` +
     `Each panel shows ${gw.pos} completely alone, exactly one person per panel, never two people together. ` +
     `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
@@ -587,7 +587,7 @@ export function soulmateCollagePrompt(opts: {
     `${look}, ` +
     (skinEn ? `${skinEn}, ` : "") +
     (opts.extraTraitsEn && opts.extraTraitsEn.length ? `${opts.extraTraitsEn.join(", ")}, ` : "") +
-    `modest ${om.outfitEn}, ${om.moodEn}, genuine warm smile, ` +
+    `modest fully-covering ${om.outfitEn} with sleeves, ${om.moodEn}, genuine warm smile, ` +
     `highly detailed natural skin texture with visible pores, photorealistic, ` +
     `no text, no words, no letters, no watermark`
   );
