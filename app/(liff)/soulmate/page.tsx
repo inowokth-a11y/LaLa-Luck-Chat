@@ -635,7 +635,7 @@ export default function SoulmatePage() {
               imgLoading ? (
                 <p className={styles.note}>🎨 กำลังวาดภาพตามแบบ {pathChoice === "a" ? "ก" : "ข"}... (~15 วินาที)</p>
               ) : (
-                <p className={styles.note}>👆 เลือก "สร้างภาพตามแบบ ก หรือ ข" ด้านบนได้เลย — ระบบจะวาดให้ทันที</p>
+                <p className={styles.note}>👆 กดปุ่ม สร้างภาพตามแบบ ก หรือ ข ด้านบนได้เลย — ระบบจะวาดให้ทันที</p>
               )
             ) : (
               <button type="button" className={styles.ctaBtn} onClick={() => generateImages()} disabled={imgLoading}>
