@@ -209,16 +209,19 @@ export default function SoulmatePage() {
     }
   }
 
-  async function generateImages() {
+  async function generateImages(choice?: "a" | "b") {
+    if (imgLoading) return;
     setImgError(null);
     setImgLoading(true);
+    // เลื่อนลงไปที่ส่วนภาพให้เห็นสถานะกำลังวาด (ผู้ใช้เคาะ 2 ก.ย. 2569: เลือกแนวทางแล้วสร้างเลย)
+    setTimeout(() => document.getElementById("soulmate-images")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
     try {
       const r = await fetch("/api/soulmate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           mode: "images",
-          pathChoice: res?.dualPath ? pathChoice : undefined,
+          pathChoice: res?.dualPath ? (choice ?? pathChoice) : undefined,
           prefSkin: prefSkin || undefined,
           artStyle,
           prefBody: prefBody || undefined,
@@ -533,7 +536,13 @@ export default function SoulmatePage() {
                     <br />
                     <button
                       type="button"
-                      onClick={() => setPathChoice(path.key === "ก" ? "a" : "b")}
+                      disabled={imgLoading}
+                      onClick={() => {
+                        const c = path.key === "ก" ? "a" : "b";
+                        setPathChoice(c);
+                        setImages([]); // เลือกแบบใหม่ = วาดชุดใหม่ (เคาะ 2 ก.ย. 2569: เลือกแล้วสร้างเลย)
+                        generateImages(c);
+                      }}
                       style={{
                         marginTop: "0.4rem", padding: "0.3rem 0.8rem", borderRadius: 999, cursor: "pointer",
                         border: "1px solid var(--gold)", fontFamily: "var(--font-sans-thai)", fontSize: "0.8rem",
@@ -541,7 +550,9 @@ export default function SoulmatePage() {
                         color: (path.key === "ก" ? "a" : "b") === pathChoice ? "#fffdf8" : "inherit",
                       }}
                     >
-                      {(path.key === "ก" ? "a" : "b") === pathChoice ? "✓ ใช้แบบนี้สร้างภาพ" : `สร้างภาพตามแบบ ${path.key}`}
+                      {imgLoading && (path.key === "ก" ? "a" : "b") === pathChoice
+                        ? "🎨 กำลังวาด..."
+                        : `🎨 สร้างภาพตามแบบ ${path.key} เลย`}
                     </button>
                   </div>
                 ))}
@@ -569,7 +580,7 @@ export default function SoulmatePage() {
             <div className={styles.caveat}>{reading.caveats.map((c, i) => <p key={i}>⚠️ {c}</p>)}</div>
           ) : null}
 
-          <div style={{ marginTop: "1.4rem" }}>
+          <div style={{ marginTop: "1.4rem" }} id="soulmate-images">
             <h2 className={styles.h2}>ภาพจินตนาการเนื้อคู่</h2>
             <p className={styles.note} style={{ marginTop: 0 }}>
               AI วาดจากบุคลิก ธาตุ และรูปร่างตามนรลักษณ์ที่คำนวณ (คอลลาจ 1 รูป 4 มุม · ฟรีครั้งแรก แล้วครั้งละ 30 เครดิต)
@@ -579,8 +590,9 @@ export default function SoulmatePage() {
             {/* สัญชาติ/สไตล์ลุค (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง ·
                 โครงหน้า/วัยให้ AI จัดตามความเหมาะสม — ผู้ใช้เคาะ 23 ส.ค. 2569) */}
             {!images.length && (
-              <div style={{ margin: "0.6rem 0" }}>
-                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0 }}>
+              <details style={{ margin: "0.6rem 0" }}>
+                <summary style={{ cursor: "pointer", fontSize: "0.85rem" }}>🎛 ปรับแต่งภาพ (ไม่บังคับ — สไตล์/ลุค/โทนผิว)</summary>
+                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0, marginTop: "0.5rem" }}>
                   <span>สัญชาติ/สไตล์ลุคของภาพ</span>
                   <select className={styles.input} value={look} onChange={(e) => setLook(e.target.value)}>
                     {Object.entries(LOOK_STYLES).map(([k, v]) => (
@@ -606,14 +618,20 @@ export default function SoulmatePage() {
                   </select>
                 </label>
                 <p className={styles.note} style={{ marginTop: "0.4rem" }}>💡 {SOULMATE_LOOK_NOTE}</p>
-              </div>
+              </details>
             )}
             {imgError && <p className={styles.error}>{imgError}</p>}
-            {!images.length && (
-              <button type="button" className={styles.ctaBtn} onClick={generateImages} disabled={imgLoading}>
+            {!images.length && (res?.dualPath ? (
+              imgLoading ? (
+                <p className={styles.note}>🎨 กำลังวาดภาพตามแบบ {pathChoice === "a" ? "ก" : "ข"}... (~15 วินาที)</p>
+              ) : (
+                <p className={styles.note}>👆 เลือก "สร้างภาพตามแบบ ก หรือ ข" ด้านบนได้เลย — ระบบจะวาดให้ทันที</p>
+              )
+            ) : (
+              <button type="button" className={styles.ctaBtn} onClick={() => generateImages()} disabled={imgLoading}>
                 {imgLoading ? "กำลังวาดภาพ... (~15 วินาที)" : "🎨 สร้างภาพเนื้อคู่ (คอลลาจ 4 มุม · ฟรีครั้งแรก)"}
               </button>
-            )}
+            ))}
             {images.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
                 {images.map((img, i) => (
