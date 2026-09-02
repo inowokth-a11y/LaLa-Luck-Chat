@@ -524,6 +524,7 @@ export function soulmateImagePrompt(opts: {
     // รูปหน้า/รูปร่างตามธาตุของคู่ — ตาราง ค.1 นรลักษณ์กายา (ตำราจริง ไม่ใช่ความชอบ)
     `${PHYSIOGNOMY_BY_ELEMENT[opts.element].promptEn}, ` +
     (face ? `${face}, ` : "") +
+
     `${look}, ` +
     (skinEn ? `${skinEn}, ` : "") +
     `modest elegant everyday clothing, ${scene}, ` +
@@ -574,18 +575,17 @@ export function soulmateCollagePrompt(opts: {
   const traits = opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn;
   const gw = GENDER_WORDS[opts.gender];
   return (
-    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]}, fully dressed in modest clothing with covered shoulders, who clearly and unmistakably has ${traits}, ` +
+    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} with ${look}${skinEn ? `, ${skinEn}` : ""}, fully dressed in modest clothing with covered shoulders, who clearly and unmistakably has ${traits}, ` +
     `shown in four different poses and camera angles arranged in a 2x2 grid — ` +
     `front close-up portrait of ${gw.pos} face smiling, ${gw.pos} side profile view, ` +
     `${gw.pos} seated relaxed pose, and ${gw.pos} full-body standing pose with arms crossed. ` +
-    `In every single panel ${gw.subj} has the exact same ${traits} — the same face shape and the same overall build in all four panels, no panel may deviate from this appearance. ` +
+    `In every single panel ${gw.subj} has the exact same ${traits} — the same face shape, the same overall build, the same ethnicity and the same skin tone in all four panels, no panel may deviate from this appearance. ` +
     `All four panels depict this exact same one ${gw.noun} — the same ${gw.noun} appears in every panel, same gender in all four panels, no other person appears anywhere in the collage. ` +
     `Each panel shows ${gw.pos} completely alone, exactly one person per panel, never two people together. ` +
     `The person fills most of each panel, tightly framed with the head near the top edge, minimal empty background space above the head. ` +
     `Identical face, identical hairstyle and identical outfit in every panel, consistent studio lighting, ` +
     `bright clean light studio background with subtle ${ELEMENT_ACCENT[opts.element]} color accents, ` +
-    `${look}, ` +
-    (skinEn ? `${skinEn}, ` : "") +
+
     (opts.extraTraitsEn && opts.extraTraitsEn.length ? `${opts.extraTraitsEn.join(", ")}, ` : "") +
     `modest fully-covering ${om.outfitEn} with sleeves, ${om.moodEn}, genuine warm smile, ` +
     `highly detailed natural skin texture with visible pores, photorealistic, ` +
