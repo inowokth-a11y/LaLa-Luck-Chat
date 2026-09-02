@@ -222,7 +222,9 @@ test("คอลลาจรูปเดียวหลายอิริยา�
   assert.ok(p.includes(OUTFIT_MOOD_BY_ELEMENT.Fire.outfitEn), "การแต่งกายตามธาตุ");
   assert.ok(p.includes(OUTFIT_MOOD_BY_ELEMENT.Fire.moodEn), "อารมณ์ภาพตามธาตุ");
   assert.ok(p.includes("modest"), "ต้องสุภาพเสมอ");
-  assert.ok(p.includes("visible pores"), "รายละเอียดผิว/รูขุมขน");
+  // รายละเอียดผิว/รูขุมขน = ของสไตล์ภาพถ่าย (default เปลี่ยนเป็นสเก็ตช์ 2 ก.ย. 2569)
+  const pPhoto = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "korean", style: "photo" });
+  assert.ok(pPhoto.includes("visible pores"), "สไตล์ภาพถ่ายต้องมีรายละเอียดผิว/รูขุมขน");
   assert.ok(p.includes("no text"), "ห้ามตัวอักษรในภาพ");
   const p2 = soulmateCollagePrompt({ gender: "female", element: "Water", look: "korean" });
   assert.notEqual(p, p2, "ธาตุต่างกันชุด/อารมณ์ต้องต่างกัน");
@@ -364,4 +366,22 @@ test("คำบรรยายภาพตามเส้นทางที่�
   assert.ok(!cap[0].includes(PHYSIOGNOMY_BY_ELEMENT.Water.bodyTh), "ห้ามปนรูปลักษณ์ทางตำราเมื่อเลือก ข");
   assert.ok(cap[1].includes(OUTFIT_MOOD_TH.Wood));
   assert.ok(cap[2].includes(dp!.b.chemistry.relation_th));
+});
+
+// --- สไตล์ภาพ (ART_STYLES) — ผู้ใช้เคาะ 2 ก.ย. 2569: สเก็ตช์สีน้ำเป็น default ---
+test("ART_STYLES — default สเก็ตช์ · photo เลือกกลับได้ · ค่านอก enum ตกเป็น default", async () => {
+  const { ART_STYLES, DEFAULT_ART_STYLE, soulmateCollagePrompt } = await import("../lib/engine/soulmate");
+  assert.deepEqual(Object.keys(ART_STYLES), ["sketch", "photo"]);
+  assert.equal(DEFAULT_ART_STYLE, "sketch");
+  const def = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai" });
+  assert.ok(def.includes("pencil sketch") && def.includes("watercolor"), "default ต้องเป็นสเก็ตช์สีน้ำ");
+  assert.ok(!def.includes("photorealistic"), "default ต้องไม่ใช่ภาพถ่าย");
+  const photo = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "photo" });
+  assert.ok(photo.includes("photo collage") && photo.includes("photorealistic"));
+  // injection-safe: ค่านอก enum = default เป๊ะ
+  assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "van gogh style" }), def);
+  // ข้อจำกัดตัวตนต้องคงอยู่ทุกสไตล์ (มิดชิด/ท่าครบ/หัวไม่โดนครอป/no-text)
+  for (const p of [def, photo]) {
+    assert.ok(p.includes("modest") && p.includes("no text") && p.includes("never cropped"));
+  }
 });

@@ -428,6 +428,26 @@ const ELEMENT_ACCENT: Record<Element5, string> = {
 
 /** โทนผิวของภาพ (ตัวเลือกการวาดตามความชอบ — **ไม่ใช่คำทำนาย** ตำราไม่มีข้อมูลสีผิว
  *  ตรวจ ค.1 แล้ว 25 ส.ค. 2569 · ทุกตัวเลือกเฟรมเชิงบวกเท่ากัน — enum เท่านั้น) */
+/** สไตล์ภาพเนื้อคู่ (ผู้ใช้เคาะ 2 ก.ย. 2569: สเก็ตช์สีน้ำเป็น default — สื่อ "ภาพจินตนาการ"
+ *  ชัดกว่าและหนุนป้าย "ไม่ใช่บุคคลจริง" ในตัว · ภาพถ่ายยังเลือกกลับได้) — enum เท่านั้น
+ *  ค่านอก enum ตกเป็น default (injection-safe) · สีน้ำมันทดลองแล้วไม่ต่างจากภาพถ่าย ไม่เปิด */
+export const ART_STYLES = {
+  sketch: {
+    th: "สเก็ตช์สีน้ำ (แนวจินตนาการ)",
+    openEn:
+      "A delicate pencil sketch collage with soft watercolor washes, hand-drawn artistic portrait study, " +
+      "gentle graphite lines and light watercolor tinting, dreamlike storybook illustration style",
+    tailEn: "soft hand-drawn shading, elegant sketchbook art",
+  },
+  photo: {
+    th: "ภาพถ่ายสมจริง",
+    openEn: "A professional photo collage",
+    tailEn: "highly detailed natural skin texture with visible pores, photorealistic",
+  },
+} as const;
+export type ArtStyleKey = keyof typeof ART_STYLES;
+export const DEFAULT_ART_STYLE: ArtStyleKey = "sketch";
+
 export const SKIN_TONES: Record<string, { th: string; en: string }> = {
   fair: { th: "ผิวขาวเหลือง", en: "fair luminous skin tone" },
   medium: { th: "ผิวสองสี", en: "warm medium skin tone" },
@@ -530,7 +550,7 @@ export function soulmateImagePrompt(opts: {
     `modest elegant everyday clothing, ${scene}, ` +
     `natural daylight, fresh airy atmosphere, highly detailed natural skin texture with visible pores, subtle skin imperfections, fine facial detail, ` +
     `subtle ${ELEMENT_ACCENT[opts.element]} color accents in clothing or surroundings, ` +
-    `no text, no words, no letters, no watermark`
+    `no text, no words, no letters, no watermark, no artist signature`
   );
 }
 
@@ -565,7 +585,10 @@ export function soulmateCollagePrompt(opts: {
   preferenceEn?: readonly string[];
   /** โทนผิว (key ของ SKIN_TONES เท่านั้น — ค่านอก enum ถูกเพิกเฉย) */
   skin?: string | null;
+  /** สไตล์ภาพ (key ของ ART_STYLES เท่านั้น — ค่านอก enum ตกเป็น DEFAULT_ART_STYLE) */
+  style?: string | null;
 }): string {
+  const art = ART_STYLES[(opts.style && opts.style in ART_STYLES ? opts.style : DEFAULT_ART_STYLE) as ArtStyleKey];
   const look = opts.look && opts.look in LOOK_STYLES ? LOOK_STYLES[opts.look as LookKey].en : LOOK_STYLES.thai.en;
   const skinEn = opts.skin && opts.skin in SKIN_TONES ? SKIN_TONES[opts.skin].en : null;
   const phys = PHYSIOGNOMY_BY_ELEMENT[opts.element];
@@ -575,7 +598,7 @@ export function soulmateCollagePrompt(opts: {
   const traits = opts.preferenceEn && opts.preferenceEn.length ? opts.preferenceEn.join(", ") : phys.promptEn;
   const gw = GENDER_WORDS[opts.gender];
   return (
-    `A professional photo collage of one single person: the same ${GENDER_PHRASE[opts.gender]} with ${look}${skinEn ? `, ${skinEn}` : ""}, fully dressed in modest clothing with covered shoulders, who clearly and unmistakably has ${traits}, ` +
+    `${art.openEn} of one single person: the same ${GENDER_PHRASE[opts.gender]} with ${look}${skinEn ? `, ${skinEn}` : ""}, fully dressed in modest clothing with covered shoulders, who clearly and unmistakably has ${traits}, ` +
     `shown in four different poses and camera angles arranged in a 2x2 grid — ` +
     `front close-up portrait of ${gw.pos} face smiling, ${gw.pos} side profile view, ` +
     `${gw.pos} seated relaxed pose, and ${gw.pos} full-body standing pose with arms crossed. ` +
@@ -588,7 +611,8 @@ export function soulmateCollagePrompt(opts: {
 
     (opts.extraTraitsEn && opts.extraTraitsEn.length ? `${opts.extraTraitsEn.join(", ")}, ` : "") +
     `modest fully-covering ${om.outfitEn} with sleeves, ${om.moodEn}, genuine warm smile, ` +
-    `highly detailed natural skin texture with visible pores, photorealistic, ` +
+    `${art.tailEn}, ` +
+    `every panel shows the person's full head, the head is never cropped by the frame, ` +
     `no text, no words, no letters, no watermark`
   );
 }

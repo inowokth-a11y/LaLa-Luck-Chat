@@ -144,6 +144,8 @@ interface SoulmateBody {
   pathChoice?: string;
   /** โทนผิวของภาพ (key ของ SKIN_TONES — ตัวเลือกการวาดตามความชอบ ไม่ใช่คำทำนาย) */
   prefSkin?: string;
+  /** สไตล์ภาพ (key ของ ART_STYLES — default สเก็ตช์สีน้ำ ผู้ใช้เคาะ 2 ก.ย. 2569) */
+  artStyle?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
   face?: string;
@@ -500,6 +502,9 @@ export async function POST(req: Request) {
           extraTraitsEn: jyotish?.appearance.en ?? [],
           // เลือกเส้นทางแล้ว = วลีรูปลักษณ์แบบเข้มของธาตุทางนั้น (แก้ภาพ drift — ผู้ใช้รายงาน 25 ส.ค. 2569)
           preferenceEn: body.pathChoice && dualPath ? [ELEMENT_APPEARANCE_STRONG_EN[imageElement]] : prefForImage,
+          // ⚠️ บรรทัด skin เคยหลุดตอน rewrite call นี้ (084a8df) — prefSkin ไม่ถึง prompt · คืนแล้ว 2 ก.ย. 2569
+          skin: body.prefSkin ?? null,
+          style: body.artStyle ?? null,
         }),
       ];
       // เลือกเส้นทาง ก/ข แล้ว → คำบรรยายต้องเป็นของเส้นทางนั้น (ตรงกับภาพ) ไม่ใช่ reading หลัก
