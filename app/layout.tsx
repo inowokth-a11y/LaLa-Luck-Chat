@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Serif_Thai, Noto_Sans_Thai, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AuthStatus from "./_components/AuthStatus";
+import HomeTab from "./_components/HomeTab";
 import RefTracker from "./_components/RefTracker";
 import LalaFloat from "./_components/LalaFloat";
 
@@ -62,6 +63,7 @@ export default function RootLayout({
             }),
           }}
         />
+        <HomeTab />
         <AuthStatus />
         <RefTracker />
         <LalaFloat />
