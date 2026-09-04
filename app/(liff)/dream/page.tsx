@@ -182,8 +182,14 @@ export default function DreamPage() {
         <div ref={endRef} />
       </div>
 
-      {remaining === 0 ? null : (
+      {/* 3 ก.ย. 2569: เดิมซ่อนฟอร์มเมื่อ remaining=0 → ผู้ใช้พิมพ์ต่อไม่ได้เลยทั้งที่จ่ายเครดิตต่อได้
+          (ผู้ทดลองรายงาน) — โชว์เสมอ + บอกเรทตรงๆ · เครดิตไม่พอ route ตอบ 429 พร้อมปุ่มเติมอยู่แล้ว */}
       <form onSubmit={send} className={styles.composer} style={{ position: "relative" }}>
+        {remaining === 0 && (
+          <p style={{ margin: "0 0 0.4rem", fontSize: "0.75rem", opacity: 0.75 }}>
+            สิทธิ์ฟรีครบแล้ว — ครั้งต่อไปหัก 20 เครดิต
+          </p>
+        )}
         <MascotPerch size={60} />
         <div className={styles.opts}>
           <select value={day} onChange={(e) => setDay(e.target.value)} className={styles.select}>
@@ -210,7 +216,6 @@ export default function DreamPage() {
           </button>
         </div>
       </form>
-      )}
     </main>
   );
 }
