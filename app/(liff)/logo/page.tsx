@@ -6,6 +6,7 @@
 // 🔴 ต้องล็อกอิน (route กันไว้ เพราะ fal เสียเงินจริง) · โทนสว่างหินอ่อน (§2)
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
 import { useStoredProfile } from "../_components/useStoredProfile";
@@ -394,7 +395,8 @@ export default function LogoPage() {
       )}
 
       <Link href="/chat" style={{ ...S.note, color: "var(--gold)", marginTop: "0.5rem" }}>← กลับไปแชท</Link>
-    </main>
+          <ModeFeedback logicId={19} />
+</main>
   );
 }
 

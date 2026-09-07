@@ -7,6 +7,7 @@
 // เพศคู่ที่สนใจ = ผู้ใช้เลือกเองเสมอ ห้ามเดา · ภาพ AI ต้องมีป้ายกำกับทุกรูป
 
 import { useEffect, useRef, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import FunctionChat from "../_components/FunctionChat";
 import { useStoredProfile } from "../_components/useStoredProfile";
@@ -842,6 +843,7 @@ export default function SoulmatePage() {
         context={res?.reading ?? null}
         placeholder="เช่น นิสัยแบบนี้ควรเริ่มทำความรู้จักยังไงดี"
       />
+      <ModeFeedback logicId={17} />
     </div>
   );
 }

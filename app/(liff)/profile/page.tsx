@@ -5,6 +5,7 @@
 // โทน: ☀️ สว่างหินอ่อน (.tone-marble) ตาม CLAUDE.md §2 — หน้านี้เป็น "ข้อมูล/ผลลัพธ์ถาวร"
 
 import { useEffect, useRef, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { computeCardIdString, thaiDayOfWeek } from "@/lib/engine/card-id";
 import { calculateElementSeed, THAI_LABEL_4, type ElementSeedResult } from "@/lib/engine/element";
@@ -289,6 +290,7 @@ export default function ProfilePage() {
         firstReading={autoInvite}
       />
 
-    </main>
+          <ModeFeedback logicId={1} />
+</main>
   );
 }

@@ -8,6 +8,7 @@
 // พิสูจน์แล้วว่าผิด (วนได้แค่ 9 ราศี/วัน) ดู CLAUDE.md §5.2
 
 import { useEffect, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateLagna, julianDay } from "@/lib/engine/lagna";
 import { calculateAscendant, lahiriAyanamsa } from "@/lib/engine/ascendant";
@@ -277,6 +278,7 @@ export default function FortunePage() {
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
       <FunctionChat logicId={8} context={r} placeholder="เช่น ลัคนากันย์หมายความว่าอะไร" />
 
-    </main>
+          <ModeFeedback logicId={8} />
+</main>
   );
 }

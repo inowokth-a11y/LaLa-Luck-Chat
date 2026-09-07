@@ -11,6 +11,7 @@
 // ⚠️ การสุ่มอยู่ที่มือผู้ถาม ไม่ใช่ที่ server — เดิม API เป็นคนสุ่มให้ ซึ่งผิดเจตนาพิธีกรรม
 
 import { useMemo, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateElementSeed, THAI_LABEL_5, type Element5 } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
@@ -379,6 +380,7 @@ export default function OraclePage() {
           </button>
         </section>
       )}
-    </main>
+          <ModeFeedback logicId={21} />
+</main>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ModeFeedback from "../_components/ModeFeedback";
 
 // Logic 4 — ทำนายฝัน (chat) — โทน 🌑 มืด ตาม CLAUDE.md §2 (พิธีกรรม/โต้ตอบสด)
 // เรียก /api/dream ซึ่งรัน Safety Gate → engine → AI-1 → AI-2 ฝั่ง server
@@ -216,6 +217,7 @@ export default function DreamPage() {
           </button>
         </div>
       </form>
-    </main>
+          <ModeFeedback logicId={4} />
+</main>
   );
 }

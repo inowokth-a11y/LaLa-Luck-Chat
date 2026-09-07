@@ -8,6 +8,7 @@
 //    FRAMING_CAVEAT ต้องแสดงเสมอ — ห้ามตัดออก
 
 import { useEffect, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import {
   calculateElementSeed,
@@ -174,6 +175,7 @@ function ElementCard({ el }: { el: Element4 }) {
           </p>
         </>
       )}
+      <ModeFeedback logicId={16} />
     </div>
   );
 }

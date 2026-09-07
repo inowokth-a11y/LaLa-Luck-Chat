@@ -10,6 +10,7 @@
 // 🔴 ตัวเลขทุกตัวมาจาก engine (numberAspects / wuXingScore / network-holistic) — หน้าห้ามคำนวณเอง
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { ashtakoota, type AshtakootaResult } from "@/lib/engine/ashtakoota";
@@ -919,6 +920,7 @@ export default function CompatibilityPage() {
         }
         placeholder="เช่น ควรแก้ตรงไหนก่อนดี"
       />
+      <ModeFeedback logicId={20} />
     </div>
   );
 }

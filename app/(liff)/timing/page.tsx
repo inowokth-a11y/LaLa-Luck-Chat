@@ -5,6 +5,7 @@
 // 🔴 caveat กาลโยคแสดงทุกครั้ง (§3.6)
 
 import { useEffect, useMemo, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import Link from "next/link";
 import { rankAuspiciousDays, ACTIVITIES, ACTIVITY_FIELDS, type DayRanking, type Verdict } from "@/lib/engine/timing";
@@ -151,7 +152,8 @@ export default function TimingPage() {
 
       <p style={S.caveat}>⚠️ {caveat}</p>
       <Link href="/chat" style={{ ...S.note, color: "var(--gold)" }}>← กลับไปแชท</Link>
-    </main>
+          <ModeFeedback logicId={3} />
+</main>
   );
 }
 

@@ -6,6 +6,7 @@
 // ⚠️ ไม่ใช้ Vision API — สเปกจริงเป็นฟอร์มกรอกข้อมูล (ดู lib/engine/fengshui.ts)
 
 import { useMemo, useState } from "react";
+import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import { calculateElementSeed, THAI_LABEL_4, type Element4, type Element5, type ElementSeedResult } from "@/lib/engine/element";
 import {
@@ -204,6 +205,7 @@ export default function FengShuiPage() {
     
       {/* แชท AI ประจำฟังก์ชัน — ช่วงทดลองถามได้ 2 คำถาม (lib/chat/quota.ts) */}
       <FunctionChat logicId={7} context={analysis} placeholder="เช่น ถ้าย้ายโต๊ะไม่ได้ทำยังไงดี" />
+      <ModeFeedback logicId={7} />
 
     </div>
   );
