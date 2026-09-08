@@ -20,8 +20,9 @@ import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-/** ไม่ใช่ Logic ในสเปก 21 โมดูล — ใช้ id 22 สำหรับ bucket/feedback/quota เท่านั้น */
-export const CAT_LOGIC_ID = 22;
+/** ไม่ใช่ Logic ในสเปก 21 โมดูล — ใช้ id 22 สำหรับ bucket/feedback/quota เท่านั้น
+ *  (ห้าม export จาก route file — Next.js อนุญาตเฉพาะ handler/config · บทเรียน build fail 6 ก.ย.) */
+const CAT_LOGIC_ID = 22;
 
 const LALA_CAT_SYSTEM = `${LALA_PERSONA}
 
