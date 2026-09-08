@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/timing", priority: 0.7 },
     { path: "/wellness", priority: 0.6 },
     { path: "/wellbeing", priority: 0.6 },
+    { path: "/cat", priority: 0.8 }, // ดูดวงแมว (ตำราแมวศุภลักษณ์ — 6 ก.ย. 2569)
     { path: "/logo", priority: 0.5 },
     { path: "/label", priority: 0.5 },
     { path: "/privacy", priority: 0.2 },

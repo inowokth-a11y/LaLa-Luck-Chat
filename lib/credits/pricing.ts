@@ -55,6 +55,10 @@ export const ACTION_RATES: ActionRate[] = [
   { key: "soulmate_images", label: "ชุดภาพเนื้อคู่ 3 รูป (FLUX)", costThb: 0.66, credits: 30, category: "logo",
     note: "FLUX schnell ฿0.22×3 · ภาพจินตนาการจาก AI มีป้ายกำกับบังคับ ไม่ใช่บุคคลจริง" },
 
+  // ---- ดูดวงแมว (เฟส 1 · 6 ก.ย. 2569): engine ฿0 · AI เรียบเรียง ~฿0.3 ----
+  { key: "cat_reading", label: "ดูดวงแมว (อาจารย์ลาลาเล่า)", costThb: 0.35, credits: 20, category: "chat",
+    note: "ฟรีครั้งแรก/บัญชี · ตำราแมวศุภลักษณ์ + ธาตุจากสีขน · AI เรียบเรียงเท่านั้น" },
+
   // ---- ฝัน ----
   { key: "dream", label: "ทำนายฝัน", costThb: 0.69, credits: 20, category: "dream",
     note: "คิดตามต้นทุนแคช · AI-1 ที่ปลุกครั้งแรกถือเป็นต้นทุนสร้างคลัง (แคชถาวร)" },

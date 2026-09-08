@@ -10,12 +10,12 @@ import {
   decideModeReward,
 } from "../lib/feedback/mode-reward";
 
-test("registry — 10 โหมด เพดานรวม 200 เครดิต/บัญชี + โหมด verifiable ครบสามตัวที่มีหลักฐาน server", () => {
-  assert.equal(FEEDBACK_MODES.length, 10);
-  assert.equal(FEEDBACK_MODES.length * MODE_FEEDBACK_REWARD, 200);
+test("registry — 11 โหมด เพดานรวม 220 เครดิต/บัญชี + โหมด verifiable ครบตัวที่มีหลักฐาน server", () => {
+  assert.equal(FEEDBACK_MODES.length, 11);
+  assert.equal(FEEDBACK_MODES.length * MODE_FEEDBACK_REWARD, 220);
   // มีหลักฐานฝั่ง server เฉพาะโหมดที่ bump chat_usage_e จริง (ฝัน/เสี่ยงทาย/เนื้อคู่)
   const verifiable = FEEDBACK_MODES.filter((m) => m.verifiable).map((m) => m.logicId).sort((a, b) => a - b);
-  assert.deepEqual(verifiable, [4, 17, 21]);
+  assert.deepEqual(verifiable, [4, 17, 21, 22]);
   // path ต้องขึ้นต้น / และไม่ซ้ำ
   const paths = FEEDBACK_MODES.map((m) => m.path);
   assert.equal(new Set(paths).size, paths.length);
@@ -26,9 +26,9 @@ test("registry — 10 โหมด เพดานรวม 200 เครดิ�
 
 test("untriedModes — ตัดโหมดที่เคลมแล้ว + โหมดปัจจุบันออก", () => {
   const all = untriedModes([], undefined);
-  assert.equal(all.length, 10);
+  assert.equal(all.length, 11);
   const some = untriedModes([4, 21], 17);
-  assert.equal(some.length, 7);
+  assert.equal(some.length, 8);
   assert.ok(!some.some((m) => [4, 21, 17].includes(m.logicId)));
 });
 

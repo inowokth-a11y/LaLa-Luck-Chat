@@ -2,7 +2,7 @@
 //
 // วงจรช่วงทดลอง (ยังเชื่อมจ่ายเงินไม่ได้): ใช้โหมด → ให้ความเห็น → รับ 20 เครดิต →
 // ลิงก์พาไปลองโหมดที่ยังไม่ได้ลอง → วนต่อ · เพดานเชิงโครงสร้าง = ครั้งเดียวต่อโหมดต่อบัญชี
-// (10 โหมด × 20 = 200 เครดิตสูงสุด ≈ ต้นทุน AI จริง ~฿4-8/คน — งบทดลองที่คุมได้)
+// (11 โหมด × 20 = 220 เครดิตสูงสุด ≈ ต้นทุน AI จริง ~฿4-8/คน — งบทดลองที่คุมได้)
 //
 // กันฟาร์ม: บัญชีถาวรเท่านั้น (guest ชวนผูกบัญชี) · ครั้งเดียวต่อ prompt (unique logic_id
 // = ครั้งเดียวต่อโหมด) · ความเห็น ≥ MIN_REWARD_TEXT ตัวอักษร · โหมดที่มีหลักฐานการใช้ฝั่ง
@@ -32,6 +32,7 @@ export const FEEDBACK_MODES: readonly FeedbackMode[] = [
   { logicId: 3, labelTh: "หาฤกษ์ดี", path: "/timing", emoji: "📅", verifiable: false },
   { logicId: 16, labelTh: "ดูแลสุขภาวะ", path: "/wellness", emoji: "🌿", verifiable: false },
   { logicId: 19, labelTh: "สร้างโลโก้", path: "/logo", emoji: "🎨", verifiable: false },
+  { logicId: 22, labelTh: "ดูดวงแมว", path: "/cat", emoji: "🐱", verifiable: true },
 ];
 
 export function feedbackModeById(logicId: number): FeedbackMode | null {

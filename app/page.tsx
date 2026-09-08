@@ -32,6 +32,7 @@ const TOOLS: { href: string; label: string }[] = [
   { href: "/wellness", label: "🥗 อาหาร & กิจกรรมตามธาตุ" },
   { href: "/logo", label: "🎨 สร้างโลโก้ตามดวง" },
   { href: "/wellbeing", label: "💙 เช็คสุขภาวะ" },
+  { href: "/cat", label: "🐱 ดูดวงแมว (ตำราแมวมงคล)" },
 ];
 
 const S = {
