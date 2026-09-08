@@ -110,6 +110,9 @@ export default function CatPage() {
           เลือกลักษณะแมวของคุณ ระบบเทียบกับตำราแมวมงคล 17 ชนิดจากสมุดข่อยโบราณ พร้อมธาตุจากสีขน
           และความเข้ากันกับดวงเจ้าของ — อาจารย์ลาลาเป็นแมวกวัก เรื่องนี้ถนัดที่สุดค่ะ
         </p>
+        <p className={styles.note} style={{ marginTop: "0.4rem" }}>
+          🔍 แมวหายอยู่หรือเปล่า? <a href="/cat/lost" style={{ color: "var(--gold)", fontWeight: 600 }}>วางแผนตามหาแมวหาย (ฟรี ไม่ต้องสมัคร) →</a>
+        </p>
       </header>
 
       <section className={styles.panel}>
