@@ -11,6 +11,7 @@ import {
   LOST_CAT_STATS_NOTE,
   ELEMENT_DIR_NOTE,
 } from "../lib/engine/lost-cat";
+import { MEIHUA_CAVEAT } from "../lib/engine/meihua";
 
 test("ringWeights — แมวในบ้านล้วน วง 0-50 หนักสุด · ออกนอกบ้านได้ วง 150-500 หนักสุด · รวม = 1 · ไม่มีวง 0", () => {
   const indoor = ringWeights("indoor", "unknown", 1);
@@ -68,17 +69,35 @@ test("แผนรวม — 32 ช่องรวม 1 ทุกช่อง > 
   assert.ok(plan.lureTh?.includes("ชั้นเสริม"));
   assert.deepEqual(plan.caveats, [LOST_CAT_CAVEAT, LOST_CAT_STATS_NOTE, ELEMENT_DIR_NOTE]);
   assert.ok(plan.checklistTh.length >= 6 && plan.hopeTh.includes("34%"));
-  // ไม่ส่งวัน = ไม่มีชั้นยาม แต่แผนยังครบ
+  // ไม่ส่งวัน = ไม่มีชั้นยาม แต่แผนยังครบ · ไม่มีเวลาหาย = ไม่มีมุมตำรา
   const noDay = lostCatPlan({ catType: "indoor", daysMissing: 0 });
   assert.equal(noDay.ubakong, null);
   assert.equal(noDay.caveats.length, 2);
+  assert.equal(noDay.meihua, null);
+  assert.equal(noDay.meihuaAgreesTop3, null);
+});
+
+test("🔴 มุมตำรา 梅花易数 — แสดงคู่แผนแต่ไม่เข้าสูตรคะแนน: cells/topDirs เท่าเดิมเป๊ะ · caveat ติดมา · เวลาไม่ครบ = ปิดตัวเอง", () => {
+  const base = { catType: "indoor", temperament: "timid", daysMissing: 2, exitDir: "ใต้", coat: "black_solid" } as const;
+  const without = lostCatPlan(base);
+  const withM = lostCatPlan({ ...base, lostDate: "2026-09-08", lostTime: "19:30" });
+  assert.ok(withM.meihua, "ต้องมีมุมตำราเมื่อมีวัน+เวลา");
+  assert.equal(withM.meihua!.dirTh, "ตะวันออกเฉียงใต้");
+  assert.deepEqual(withM.cells, without.cells, "น้ำหนัก 0 — ลำดับการค้นต้องไม่เปลี่ยนแม้ตำราชี้อีกทิศ");
+  assert.deepEqual(withM.topDirs, without.topDirs);
+  assert.equal(typeof withM.meihuaAgreesTop3, "boolean");
+  assert.ok(withM.caveats.includes(MEIHUA_CAVEAT) && !without.caveats.includes(MEIHUA_CAVEAT));
+  // มีวันแต่ไม่มีเวลา / รูปแบบเพี้ยน → null ไม่พัง
+  assert.equal(lostCatPlan({ ...base, lostDate: "2026-09-08" }).meihua, null);
+  assert.equal(lostCatPlan({ ...base, lostDate: "2026-13-40", lostTime: "19:30" }).meihua, null);
 });
 
 test("🔴 ถ้อยคำ — ห้ามฟันธงตำแหน่ง/ห้ามบอกให้เลิกค้น ในทุก string ที่ผู้ใช้เห็น", () => {
   const banned = /อยู่ที่นั่นแน่|แน่นอนว่าอยู่|ไม่ต้องค้น|เลิกค้น|ตายแล้ว|ไม่มีทางเจอ/;
-  const plan = lostCatPlan({ catType: "indoor", temperament: "timid", daysMissing: 10, exitDir: "ใต้", coat: "black_solid", todayDayTh: "ศุกร์" });
+  const plan = lostCatPlan({ catType: "indoor", temperament: "timid", daysMissing: 10, exitDir: "ใต้", coat: "black_solid", todayDayTh: "ศุกร์", lostDate: "2026-09-08", lostTime: "19:30" });
   const strings = [
     LOST_CAT_CAVEAT, LOST_CAT_STATS_NOTE, ELEMENT_DIR_NOTE, plan.hopeTh, plan.lureTh ?? "",
+    ...plan.caveats, plan.meihua?.summaryTh ?? "", plan.meihua?.omen.adviceTh ?? "", plan.meihua?.omen.labelTh ?? "",
     ...plan.checklistTh, ...plan.windows.map((w) => w.timeTh),
     ...plan.cells.flatMap((c) => [...c.whyTh, ...c.placesTh]),
   ];

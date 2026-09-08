@@ -17,14 +17,17 @@
  *   ของอาจารย์ลาลา + ทิศแนะนำวางทรายแมว/เสื้อเจ้าของล่อกลับ — ห้ามชนะชั้น U
  * - ฤกษ์ออกค้น: ยามดีอุบากอง (engine เดิม) ∩ ช่วงแมวเคลื่อนไหวจริง (โพล้เพล้/กลางคืน)
  *
- * ❌ ยังไม่รวม (รอบวิจัยแยก): 梅花易数 ตั้งกัวจากเวลาที่หาย (ต้องมีปฏิทินจันทรคติจีน + 8 กัว) ·
- *    ยามสามตา (ไม่มีแหล่งเปิดสูตร) — เอกสารออกแบบ 8 ก.ย. 2569 ระบุไว้ทั้งคู่
+ * - มุมตำรา 梅花易数 (9 ก.ย. 2569 — รอบ implement หลังวิจัย): ตั้งกัวจาก "วัน-เวลาที่หาย" → ทิศ/ลักษณะที่/
+ *   ลางการได้คืน (`meihua.ts`) — **แสดงคู่แผน ไม่เข้าสูตรคะแนน (น้ำหนัก 0)** จนกว่า calibration จะพิสูจน์ ·
+ *   ไม่รู้เวลาหาย = ชั้นนี้ปิดตัวเอง ไม่เดายาม
+ * ❌ ยังไม่รวม: ยามสามตา (ผลเป็นแกน + คำทำนายชี้ขาด — รอบวิจัย 8 ก.ย. 2569 สรุป "ไม่แนะนำเป็นชั้นคะแนน")
  */
 
 import { DIRECTION_TO_ELEMENT, ELEMENT_TO_COLORS } from "./fengshui";
 import { THAI_LABEL_5, type Element5 } from "./element";
 import { bestTimeToday } from "./auspicious";
 import { catElementFromCoat } from "./cat-tamra";
+import { meihuaLostReading, MEIHUA_CAVEAT, type MeihuaReading } from "./meihua";
 
 export const DIRS8 = [
   "เหนือ", "ตะวันออกเฉียงเหนือ", "ตะวันออก", "ตะวันออกเฉียงใต้",
@@ -72,6 +75,10 @@ export interface LostCatInput {
   coat?: string | null;
   /** วันไทยของวันนี้ (ฤกษ์ออกค้น) — ไม่ส่ง = ไม่แสดงยาม */
   todayDayTh?: string | null;
+  /** วันที่แมวหาย "YYYY-MM-DD" (มุมตำรา 梅花易数 — ต้องมีคู่กับ lostTime) */
+  lostDate?: string | null;
+  /** เวลาที่แมวหาย "HH:MM" (เวลาไทย) — ไม่รู้ = ไม่แสดงมุมตำรา */
+  lostTime?: string | null;
 }
 
 const isDir = (d: unknown): d is Dir8 => typeof d === "string" && (DIRS8 as readonly string[]).includes(d);
@@ -173,6 +180,10 @@ export interface LostCatPlan {
   hopeTh: string;
   checklistTh: string[];
   caveats: string[];
+  /** มุมตำรา 梅花易数 — null เมื่อไม่มีวัน-เวลาที่หาย · ไม่กระทบ cells/topDirs */
+  meihua: MeihuaReading | null;
+  /** ทิศตำราตรงกับทิศอันดับต้นของแผนสถิติ/ภูมิประเทศไหม (ข้อมูลประกอบ ไม่ใช่การเฉลี่ย) */
+  meihuaAgreesTop3: boolean | null;
 }
 
 export const LOST_CAT_CAVEAT =
@@ -277,15 +288,29 @@ export function lostCatPlan(input: LostCatInput): LostCatPlan {
       ? `แมวเลี้ยงในบ้านที่หายไม่เกิน 7 วัน ส่วนใหญ่ยังอยู่ในรัศมี ~140 ม. และมักซ่อนนิ่ง — สถิติ: พบมีชีวิต 34% ใน 7 วัน · 50% ใน 30 วัน · 19% กลับมารอหน้าบ้านเอง${days > 7 ? " · หายนานแล้วยังมีโอกาส (61% ภายใน 1 ปี) — ค้นซ้ำจุดเดิม + ขยายเครือข่าย" : ""}`
       : `แมวที่ออกนอกบ้านได้ไปไกลกว่า (มัธยฐาน ~300 ม.) แต่ 75% ยังพบภายใน 500 ม. — สถิติ: พบมีชีวิต 34% ใน 7 วัน · 50% ใน 30 วัน · 19% กลับมารอหน้าบ้านเอง`;
 
+  // มุมตำรา 梅花易数 — คำนวณเมื่อมีวัน+เวลาที่หายเท่านั้น · พังไม่ล้มแผน · ไม่แตะ cells
+  let meihua: MeihuaReading | null = null;
+  if (input.lostDate && input.lostTime) {
+    try {
+      meihua = meihuaLostReading(input.lostDate, input.lostTime);
+    } catch {
+      meihua = null;
+    }
+  }
+  const topDirs = scores.slice(0, 3);
+  const meihuaAgreesTop3 = meihua ? topDirs.some((d) => d.dir === meihua!.dirTh) : null;
+
   return {
     cells,
-    topDirs: scores.slice(0, 3),
+    topDirs,
     ringWeights: RINGS.map((r, i) => ({ key: r.key, labelTh: r.labelTh, weight: rw[i] })),
     windows,
     ubakong: ub,
     lureTh,
     hopeTh,
     checklistTh: CHECKLIST,
-    caveats: [LOST_CAT_CAVEAT, LOST_CAT_STATS_NOTE, ...(catElement ? [ELEMENT_DIR_NOTE] : [])],
+    caveats: [LOST_CAT_CAVEAT, LOST_CAT_STATS_NOTE, ...(catElement ? [ELEMENT_DIR_NOTE] : []), ...(meihua ? [MEIHUA_CAVEAT] : [])],
+    meihua,
+    meihuaAgreesTop3,
   };
 }

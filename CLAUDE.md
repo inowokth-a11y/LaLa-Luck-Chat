@@ -1820,7 +1820,28 @@ log จริงต้องดูใน Vercel dashboard (ผู้ใช้ส
    จุดเดียว `DEFAULT_ART_STYLE` (หน้า /soulmate อ่านค่านี้ ไม่ hardcode แล้ว) · เทสต์ล็อกลำดับ key
    [pencil, sketch, photo, oil] + default + ข้อจำกัดตัวตนครบทุกสไตล์ (574 ผ่าน)
 
-### 🔬 รอบวิจัยแยก แมวหาย: 梅花易数 + ยามสามตา (8 ก.ย. 2569 — "แล้ววิจัยแยกต่อ") · ยังไม่เขียนโค้ด
+### ✅ ปฏิทินจันทรคติจีน + มุมตำรา 梅花易数 ใน /cat/lost (9 ก.ย. 2569 ผู้ใช้เคาะ "เริ่ม")
+
+- **`lib/engine/chinese-lunar.ts`** — 定朔法 ล้วนจากดาราศาสตร์เดิม (solarEclipticLongitude + moonEclipticLongitude
+  Meeus ย่อ) ไม่มีตาราง lookup: จันทร์ดับ Newton บนมุมยืด · เดือนมีเหมายัน = 11 · สุ่ย 13 เดือน → เดือนแรก
+  ไร้จงชี่ = อธิกมาส · ขอบวัน UTC+8 · **verify: ตรุษจีน 2000-2035 ตรง 36/36 · อธิกมาส 2000-2036 ตรง 14/14
+  (รวม 閏11 ปี 2033) · ไหว้พระจันทร์ 2025/2026 ตรง** (เทสต์ล็อก) · export `chineseLunarDate/chineseNewYear/
+  leapMonthOfYear/yearBranchIndex` — ใช้ซ้ำได้กับปีนักษัตร/เทศกาลจีนในอนาคต
+  ⚠️ จันทร์ดับใกล้เที่ยงคืนจีน ±~15 นาที อาจคลาดวัน (หายาก) · julianDay ของ lagna.ts รับ ms ไม่ใช่ object (เจอจริง)
+- **`lib/engine/meihua.ts`** (5 เทสต์ → รวม 584): ตั้งกัวตามต้นฉบับ 卷一 (ปี地支+เดือน+วัน mod 8 · +时辰 mod 8 ·
+  รวม mod 6) · 8 กัว ทิศ後天+地理 ต้นฉบับ · ตาราง 64 ชื่อกัว King Wen (เทสต์: 64 ไม่ซ้ำ) · 體/用/變 ·
+  失物占 5 ความสัมพันธ์ → **ถ้อยคำกรองแล้ว: 用克體 "不可尋" ห้ามพูด → "ค้นยาก อย่าเพิ่งท้อ ขยายวง/เครือข่าย"**
+  (regex ล็อก) · ตัวอย่างต้นฉบับ 34→兌 43→離 → 澤火革→澤山咸 ตรง · **ธรรมเนียมที่เลือก (ประกาศใน MEIHUA_CAVEAT):**
+  เลขปีตามลี่ชุน · ยาม 子 ไม่ข้ามวัน · วันจันทรคติจากวันปฏิทินไทย · อธิกมาสใช้เลขเดือนซ้ำ
+- **wiring (น้ำหนัก 0 โดยเจตนา):** LostCatInput เพิ่ม lostDate/lostTime → `plan.meihua` + `meihuaAgreesTop3` ·
+  **cells/topDirs เท่าเดิมเป๊ะ (เทสต์ deepEqual ล็อก)** — มุมตำราแสดงคู่แผน ไม่เฉลี่ย (กติกา §4 ข้อ 5) · ไม่รู้เวลา =
+  null ไม่เดา · route validate รูปแบบ + เก็บ `predicted.meihua` {dir, secondaryDir, relation, agreesTop3} แยกใน
+  lost_cat_cases_e → calibration วัด hit-rate ทิศตำราเทียบสุ่ม/สถิติได้โดยไม่แก้ schema · UI: ช่องวัน+เวลาที่หาย
+  (ไม่บังคับ) + บล็อก 🀄 (ตัวเลขตั้งกัวโปร่งใส/กัว/ทิศ+รอง/ลักษณะที่/ลาง + บรรทัดตรง-ต่างจากแผนสถิติ "ไม่ต้องเลือกข้าง")
+- **verify:** API E2E (มี/ไม่มีเวลา/junk → null · แถว DB มี predicted.meihua · cleanup) · browser DOM จริง · eslint
+- ⏳ เมื่อมีเคส "เจอแล้ว" ≥30: เทียบ hit-rate ทิศตำรา vs สุ่ม (12.5%) vs ชั้นสถิติ ก่อนตัดสินให้น้ำหนัก > 0
+
+### 🔬 รอบวิจัยแยก แมวหาย: 梅花易数 + ยามสามตา (8 ก.ย. 2569 — "แล้ววิจัยแยกต่อ") · 梅花易数 ทำแล้ว 9 ก.ย. (บล็อกบน)
 
 รายงานเต็ม: `docs/วิจัย_แมวหาย_เมยฮวาอี้ซู่_ยามสามตา_ก.ย.2569.md` — สรุป:
 - **梅花易数 verify กับต้นฉบับ (wikisource 卷一/卷二) ครบ**: สูตรตั้งกัว (ปี地支+เดือน+วันจันทรคติ mod 8 ·
@@ -2223,7 +2244,7 @@ convergence) · สูตรสำเร็จ: ค้นกฎ cross-check ≥2
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 558/558 (1 ก.ย. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 584/584 (9 ก.ย. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 🔴 **บทเรียน pipeline 6 ก.ย. 2569:** ห้าม `npm run build | grep ...; echo DONE` — ต้องเช็ค exit code จริง

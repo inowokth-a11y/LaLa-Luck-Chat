@@ -53,6 +53,9 @@ export default function LostCatPage() {
   const [seenDirs, setSeenDirs] = useState<string[]>([]);
   const [oldHomeDir, setOldHomeDir] = useState<string[]>([]);
   const [coat, setCoat] = useState("");
+  // มุมตำรา 梅花易数 — วัน/เวลาที่หาย (ไม่บังคับ · ไม่รู้เวลา = ไม่แสดงมุมตำรา ไม่เดา)
+  const [lostDate, setLostDate] = useState("");
+  const [lostTime, setLostTime] = useState("");
   const [busy, setBusy] = useState(false);
   const [plan, setPlan] = useState<LostCatPlan | null>(null);
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -73,6 +76,7 @@ export default function LostCatPage() {
         body: JSON.stringify({
           mode: "plan", catType, temperament, daysMissing: Number(days) || 0,
           exitDir: exitDir[0] ?? null, coverDirs, noiseDirs, seenDirs, oldHomeDir: oldHomeDir[0] ?? null, coat: coat || null,
+          lostDate: lostDate || null, lostTime: lostTime || null,
         }),
       });
       const d = await res.json();
@@ -134,6 +138,13 @@ export default function LostCatPage() {
               {Object.entries(CAT_COATS).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
             </select>
           </label>
+          <div className={styles.field}>
+            <span>วันและเวลาที่แมวหาย (ไม่บังคับ — มุมตำราจีนโบราณ ตั้งกัวจากเวลาที่หาย · ไม่รู้เวลาแน่ให้เว้นว่าง)</span>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <input className={styles.input} type="date" value={lostDate} onChange={(e) => setLostDate(e.target.value)} style={{ maxWidth: 180 }} />
+              <input className={styles.input} type="time" value={lostTime} onChange={(e) => setLostTime(e.target.value)} style={{ maxWidth: 140 }} />
+            </div>
+          </div>
           <button type="submit" className={styles.btn} disabled={busy}>{busy ? "กำลังวางแผน…" : "วางแผนตามหา 🐾"}</button>
           {err && <p className={styles.error}>{err}</p>}
         </form>
@@ -158,6 +169,28 @@ export default function LostCatPage() {
             </p>
             {plan.lureTh && <p className={styles.kv}>🎀 {plan.lureTh}</p>}
           </section>
+
+          {plan.meihua && (
+            <section className={styles.panel}>
+              <h2 className={styles.h2}>🀄 มุมตำรา — ตั้งกัวจากเวลาที่หาย (ชั้นเสริม ไม่เข้าลำดับข้างบน)</h2>
+              <p className={styles.kv}>
+                <span>ตัวเลขตั้งกัว</span>
+                <b>ปี{plan.meihua.numbers.animalTh} {plan.meihua.numbers.yearBranch}={plan.meihua.numbers.year} · เดือน{plan.meihua.numbers.lunarLeap ? "อธิกมาส" : ""}จีน {plan.meihua.numbers.lunarMonth} · วันจันทรคติ {plan.meihua.numbers.lunarDay} · ยาม{plan.meihua.numbers.shichen}={plan.meihua.numbers.hour}</b>
+              </p>
+              <p className={styles.kv}><span>กัว</span><b>{plan.meihua.hexagram} (เส้นเคลื่อนที่ {plan.meihua.movingLine}) → {plan.meihua.changedHexagram}</b></p>
+              <p className={styles.kv}>
+                <span>ตำราชี้ทิศ</span>
+                <b>{plan.meihua.dirTh} ({plan.meihua.changed.hanzi} {plan.meihua.changed.natureTh}) · รอง: {plan.meihua.secondaryDirTh}</b>
+              </p>
+              <p className={styles.kv}><span>ลักษณะที่ตามตำรา</span><b>{plan.meihua.terrainTh}</b></p>
+              <p className={styles.kv}><span>ลางการได้คืน</span><b>{plan.meihua.omen.labelTh} — {plan.meihua.omen.adviceTh}</b></p>
+              <p className={styles.note}>
+                {plan.meihuaAgreesTop3
+                  ? "✅ ทิศตำราตรงกับทิศอันดับต้นของแผนสถิติ/ภูมิประเทศ — เริ่มทิศนี้ได้เลย"
+                  : "ℹ️ ทิศตำราต่างจากแผนสถิติ/ภูมิประเทศ — ให้ยึดลำดับข้างบนเป็นหลัก (มีหลักฐานเชิงพฤติกรรม) แล้วเพิ่มทิศตำราเป็นจุดค้นเสริม ไม่ต้องเลือกข้าง"}
+              </p>
+            </section>
+          )}
 
           <section className={styles.panel}>
             <h2 className={styles.h2}>3. ออกค้นช่วงไหน</h2>

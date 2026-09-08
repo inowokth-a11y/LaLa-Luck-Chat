@@ -65,6 +65,9 @@ export async function POST(req: Request) {
       oldHomeDir: typeof body.oldHomeDir === "string" ? body.oldHomeDir : null,
       coat: typeof body.coat === "string" ? body.coat.slice(0, 32) : null,
       todayDayTh: todayThaiDay(),
+      // มุมตำรา 梅花易数 — รับเฉพาะรูปแบบวัน/เวลาเป๊ะ (engine validate ซ้ำอีกชั้น)
+      lostDate: typeof body.lostDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.lostDate) ? body.lostDate : null,
+      lostTime: typeof body.lostTime === "string" && /^\d{1,2}:\d{2}$/.test(body.lostTime) ? body.lostTime : null,
     };
     const plan = lostCatPlan(input);
 
@@ -77,7 +80,12 @@ export async function POST(req: Request) {
         .insert({
           auth_uid: uid,
           inputs: input,
-          predicted: { top: plan.cells.slice(0, 5).map((c) => ({ dir: c.dir, ring: c.ring, score: Number(c.score.toFixed(4)) })), topDirs: plan.topDirs.map((d) => d.dir) },
+          predicted: {
+            top: plan.cells.slice(0, 5).map((c) => ({ dir: c.dir, ring: c.ring, score: Number(c.score.toFixed(4)) })),
+            topDirs: plan.topDirs.map((d) => d.dir),
+            // ชั้นตำราเก็บแยก (น้ำหนัก 0 ในแผน) → calibration วัด hit-rate ของทิศตำราเทียบสุ่ม/เทียบชั้นสถิติได้
+            meihua: plan.meihua ? { dir: plan.meihua.dirTh, secondaryDir: plan.meihua.secondaryDirTh, relation: plan.meihua.relation, hexagram: plan.meihua.hexagram, changed: plan.meihua.changedHexagram, agreesTop3: plan.meihuaAgreesTop3 } : null,
+          },
         })
         .select("id")
         .single();
