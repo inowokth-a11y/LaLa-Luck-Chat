@@ -52,8 +52,8 @@ export const ACTION_RATES: ActionRate[] = [
   // ---- เนื้อคู่ (Logic 17 v1 — ผู้ใช้เคาะราคา 21 ส.ค. 2569: ฟรีครั้งแรก แล้ว 20 เครดิต) ----
   { key: "soulmate", label: "คำทำนายเนื้อคู่", costThb: 0.5, credits: 20, category: "chat",
     note: "engine ฿0 (ลัคนา→ราศีที่ 7 + ข.2) + narrator ~฿0.3-0.5 · ฟรีครั้งแรกผ่าน bucket logic:17" },
-  { key: "soulmate_images", label: "ชุดภาพเนื้อคู่ 3 รูป (FLUX)", costThb: 0.66, credits: 30, category: "logo",
-    note: "FLUX schnell ฿0.22×3 · ภาพจินตนาการจาก AI มีป้ายกำกับบังคับ ไม่ใช่บุคคลจริง" },
+  { key: "soulmate_images", label: "ภาพเนื้อคู่ คอลลาจ 1 รูป (FLUX dev)", costThb: 0.75, credits: 30, category: "logo",
+    note: "FLUX dev ~$0.02/รูป (768×1024) ≈ ฿0.71 · เปลี่ยนจาก schnell 9 ก.ย. 2569 (ผู้ใช้เลือกจาก A/B) · ป้ายกำกับบังคับ ไม่ใช่บุคคลจริง" },
 
   // ---- ดูดวงแมว (เฟส 1 · 6 ก.ย. 2569): engine ฿0 · AI เรียบเรียง ~฿0.3 ----
   { key: "cat_reading", label: "ดูดวงแมว (อาจารย์ลาลาเล่า)", costThb: 0.35, credits: 20, category: "chat",

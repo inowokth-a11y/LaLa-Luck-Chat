@@ -12,6 +12,7 @@ import { getCreditBalance, spendCredits } from "@/lib/credits/wallet";
 import { buildProfileContext } from "@/lib/chat/plan-run";
 import { isFalAvailable, falLogoPreview, falLogoVector } from "@/lib/image/fal";
 import { logoImagePrompt } from "@/lib/engine/naming";
+import { logoBrief, briefToExtra } from "@/lib/logo/brief";
 import { wuXingScore, type Element5 } from "@/lib/engine/element";
 import { storeLogoImage } from "@/lib/image/store";
 import { logImageGeneration } from "@/lib/image/generation-log";
@@ -102,7 +103,17 @@ export async function POST(req: Request) {
       : null;
 
     // ---- prompt อังกฤษล้วน + ความต้องการเพิ่มเติมของผู้ใช้ (Logic 19) → fal ----
-    const extra = (body.extra ?? "").slice(0, MAX_EXTRA_LEN);
+    // ไม่พิมพ์อธิบาย → AI ตีความชื่อเติม brief ให้ (9 ก.ย. 2569 — โลโก้ที่ไม่มีบริบทออกมาลอยๆ)
+    // พิมพ์เอง = ใช้ของผู้ใช้ตามเดิม · AI ล้ม = prompt เดิม ไม่พัง
+    let extra = (body.extra ?? "").slice(0, MAX_EXTRA_LEN);
+    let briefTh: string | null = null;
+    if (!extra.trim()) {
+      const b = await logoBrief(brandName, user.id);
+      if (b) {
+        extra = briefToExtra(b);
+        briefTh = b.summaryTh;
+      }
+    }
     const prompt = logoImagePrompt(logoElement, brandName, extra);
     const image = variant === "vector" ? await falLogoVector(prompt) : await falLogoPreview(prompt);
 
@@ -135,6 +146,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
+      briefTh,
       ...(charge.mode === "credits" ? { paidWithCredits: true, credits: creditsLeft } : {}),
       imageUrl,
       stored: storedUrl !== null,

@@ -371,7 +371,7 @@ test("คำบรรยายภาพตามเส้นทางที่�
 // --- สไตล์ภาพ (ART_STYLES) — ผู้ใช้เคาะ 2 ก.ย. 2569: สเก็ตช์สีน้ำเป็น default ---
 test("ART_STYLES — default สเก็ตช์ · photo เลือกกลับได้ · ค่านอก enum ตกเป็น default", async () => {
   const { ART_STYLES, DEFAULT_ART_STYLE, soulmateCollagePrompt } = await import("../lib/engine/soulmate");
-  assert.deepEqual(Object.keys(ART_STYLES), ["sketch", "photo"]);
+  assert.deepEqual(Object.keys(ART_STYLES), ["sketch", "photo", "oil"]);
   assert.equal(DEFAULT_ART_STYLE, "sketch");
   const def = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai" });
   assert.ok(def.includes("pencil sketch") && def.includes("watercolor"), "default ต้องเป็นสเก็ตช์สีน้ำ");
@@ -380,8 +380,10 @@ test("ART_STYLES — default สเก็ตช์ · photo เลือกก�
   assert.ok(photo.includes("photo collage") && photo.includes("photorealistic"));
   // injection-safe: ค่านอก enum = default เป๊ะ
   assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "van gogh style" }), def);
+  const oil = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "oil" });
+  assert.ok(oil.includes("oil painting") && !oil.includes("photorealistic") && !oil.includes("pencil sketch"));
   // ข้อจำกัดตัวตนต้องคงอยู่ทุกสไตล์ (มิดชิด/ท่าครบ/หัวไม่โดนครอป/no-text)
-  for (const p of [def, photo]) {
+  for (const p of [def, photo, oil]) {
     assert.ok(p.includes("modest") && p.includes("no text") && p.includes("never cropped"));
   }
 });

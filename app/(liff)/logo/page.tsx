@@ -119,6 +119,19 @@ export default function LogoPage() {
   const [brand, setBrand] = useState("");
   const [style, setStyle] = useState<Element5 | null>(null); // ธาตุสไตล์ที่เลือก
   const [extra, setExtra] = useState("");
+  const [briefBusy, setBriefBusy] = useState(false);
+  const [briefNote, setBriefNote] = useState<string | null>(null);
+  async function askBrief() {
+    if (briefBusy || !brand.trim()) return;
+    setBriefBusy(true); setBriefNote(null);
+    try {
+      const res = await fetch("/api/logo/brief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ brandName: brand.trim() }) });
+      const d = await res.json();
+      if (!res.ok) setBriefNote(d.error ?? "ไม่สำเร็จ");
+      else { setExtra(d.extra ?? ""); setBriefNote(`AI ตีความ: ${d.brief?.summaryTh ?? ""} — แก้ข้อความได้ก่อนสร้าง`); }
+    } catch { setBriefNote("เชื่อมต่อไม่สำเร็จ"); }
+    finally { setBriefBusy(false); }
+  }
   // ทีมเจ้าของ+หุ้นส่วน + ทิศสำนักงาน (ผู้ใช้เคาะ 22 ส.ค. 2569) — ทุกช่องไม่บังคับ
   const [ownerBirth, setOwnerBirth] = useState("");
   const [ownerPrefilled, setOwnerPrefilled] = useState(false);
@@ -313,7 +326,13 @@ export default function LogoPage() {
           )}
         </div>
 
-        <textarea style={S.textarea} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="ความต้องการเพิ่มเติม (ไม่บังคับ) เช่น มีรูปแก้วกาแฟ, สไตล์มินิมอล, โทนอบอุ่น" maxLength={200} rows={2} disabled={busy} />
+        <textarea style={S.textarea} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="ความต้องการเพิ่มเติม (ไม่บังคับ) เช่น มีรูปแก้วกาแฟ, สไตล์มินิมอล, โทนอบอุ่น — ว่างไว้ = AI ตีความจากชื่อให้" maxLength={200} rows={2} disabled={busy} />
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginTop: "0.35rem" }}>
+          <button type="button" onClick={askBrief} disabled={busy || briefBusy || !brand.trim()} style={{ ...S.elChip, flexDirection: "row", padding: "0.35rem 0.7rem", fontSize: "0.8rem" }}>
+            {briefBusy ? "✨ กำลังตีความชื่อ…" : "✨ ให้ AI ตีความชื่อ เติมให้"}
+          </button>
+          {briefNote && <span style={{ ...S.note, fontSize: "0.75rem" }}>{briefNote}</span>}
+        </div>
 
         {/* Prompt สด — คัดลอกไปใช้กับ AI อื่นได้ (ผู้ใช้ขอ 22 ส.ค. 2569) */}
         <details style={{ border: "1px dashed var(--gold-dim,#a89870)", borderRadius: 8, padding: "0.6rem 0.8rem" }}>
@@ -406,8 +425,9 @@ const styles: Record<string, React.CSSProperties> = {
   sub: { fontSize: "0.9rem", color: "var(--text-dim,var(--ink-dim))", lineHeight: 1.5 },
   form: { display: "flex", flexDirection: "column", gap: "0.8rem", border: "1px solid var(--gold-dim,#a89870)", borderRadius: 8, padding: "1.1rem", background: "color-mix(in srgb,var(--gold) 5%,transparent)" },
   label: { fontSize: "0.82rem", color: "var(--text,var(--ink))", display: "block", marginBottom: "0.4rem" },
-  input: { fontFamily: "var(--font-sans-thai)", fontSize: "0.95rem", padding: "0.7rem 1rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "var(--surface,transparent)", color: "var(--text,var(--ink))" },
-  textarea: { fontFamily: "var(--font-sans-thai)", fontSize: "0.9rem", padding: "0.6rem 0.9rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "var(--surface,transparent)", color: "var(--text,var(--ink))", resize: "vertical" },
+  // สีตัวหนังสือ/พื้นช่องกรอก **ตายตัว** — var(--text) บนธีมลายพื้นเป็นครีมกลืนช่อง (ผู้ใช้รายงาน 9 ก.ย. 2569)
+  input: { fontFamily: "var(--font-sans-thai)", fontSize: "0.95rem", padding: "0.7rem 1rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "#fffdf8", color: "#1d1812" },
+  textarea: { fontFamily: "var(--font-sans-thai)", fontSize: "0.9rem", padding: "0.6rem 0.9rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "#fffdf8", color: "#1d1812", resize: "vertical" },
   elGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(88px,1fr))", gap: "0.4rem" },
   elChip: { display: "flex", flexDirection: "column", gap: "0.15rem", alignItems: "center", padding: "0.5rem 0.3rem", borderRadius: 8, border: "1px solid var(--gold-dim,#a89870)", background: "transparent", color: "var(--text,var(--ink))", cursor: "pointer", fontSize: "0.85rem" },
   elActive: { background: "var(--gold)", color: "var(--marble-bg,#f4f0e6)", border: "1px solid var(--gold)" },

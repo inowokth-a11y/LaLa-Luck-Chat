@@ -16,6 +16,9 @@ export interface FalImageResult {
 export const FAL_MODELS = {
   /** โลโก้ตัวอย่าง เร็ว/ถูก (~฿0.22) — FLUX.1 schnell */
   logoPreview: "fal-ai/flux/schnell",
+  /** ภาพเนื้อคู่ — FLUX.1 dev (ผู้ใช้เลือกจาก A/B schnell/dev/pro 9 ก.ย. 2569: dev ตาม prompt สเก็ตช์
+   *  4 ช่องครบ+คนเดียวกันดีกว่า schnell · pro สวยกว่าแต่ ~฿1.44/รูป หลุดกฎ ≥6× ที่ 30cr) ~฿0.7/รูป */
+  soulmate: "fal-ai/flux/dev",
   /** โลโก้เวกเตอร์ SVG ใช้เชิงพาณิชย์ได้ (~฿2.88) — Recraft V3 */
   logoVector: "fal-ai/recraft/v3/text-to-image",
   /** พื้นหลัง/ลวดลายฉลาก — Recraft V3 (คมกว่า ไม่ค่อยใส่ตัวอักษรมั่ว) · ~฿1.44-2.88 */
@@ -58,12 +61,12 @@ export function falLogoPreview(prompt: string): Promise<FalImageResult> {
 }
 
 /**
- * ภาพเนื้อคู่ (FLUX schnell) — 1 prompt ต่อ 1 รูป ยิงขนานกัน (23 ส.ค. 2569: แต่ละรูปคนละฉาก
+ * ภาพเนื้อคู่ (FLUX dev ตั้งแต่ 9 ก.ย. 2569 — เดิม schnell) — 1 prompt ต่อ 1 รูป ยิงขนานกัน (23 ส.ค. 2569: แต่ละรูปคนละฉาก
  * เพื่อให้มีคำบรรยายประจำภาพ) · ต้นทุนเท่าเดิม (~฿0.22/รูป ไม่ว่ารวมคำขอหรือแยก)
  */
 export async function falSoulmateImages(prompts: readonly string[]): Promise<FalImageResult[]> {
   return Promise.all(
-    prompts.map((prompt) => falGenerate(FAL_MODELS.logoPreview, { prompt, image_size: "portrait_4_3", num_images: 1 }))
+    prompts.map((prompt) => falGenerate(FAL_MODELS.soulmate, { prompt, image_size: "portrait_4_3", num_images: 1 }))
   );
 }
 

@@ -444,6 +444,14 @@ export const ART_STYLES = {
     openEn: "A professional photo collage",
     tailEn: "highly detailed natural skin texture with visible pores, photorealistic",
   },
+  // สีน้ำมันคลาสสิก (9 ก.ย. 2569 ผู้ใช้ขอเทียบ — บน FLUX dev ออกมาเป็นจิตรกรรมจริง ต่างจาก schnell ที่เหมือนภาพถ่าย)
+  oil: {
+    th: "สีน้ำมันคลาสสิก (จิตรกรรม)",
+    openEn:
+      "A classical oil painting collage in the style of old master portraiture, rich visible impasto brushstrokes " +
+      "on linen canvas texture, warm chiaroscuro lighting, Baroque and Renaissance portrait painting style, museum fine art",
+    tailEn: "glazed oil paint layers, painterly edges, gallery-quality classical oil painting",
+  },
 } as const;
 export type ArtStyleKey = keyof typeof ART_STYLES;
 export const DEFAULT_ART_STYLE: ArtStyleKey = "sketch";
