@@ -2154,6 +2154,11 @@ cd /Users/freeman/Desktop/kruth-element
 npx tsc --noEmit && npm test && npm run build   # ควรได้ 558/558 (1 ก.ย. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
+🔴 **บทเรียน pipeline 6 ก.ย. 2569:** ห้าม `npm run build | grep ...; echo DONE` — ต้องเช็ค exit code จริง
+(`npm run build > log; RC=$?`) ไม่งั้น build ที่พังหลุด push ไป Vercel (เกิดแล้ว: route file `export const`
+ที่ไม่ใช่ handler → "does not match the required types of a Next.js Route") · build local อาจล้มเพราะ
+เน็ตเครื่องนี้ไป Supabase หลุด (ECONNRESET ตอน prerender OG) — แยกให้ออกจากบั๊กโค้ด: ถ้า log มีแค่
+fetch failed ไม่มี Type error/Failed to compile → push ให้ Vercel build ได้ แล้วเฝ้า GitHub commit status
 
 ### 🆕 สถานะล่าสุด (อัปเดต 1 ส.ค. 2569 — เซสชันใหญ่: เครดิตครบวงจร + รีแบรนด์ + funnel 3 เฟส + PDPA)
 
