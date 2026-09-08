@@ -15,7 +15,7 @@ import { BODY_PREF, FACE_PREF, PERSONA_PREF } from "@/lib/engine/preference-matc
 import { provincesByRegion } from "@/lib/provinces";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
 import { shareLinks } from "@/lib/share";
-import { LOOK_STYLES, ART_STYLES, SKIN_TONES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
+import { LOOK_STYLES, ART_STYLES, DEFAULT_ART_STYLE, SKIN_TONES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
 import styles from "./soulmate.module.css";
 
 interface JyotishLayer {
@@ -134,7 +134,7 @@ export default function SoulmatePage() {
   // เลือกเส้นทางภาพ แบบ ก (ทางตำรา) / แบบ ข (ทางที่ใจเลือก) — เมื่อมีทางแยกจริง
   const [pathChoice, setPathChoice] = useState<"a" | "b">("a");
   const [prefSkin, setPrefSkin] = useState("");
-  const [artStyle, setArtStyle] = useState("sketch");
+  const [artStyle, setArtStyle] = useState<string>(DEFAULT_ART_STYLE);
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
   const [pBirthDate, setPBirthDate] = useState("");

@@ -368,14 +368,16 @@ test("คำบรรยายภาพตามเส้นทางที่�
   assert.ok(cap[2].includes(dp!.b.chemistry.relation_th));
 });
 
-// --- สไตล์ภาพ (ART_STYLES) — ผู้ใช้เคาะ 2 ก.ย. 2569: สเก็ตช์สีน้ำเป็น default ---
-test("ART_STYLES — default สเก็ตช์ · photo เลือกกลับได้ · ค่านอก enum ตกเป็น default", async () => {
+// --- สไตล์ภาพ (ART_STYLES) — ผู้ใช้เคาะ 9 ก.ย. 2569: จิตรกรรมสีไม้เป็น default (เดิมสเก็ตช์สีน้ำ 2 ก.ย.) ---
+test("ART_STYLES — default สีไม้ · สเก็ตช์/สีน้ำมัน/photo เลือกกลับได้ · ค่านอก enum ตกเป็น default", async () => {
   const { ART_STYLES, DEFAULT_ART_STYLE, soulmateCollagePrompt } = await import("../lib/engine/soulmate");
-  assert.deepEqual(Object.keys(ART_STYLES), ["sketch", "photo", "oil"]);
-  assert.equal(DEFAULT_ART_STYLE, "sketch");
+  assert.deepEqual(Object.keys(ART_STYLES), ["pencil", "sketch", "photo", "oil"]);
+  assert.equal(DEFAULT_ART_STYLE, "pencil");
   const def = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai" });
-  assert.ok(def.includes("pencil sketch") && def.includes("watercolor"), "default ต้องเป็นสเก็ตช์สีน้ำ");
-  assert.ok(!def.includes("photorealistic"), "default ต้องไม่ใช่ภาพถ่าย");
+  assert.ok(def.includes("colored pencil") && def.includes("paper grain"), "default ต้องเป็นจิตรกรรมสีไม้");
+  assert.ok(!def.includes("photorealistic") && !def.includes("watercolor"), "default ต้องไม่ใช่ภาพถ่าย/สเก็ตช์สีน้ำ");
+  const sketch = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "sketch" });
+  assert.ok(sketch.includes("pencil sketch") && sketch.includes("watercolor"));
   const photo = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "photo" });
   assert.ok(photo.includes("photo collage") && photo.includes("photorealistic"));
   // injection-safe: ค่านอก enum = default เป๊ะ
@@ -383,7 +385,7 @@ test("ART_STYLES — default สเก็ตช์ · photo เลือกก�
   const oil = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "oil" });
   assert.ok(oil.includes("oil painting") && !oil.includes("photorealistic") && !oil.includes("pencil sketch"));
   // ข้อจำกัดตัวตนต้องคงอยู่ทุกสไตล์ (มิดชิด/ท่าครบ/หัวไม่โดนครอป/no-text)
-  for (const p of [def, photo, oil]) {
+  for (const p of [def, sketch, photo, oil]) {
     assert.ok(p.includes("modest") && p.includes("no text") && p.includes("never cropped"));
   }
 });

@@ -428,10 +428,19 @@ const ELEMENT_ACCENT: Record<Element5, string> = {
 
 /** โทนผิวของภาพ (ตัวเลือกการวาดตามความชอบ — **ไม่ใช่คำทำนาย** ตำราไม่มีข้อมูลสีผิว
  *  ตรวจ ค.1 แล้ว 25 ส.ค. 2569 · ทุกตัวเลือกเฟรมเชิงบวกเท่ากัน — enum เท่านั้น) */
-/** สไตล์ภาพเนื้อคู่ (ผู้ใช้เคาะ 2 ก.ย. 2569: สเก็ตช์สีน้ำเป็น default — สื่อ "ภาพจินตนาการ"
- *  ชัดกว่าและหนุนป้าย "ไม่ใช่บุคคลจริง" ในตัว · ภาพถ่ายยังเลือกกลับได้) — enum เท่านั้น
- *  ค่านอก enum ตกเป็น default (injection-safe) · สีน้ำมันทดลองแล้วไม่ต่างจากภาพถ่าย ไม่เปิด */
+/** สไตล์ภาพเนื้อคู่ — enum เท่านั้น ค่านอก enum ตกเป็น default (injection-safe)
+ *  ประวัติ default: สเก็ตช์สีน้ำ (2 ก.ย. 2569) → **จิตรกรรมสีไม้ (ผู้ใช้เคาะ 9 ก.ย. 2569 หลังเทียบ
+ *  สเก็ตช์/สีน้ำมัน/สีไม้ บน FLUX dev — "สีไม้โอเคเลย")** · ทุกสไตล์สื่อ "ภาพจินตนาการ" หนุนป้าย
+ *  "ไม่ใช่บุคคลจริง" · ภาพถ่ายยังเลือกกลับได้ */
 export const ART_STYLES = {
+  // จิตรกรรมสีไม้ (default 9 ก.ย. 2569) — ทดลองบน dev 2 รูป: หน้าคมชัด ผิวนุ่ม เห็นเนื้อกระดาษ ไม่มีลายเซ็นหลุด
+  pencil: {
+    th: "จิตรกรรมสีไม้ (แนวจินตนาการ)",
+    openEn:
+      "A colored pencil illustration collage, fine art colored pencil drawing on textured paper, " +
+      "layered soft pencil strokes with visible paper grain, gentle blended colors, realistic colored pencil portrait art",
+    tailEn: "delicate colored pencil shading and cross-hatching, fine art colored pencil rendering",
+  },
   sketch: {
     th: "สเก็ตช์สีน้ำ (แนวจินตนาการ)",
     openEn:
@@ -454,7 +463,7 @@ export const ART_STYLES = {
   },
 } as const;
 export type ArtStyleKey = keyof typeof ART_STYLES;
-export const DEFAULT_ART_STYLE: ArtStyleKey = "sketch";
+export const DEFAULT_ART_STYLE: ArtStyleKey = "pencil";
 
 export const SKIN_TONES: Record<string, { th: string; en: string }> = {
   fair: { th: "ผิวขาวเหลือง", en: "fair luminous skin tone" },

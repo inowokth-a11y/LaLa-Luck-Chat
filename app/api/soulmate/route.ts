@@ -144,7 +144,7 @@ interface SoulmateBody {
   pathChoice?: string;
   /** โทนผิวของภาพ (key ของ SKIN_TONES — ตัวเลือกการวาดตามความชอบ ไม่ใช่คำทำนาย) */
   prefSkin?: string;
-  /** สไตล์ภาพ (key ของ ART_STYLES — default สเก็ตช์สีน้ำ ผู้ใช้เคาะ 2 ก.ย. 2569) */
+  /** สไตล์ภาพ (key ของ ART_STYLES — default จิตรกรรมสีไม้ ผู้ใช้เคาะ 9 ก.ย. 2569 · เดิมสเก็ตช์สีน้ำ) */
   artStyle?: string;
   // ตัวเลือกรูปลักษณ์ของภาพ (preset key เท่านั้น — engine เพิกเฉยค่านอก enum · ไม่ใช่คำทำนาย)
   look?: string;
