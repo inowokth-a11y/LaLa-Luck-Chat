@@ -63,7 +63,7 @@ test("ของจริงยังจับได้ครบ ไม่ได�
   for (const [dream, expected] of [
     ["ฝันว่ากระโดดข้ามรั้ว", "กระโดด / ข้าม"],
     ["เมื่อคืนฝันเห็นน้ำท่วมบ้าน", "น้ำท่วม"],
-    ["ฝันว่าฟันหลุด", "ฟัน"],
+    ["ฝันว่าฟันหลุด", "ฟันหัก / ฟันหลุด"], // 10 ก.ย. 2569: ตัวเจาะจงกว่าชนะ "ฟัน" ที่ซ้อนอยู่ข้างใน
   ] as const) {
     const got = findSymbolMatchesSegmented(dream, DB)!.map((m) => m.dream_object);
     assert.ok(got.includes(expected), `"${dream}" ควรเจอ "${expected}" แต่ได้ ${got.join(",")}`);

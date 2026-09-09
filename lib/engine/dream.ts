@@ -8,7 +8,7 @@
 //    (search_vector/pg_trgm, schema พร้อมใน migration 011) เป็นงาน DB-integration แยก (CLAUDE.md §8)
 
 import { DAY_ELEMENT, THAI_LABEL_4, safetyGate, type Element4 } from "./element";
-import { findSymbolMatchesSegmented, findThemeMatchesSegmented } from "./dream-match";
+import { findSymbolMatchesSegmented, findThemeMatchesSegmented, coreSymbols } from "./dream-match";
 import { getWellnessPair } from "./wellness";
 import { parseSymbolNumbers } from "./dream-energy";
 import dreamDbData from "../../data/dream_master_db.json";
@@ -233,6 +233,8 @@ export interface InterpretDreamResult {
   }>;
   theme_matches?: Array<{ theme: string; psychological_meaning: string; subconscious_trigger: string; advice: string; element_connection: string; remedy: string }>;
   context_synthesis?: string;
+  /** แกนเรื่องของฝัน (คำนามรูปธรรม 1-2 ตัวแรกตามลำดับที่เล่า) — เฉพาะเส้น production (ตัดคำ) */
+  core_symbols?: string[];
   found_anything?: boolean;
   fallback_note?: string;
   note?: string;
@@ -284,6 +286,8 @@ export function interpretDream(
     context_synthesis: dayOfWeekTh ? contextSynthesis(dayOfWeekTh, elementsFound) : "",
     found_anything: symbolMatches.length > 0 || themeMatches.length > 0,
   };
+  // แกนเรื่อง (10 ก.ย. 2569) — ใส่เฉพาะเส้นตัดคำ เพื่อไม่กระทบ fixture ของเส้น parity กับ Python
+  if (useSegmentation && symbolMatches.length) result.core_symbols = coreSymbols(symbolMatches);
 
   if (!result.found_anything) {
     result.fallback_note =

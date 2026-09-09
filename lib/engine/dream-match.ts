@@ -136,15 +136,7 @@ function glyphLen(str: string): number {
  *      - หัวคำต้องยาว ≥ 2 รูปอักขระ (กันคำพยางค์เดียวที่ชนง่าย)
  *      - ส่วนที่เหลือต้องยาว ≥ 2 รูปอักขระ (กัน "งา" ในคำว่า "งาน" ที่เหลือแค่ "น")
  */
-function compoundHeadMatch(word: string, spans: { index: number; segment: string }[]): boolean {
-  if (glyphLen(word) < 2) return false;
-  for (const sp of spans) {
-    if (sp.segment.length <= word.length) continue;
-    if (!sp.segment.startsWith(word)) continue;
-    if (glyphLen(sp.segment.slice(word.length)) >= 2) return true;
-  }
-  return false;
-}
+// (ตัวตรวจ boolean เดิมถูกแทนด้วย compoundHeadIndex ด้านล่าง — กติกาเดียวกัน แต่คืนตำแหน่ง)
 
 /**
  * คำพ้องรูปที่ "อยู่ในคำอื่น" จนความหมายเปลี่ยนไปคนละเรื่อง — ถ้าคำนั้นปรากฏเฉพาะในกับดักนี้
@@ -158,6 +150,9 @@ const TRAP_PHRASES: Record<string, string[]> = {
   ปู: ["ปูน", "ปูเสื่อ", "ปู่"],
   พ่อ: ["พ่อค้า", "พ่อครัว"],
   ต่อ: ["ต่อไป", "ต่อจาก", "ต่อรอง", "ต่อสู้", "ต่อเนื่อง", "ติดต่อ", "ต่อต้าน"],
+  // "ยิ้มให้/ทำให้/บอกให้" คือคำเชื่อมในประโยค ไม่ใช่การให้/บริจาค (เจอจริง 10 ก.ย. 2569:
+  // "แม่ยิ้มให้" ถูกจับเป็นสัญลักษณ์ "ให้ / บริจาค" แล้วดันแกนเรื่องแม่ตกไป)
+  ให้: ["ยิ้มให้", "ทำให้", "พูดให้", "บอกให้", "เพื่อให้", "ปล่อยให้", "อยากให้", "จนให้", "ส่งยิ้มให้"],
 };
 
 function countOccurrences(text: string, needle: string): number {
@@ -183,26 +178,101 @@ function onlyInTrap(word: string, text: string): boolean {
 /**
  * จัดลำดับสัญลักษณ์ที่จับได้ + ตัดซ้ำ + จำกัดจำนวน (ใช้เฉพาะเส้น production)
  *
- * เหตุผล: ฐานความฝันมีแถวซ้ำ 49 แถว (หมวดเดียวกันแต่ชื่อหมวดต่อท้ายภาษาอังกฤษ) และมีสัญลักษณ์
- * ที่เป็นคำใช้ทั่วไปในภาษา ("ให้" "ต่อ") ซึ่งโผล่ในประโยคปกติได้ตลอด — ถ้าส่งไปทั้งกองผู้เล่าเรื่อง
- * จะให้น้ำหนักผิด จึงเรียง "คำนามรูปธรรม (สัตว์/สถานที่/ภัย/สิ่งของ) มาก่อน" แล้วค่อยกริยา/อารมณ์
- * และตัดเหลือ 8 รายการ — ไม่ได้ลบข้อมูลออกจากฐาน แค่จัดลำดับความสำคัญ
+ * เหตุผลเดิม (7 ส.ค. 2569): ฐานความฝันมีแถวซ้ำ 49 แถว และมีสัญลักษณ์ที่เป็นคำใช้ทั่วไป ("ให้" "ต่อ")
+ * ซึ่งโผล่ในประโยคปกติได้ตลอด — ถ้าส่งไปทั้งกองผู้เล่าเรื่องจะให้น้ำหนักผิด
+ *
+ * 🔴 ยกเครื่อง 10 ก.ย. 2569 (ผู้ใช้รายงาน "คำทำนายหลุดประเด็น" — ตรวจแล้วต้นตออยู่ที่นี่):
+ *   เดิมเรียง "ชื่อยาวก่อน" ทำให้แกนเรื่อง (เช่น "แม่") ตกไปอยู่หลัง "บ้าน/ประตู" และกริยาประกอบ
+ *   (เดิน/ให้/ยิ้ม/ไม่ทัน) ถูกส่งด้วยน้ำหนักเท่ากัน AI จึงสรุปจากกริยาแทนแกนเรื่อง · กติกาใหม่:
+ *   1. คำนามรูปธรรมเรียงตาม **ตำแหน่งที่ปรากฏในฝัน** (สิ่งที่ผู้ใช้เอ่ยก่อน = แกนเรื่อง)
+ *   2. สัญลักษณ์ที่ "ซ้อนอยู่ในคำยาวกว่า" ถูกตัด — "แฟน" ใน "แฟนเก่า" ไม่ใช่คนรักปัจจุบัน ·
+ *      "แม่น้ำ" กับ "แม่น้ำ / สายน้ำ" ที่จับตำแหน่งเดียวกันเหลือตัวเดียว
+ *   3. กริยา/อารมณ์ (หมวดนามธรรม) ถ้ามีคำนาม ≥ 2 จำกัดไว้ 4 ตัว (เรียงปนคำนามตามตำแหน่ง) ·
+ *      กริยาทั่วไป (เดิน/ยิ้ม/กิน/ให้ ฯลฯ — LOW_SALIENCE) อยู่ท้ายสุดและไม่เกิน 2
+ *   ไม่ได้ลบข้อมูลออกจากฐาน แค่จัดลำดับความสำคัญให้ตรงกับที่ผู้ใช้เล่า
  */
 const ABSTRACT_CATEGORY = /การกระทำ|กริยา|อารมณ์|สภาวะ/;
 const MAX_SYMBOLS = 8;
+const MAX_ABSTRACT_WHEN_NOUNS = 4;
+const MAX_LOW_SALIENCE = 2;
+/** กริยาทั่วไปที่โผล่ในทุกฉาก — ไม่ควรเป็นข้อสรุปของคำทำนาย */
+const LOW_SALIENCE = new Set(["เดิน", "ยิ้ม", "หัวเราะ", "กิน / ทานอาหาร", "ดื่มน้ำ", "ให้ / บริจาค", "นั่ง / นั่งสมาธิ", "ยืน / ยืนตระหง่าน", "นอนหลับ"]);
 
-export function rankAndDedupeSymbols(matches: readonly DreamSymbol[]): DreamSymbol[] {
+export interface RankedMatch {
+  row: DreamSymbol;
+  /** ตำแหน่งเริ่ม/จบ (code-unit) ของ variant ที่จับได้ในข้อความฝัน */
+  start: number;
+  end: number;
+}
+
+function isAbstract(row: DreamSymbol): boolean {
+  return ABSTRACT_CATEGORY.test(row.category);
+}
+
+/** จัดลำดับตามตำแหน่ง + ตัดตัวที่ซ้อนในคำยาวกว่า + ตัดซ้ำ + จำกัดจำนวน */
+export function rankMatches(items: readonly RankedMatch[]): DreamSymbol[] {
+  // 2. ตัดตัวที่ช่วงคำอยู่ภายในช่วงของตัวอื่นที่ยาวกว่า (หรือช่วงเท่ากันแต่มาทีหลังในฐาน)
+  const kept = items.filter((a, ia) =>
+    !items.some((b, ib) => {
+      if (ia === ib) return false;
+      const covers = b.start <= a.start && b.end >= a.end;
+      if (!covers) return false;
+      const bLonger = b.end - b.start > a.end - a.start;
+      return bLonger || ib < ia; // ช่วงเท่ากัน → เก็บตัวที่มาก่อนในฐาน
+    })
+  );
   const seen = new Set<string>();
-  const unique = matches.filter((m) => {
-    if (seen.has(m.dream_object)) return false;
-    seen.add(m.dream_object);
+  const unique = kept.filter((m) => {
+    if (seen.has(m.row.dream_object)) return false;
+    seen.add(m.row.dream_object);
     return true;
   });
-  return unique
-    .map((m, i) => ({ m, i, rank: ABSTRACT_CATEGORY.test(m.category) ? 1 : 0 }))
-    .sort((a, b) => a.rank - b.rank || b.m.dream_object.length - a.m.dream_object.length || a.i - b.i)
-    .slice(0, MAX_SYMBOLS)
-    .map((x) => x.m);
+  const byPos = (a: RankedMatch, b: RankedMatch) => a.start - b.start;
+  const nouns = unique.filter((m) => !isAbstract(m.row)).sort(byPos);
+  const low = unique.filter((m) => isAbstract(m.row) && LOW_SALIENCE.has(m.row.dream_object)).sort(byPos);
+  const abstract = unique.filter((m) => isAbstract(m.row) && !LOW_SALIENCE.has(m.row.dream_object)).sort(byPos);
+  const abstractCap = nouns.length >= 2 ? MAX_ABSTRACT_WHEN_NOUNS : MAX_SYMBOLS;
+  // ลำดับสุดท้าย = ตามตำแหน่งที่เล่า (คำนาม+กริยาสำคัญปนกันตามฉาก) · กริยาทั่วไปต่อท้าย
+  const main = [...nouns, ...abstract.slice(0, abstractCap)].sort(byPos);
+  const out = [...main, ...low.slice(0, MAX_LOW_SALIENCE)];
+  return out.slice(0, MAX_SYMBOLS).map((m) => m.row);
+}
+
+/** เวอร์ชันไม่มีตำแหน่ง (ใช้ลำดับในอาร์เรย์แทน) — คงไว้ให้โค้ด/เทสต์เดิมเรียกได้ */
+export function rankAndDedupeSymbols(matches: readonly DreamSymbol[]): DreamSymbol[] {
+  return rankMatches(matches.map((row, i) => ({ row, start: i, end: i + 1 })));
+}
+
+/**
+ * แกนเรื่องของฝัน = สัญลักษณ์ 2 ตัวแรกตามลำดับที่ผู้ใช้เอ่ย (ไม่นับกริยาทั่วไป) — ฝันเรื่องสอบ
+ * แกนคือ "สอบ" แม้เป็นหมวดการกระทำ (ทดลองแล้ว: ยึดคำนามอย่างเดียว AI ไปเล่าเรื่อง "บันได" แทน)
+ * ส่งให้ผู้เล่าเรื่องเป็นฟิลด์แยก เพื่อให้บทสรุป/คำถามปิดท้ายยึดสิ่งนี้ ไม่ใช่กริยาประกอบ
+ */
+export function coreSymbols(ranked: readonly DreamSymbol[]): string[] {
+  const main = ranked.filter((r) => !LOW_SALIENCE.has(r.dream_object)).slice(0, 2);
+  if (main.length) return main.map((r) => r.dream_object);
+  return ranked[0] ? [ranked[0].dream_object] : [];
+}
+
+/** ตำแหน่งแรกที่วลีปรากฏโดยหัว-ท้ายตรงขอบ segment (-1 = ไม่พบ) */
+function firstBoundaryIndex(phrase: string, text: string, b: { starts: Set<number>; ends: Set<number> }): number {
+  let idx = text.indexOf(phrase);
+  while (idx !== -1) {
+    if (b.starts.has(idx) && b.ends.has(idx + phrase.length)) return idx;
+    idx = text.indexOf(phrase, idx + 1);
+  }
+  return -1;
+}
+
+/** ตำแหน่ง segment ที่มี `word` เป็นหัวคำประสม (-1 = ไม่พบ) — เงื่อนไขเดียวกับ compoundHeadMatch */
+function compoundHeadIndex(word: string, spans: { index: number; segment: string }[]): number {
+  if (glyphLen(word) < 2) return -1;
+  for (const sp of spans) {
+    if (sp.segment.length <= word.length) continue;
+    if (!sp.segment.startsWith(word)) continue;
+    if (glyphLen(sp.segment.slice(word.length)) >= 2) return sp.index;
+  }
+  return -1;
 }
 
 /** หมวดที่อนุญาตให้จับหัวคำประสม (ดูเหตุผลใน compoundHeadMatch) */
@@ -224,19 +294,48 @@ export function findSymbolMatchesSegmented(
   const bounds = segmentBoundaries(dreamText);
   if (!bounds) return null;
   const spans = segmentSpans(dreamText) ?? [];
-  const out: DreamSymbol[] = [];
+  const out: RankedMatch[] = [];
   for (const row of db) {
     const allowCompound = COMPOUND_HEAD_CATEGORY.test(row.category);
     for (const v of variants(row.dream_object)) {
       if (!v) continue;
       if (onlyInTrap(v, dreamText)) continue;
-      if (phraseAtWordBoundaries(v, dreamText, bounds) || (allowCompound && compoundHeadMatch(v, spans))) {
-        out.push(row);
+      const at = firstBoundaryIndex(v, dreamText, bounds);
+      if (at !== -1) {
+        out.push({ row, start: at, end: at + v.length });
         break;
+      }
+      if (allowCompound) {
+        const head = compoundHeadIndex(v, spans);
+        if (head !== -1) {
+          out.push({ row, start: head, end: head + v.length });
+          break;
+        }
       }
     }
   }
-  return rankAndDedupeSymbols(out);
+  return rankMatches(out);
+}
+
+/**
+ * variant ของชื่อธีม — ชื่อธีมบางตัวมีวงเล็บขยาย เช่น "ลิฟต์ (ขึ้น/ลง/ติด)" ซึ่งถ้าแยกด้วย "/" ตรงๆ
+ * จะได้ "ลง" ไปจับฝัน "รถพุ่งลงแม่น้ำ" เป็นธีมลิฟต์ (เจอจริง 10 ก.ย. 2569) · กติกา: ส่วนหน้าวงเล็บ
+ * ใช้ทุก variant · ส่วนในวงเล็บใช้เฉพาะวลี ≥ 2 คำ (ผีอำ · หาไม่เจอ · วิ่งไม่ถึง) และไม่ใช่คำขยายลอยๆ
+ */
+const THEME_PAREN_STOP = new Set(["ในฝัน"]);
+/** คำเดียวในวงเล็บที่เป็นชื่อธีมจริง (ICU มอง "ผีอำ" เป็นคำเดียว จึงไม่ผ่านเกณฑ์ ≥ 2 คำ) */
+const THEME_PAREN_ALLOW = new Set(["ผีอำ"]);
+export function themeVariants(theme: string): string[] {
+  const paren = [...theme.matchAll(/\(([^)]*)\)/g)].map((m) => m[1]);
+  const base = theme.replace(/\s*\([^)]*\)/g, "");
+  const out = variants(base);
+  for (const inner of paren) {
+    for (const v of variants(inner)) {
+      if (THEME_PAREN_STOP.has(v)) continue;
+      if (THEME_PAREN_ALLOW.has(v) || segmentThai(v).length >= 2) out.push(v);
+    }
+  }
+  return out.filter((v) => v.length > 0);
 }
 
 /** เวอร์ชันสำหรับธีมจิตวิทยา — ธีมสั้นและกำกวมกว่า จึงเทียบสองทางเหมือนตรรกะเดิม */
@@ -248,9 +347,11 @@ export function findThemeMatchesSegmented(
   const bounds = segmentBoundaries(dreamText);
   if (!bounds) return null;
   const out: DreamTheme[] = [];
+  // ข้อความสั้นมาก (พิมพ์แค่ชื่อธีม) ยังเทียบกลับได้ · ข้อความยาวห้าม — ไม่งั้นทุกธีมที่มีคำนั้นจับหมด
+  const reverseOk = glyphLen(dreamText.trim()) <= 10;
   for (const row of db) {
-    for (const v of variants(row.dream_theme)) {
-      if (v && (phraseAtWordBoundaries(v, dreamText, bounds) || v.includes(dreamText))) {
+    for (const v of themeVariants(row.dream_theme)) {
+      if (phraseAtWordBoundaries(v, dreamText, bounds) || (reverseOk && v.includes(dreamText.trim()))) {
         out.push(row);
         break;
       }
