@@ -11,7 +11,9 @@ const nextConfig = {
   // เจอจริง 3 ส.ค. 2569) อย่าพึ่ง trace อัตโนมัติกับไฟล์ asset ที่อ่านด้วย fs อีก
   outputFileTracingIncludes: {
     "/card/[id]/opengraph-image": ["./assets/**"],
-    "/opengraph-image": ["./assets/**"],
+    // หน้าแรกอ่าน public/mascot.png ด้วย fs ด้วย — nft trace ไม่เคยรวม public/ (ตรวจ route.js.nft.json 9 ก.ย. 2569:
+    // มีแต่ฟอนต์) → บน Vercel ENOENT → OG หน้าแรก 500 (เจอจริงหลัง deploy 6afd248) จึงบังคับรวมไฟล์นี้
+    "/opengraph-image": ["./assets/**", "./public/mascot.png"],
     // face-card: OG หน้าแชร์ส่วนบุคคล + สตอรี่ IG — ใช้ฟอนต์ไทยไฟล์เดียวกัน
     "/s/[token]/opengraph-image": ["./assets/**"],
     "/s/[token]/story": ["./assets/**"],
