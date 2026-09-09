@@ -7,7 +7,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import MascotLogo from "@/app/_components/MascotLogo";
+import Link from "next/link";
 import ModeFeedback from "../_components/ModeFeedback";
+import CatSeoContent from "./CatSeoContent";
 import { useStoredProfile } from "../_components/useStoredProfile";
 import { calculateElementSeed, type Element5 } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
@@ -15,7 +17,6 @@ import {
   CAT_COATS,
   CAT_MARKS,
   CAT_EYES,
-  CAT_TAMRA,
   catReading,
   type CatReading,
 } from "@/lib/engine/cat-tamra";
@@ -111,7 +112,7 @@ export default function CatPage() {
           และความเข้ากันกับดวงเจ้าของ — อาจารย์ลาลาเป็นแมวกวัก เรื่องนี้ถนัดที่สุดค่ะ
         </p>
         <p className={styles.note} style={{ marginTop: "0.4rem" }}>
-          🔍 แมวหายอยู่หรือเปล่า? <a href="/cat/lost" style={{ color: "var(--gold)", fontWeight: 600 }}>วางแผนตามหาแมวหาย (ฟรี ไม่ต้องสมัคร) →</a>
+          🔍 แมวหายอยู่หรือเปล่า? <Link href="/cat/lost" style={{ color: "var(--gold)", fontWeight: 600 }}>วางแผนตามหาแมวหาย (ฟรี ไม่ต้องสมัคร) →</Link>
         </p>
       </header>
 
@@ -223,17 +224,8 @@ export default function CatPage() {
         </section>
       )}
 
-      <section className={styles.panel}>
-        <h2 className={styles.h2}>แมวมงคล 17 ชนิดในตำรา</h2>
-        <p className={styles.note}>ลักษณะโดยย่อจากสมุดข่อย — ลองเทียบกับแมวที่บ้านดูค่ะ</p>
-        <ul style={{ paddingLeft: "1.2rem", margin: "0.4rem 0 0", fontSize: "0.85rem", lineHeight: 1.7 }}>
-          {CAT_TAMRA.map((b) => (
-            <li key={b.key}>
-              <b>{b.nameTh}</b>{b.aliasTh ? ` (${b.aliasTh})` : ""}{b.inTamra ? "" : " — นอกสมุดข่อย"}: {b.traitsTh} · <i>{b.boonTh}</i>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* เนื้อหา SEO (ที่มาตำรา · 18 ชนิดลิงก์หน้ารายชนิด · สีแมวถูกโฉลกตามวันเกิด · FAQ) — 9 ก.ย. 2569 */}
+      <CatSeoContent />
 
       <ModeFeedback logicId={22} />
     </div>

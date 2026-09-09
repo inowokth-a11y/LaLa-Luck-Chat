@@ -1828,6 +1828,36 @@ log จริงต้องดูใน Vercel dashboard (ผู้ใช้ส
    จุดเดียว `DEFAULT_ART_STYLE` (หน้า /soulmate อ่านค่านี้ ไม่ hardcode แล้ว) · เทสต์ล็อกลำดับ key
    [pencil, sketch, photo, oil] + default + ข้อจำกัดตัวตนครบทุกสไตล์ (574 ผ่าน)
 
+### ✅ SEO ดูดวงแมว — หน้ารายชนิด 18 หน้า + สีแมวถูกโฉลกตามวันเกิด + FAQ (9 ก.ย. 2569 ผู้ใช้สั่ง "หาข้อมูลและทำ SEO")
+
+- **วิจัย SERP ไทย (WebSearch 9 ก.ย. 2569):** คลัสเตอร์ที่คนค้นจริง ① "แมวมงคล 17 ชนิด/ตำราแมว" (silpa-mag ·
+  mthai · catdumb · rabbitcare ครอง — เป็นบทความ ไม่มีเครื่องมือ) ② "แมวมงคล เสริมดวง/โชคลาภ · แมวสีอะไรเสริมดวง"
+  (lemon8 · sanook · LINE TODAY · inzpy) ③ **"สีแมวถูกโฉลกตามวันเกิด"** (lemon8/sanook — ยังไม่มีเว็บใหญ่ทำแบบ
+  คำนวณจริง = ช่องว่างที่เรามี engine พร้อม) ④ "แมวหาย ทำไงดี / จะกลับมาไหม / ดูดวงแมวหาย" (rabbitcare · central ·
+  wongnai · pantip · sanook tag) ⑤ "ดูดวงแมวตามราศี/นิสัยแมว" (sanook) — ไม่ทำ (ไม่มีตำรา/engine รองรับ ห้ามแต่ง) ·
+  ที่มาตำราจาก okmd: สมุดข่อยสมัยอยุธยา เป็นตำราพรหมชาติ 23 ชนิด (มงคล 17)
+- **`lib/cat/seo.ts`** (4 เทสต์ → รวม 588): `catSeoEntries` 18 ชนิด slug = ชื่อไทย (/cat/วิเชียรมาศ) + ธาตุจากสีขน ·
+  **`dayCatColorRows` สีแมวถูกโฉลก 7 วัน = wuXingScore(DAY_ELEMENT[วัน], ธาตุสีขน) ตัวจริง** (เทสต์ตรวจซ้ำทุกช่อง
+  กับ engine) · `breedDayRows` ต่อชนิด · FAQ hub 5 ข้อ + FAQ รายชนิด · CAT_SEO_INTRO_TH (ที่มาตำรา) ·
+  🔴 CAT_DAY_COLOR_CAVEAT ประกาศชัด "ธาตุประจำวันเกิดอย่างเดียว ไม่ใช่ธาตุประจำตัวเต็ม · สี 'ควรดูแล' ≠ ห้ามเลี้ยง"
+  · regex กติกาโหมดแมว (แมวร้าย/ให้โทษ/สุขภาพ) ล็อกทุก string SEO เหมือน engine
+- **หน้า `app/(liff)/cat/[slug]/page.tsx`** (server · generateStaticParams 18 · dynamicParams=false → slug ปลอม 404):
+  ลักษณะ/ตา/คุณ · ชิปธาตุ · CTA "เช็คแมวของฉัน" → /cat · ตาราง "เหมาะกับคนเกิดวันไหน" 7 วัน · FAQ · ชนิดใกล้เคียง
+  (ธาตุเดียวกันก่อน) · JSON-LD FAQPage + BreadcrumbList · canonical · หัว/breadcrumb ใช้ --outer-* บนพื้นลาย
+  การ์ดครีมตายตัว (กับดักธีม §15) · ⚠️ title ไม่ได้ต่อท้าย "| LaLa Lucky Chat" เพราะ cat/layout ประกาศ title เป็น
+  string (ไม่มี template) — ปล่อยไว้ title ยาวพออยู่แล้ว
+- **hub /cat:** `CatSeoContent.tsx` (ไม่มี hook — SSR เป็น HTML) แทนรายการ 17 ชนิดเดิม: ที่มาตำรา + 18 ชนิดลิงก์
+  หน้ารายชนิด + **ตารางสีแมวถูกโฉลกตามวันเกิด** + FAQ + ลิงก์ /cat/lost · `cat/layout.tsx` title ใหม่
+  "ดูดวงแมว แมวมงคล 17 ชนิดตามตำรา สีแมวถูกโฉลกตามวันเกิด" + keywords + canonical + FAQPage JSON-LD
+- **/cat/lost layout:** title "แมวหาย ทำไงดี — …" + FAQ 4 ข้อ (ตัวเลข 39 ม./34-50-61%/19% จากสถิติ engine เดิม ·
+  "ดูดวงแมวหายได้ไหม" ตอบตรงว่าไม่มีศาสตร์ระบุตำแหน่ง) + JSON-LD
+- **sitemap** +18 URL (monthly 0.6) → รวม 465 · 🐛 พ่วง: `<a href="/cat/lost">` ในหน้า /cat ชน ESLint
+  `no-html-link-for-pages` (เดิมผ่าน Vercel มาได้ — กฎ trigger เมื่อมี route ใต้ /cat เพิ่ม) → เปลี่ยนเป็น <Link>
+- **verify dev:** /cat 200 (title/ตาราง/FAQ/ลิงก์รายชนิดครบ) · /cat/วิเชียรมาศ + /cat/ขาวมณี 200 · slug ปลอม 404 ·
+  /cat/lost title ใหม่ + JSON-LD · sitemap 18 URL แมว · browser: การ์ดครีมตัวเข้ม หัวทองบนพื้นลาย · eslint ผ่าน
+- ⏳ ต่อได้ถ้าสั่ง: หน้า "ตั้งชื่อแมวมงคล" (nameElement มีอยู่แล้ว) · ส่ง sitemap ใหม่ใน GSC (ผู้ใช้ทำ) · วัดผลใน GSC
+  ~2-4 สัปดาห์ (คีย์เวิร์ดเป้า: แมวมงคล 17 ชนิด · สีแมวถูกโฉลกตามวันเกิด · แมวหาย ทำไงดี)
+
 ### ✅ เนื้อคู่: ตัวเลือกภาพเหลือ "สไตล์" เดียว + ปุ่ม "ดูคำทำนายด้านล่าง" (9 ก.ย. 2569 ผู้ใช้สั่ง)
 
 - **ที่มา:** ผู้ใช้รายงาน "กดดูคำทำนายแล้วไม่สร้างคำทำนาย" → ตรวจ prod จริง (E2E 7 แบบ + browser) ระบบทำงานปกติ
@@ -2275,7 +2305,7 @@ convergence) · สูตรสำเร็จ: ค้นกฎ cross-check ≥2
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 584/584 (9 ก.ย. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 588/588 (9 ก.ย. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 🔴 **บทเรียน pipeline 6 ก.ย. 2569:** ห้าม `npm run build | grep ...; echo DONE` — ต้องเช็ค exit code จริง

@@ -1,6 +1,7 @@
 // sitemap.xml (SEO — 3 ส.ค. 2569) — เฉพาะหน้า content สาธารณะ (ไม่รวม /card ดูเหตุผลใน robots.ts)
 import type { MetadataRoute } from "next";
 import { dreamSeoEntries } from "@/lib/dream/seo";
+import { catSeoEntries } from "@/lib/cat/seo";
 
 const BASE = "https://lalaluckychat.com";
 
@@ -32,7 +33,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
+  // หน้าแมวมงคลรายชนิด 18 หน้า (SEO ดูดวงแมว — 9 ก.ย. 2569) static ฿0
+  const catPages = catSeoEntries().map((e) => ({
+    url: `${BASE}/cat/${encodeURIComponent(e.slug)}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
   return [
+    ...catPages,
     ...pages.map((p) => ({
       url: `${BASE}${p.path}`,
       changeFrequency: "weekly" as const,
