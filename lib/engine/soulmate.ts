@@ -433,6 +433,14 @@ const ELEMENT_ACCENT: Record<Element5, string> = {
  *  สเก็ตช์/สีน้ำมัน/สีไม้ บน FLUX dev — "สีไม้โอเคเลย")** · ทุกสไตล์สื่อ "ภาพจินตนาการ" หนุนป้าย
  *  "ไม่ใช่บุคคลจริง" · ภาพถ่ายยังเลือกกลับได้ */
 export const ART_STYLES = {
+  // ลำดับ = ลำดับใน dropdown (ผู้ใช้เคาะ 9 ก.ย. 2569: สีน้ำ / สีไม้ / สีน้ำมันแนวเอ็กซ์เพรสชันนิสม์ / สมจริง)
+  sketch: {
+    th: "สเก็ตช์สีน้ำ (แนวจินตนาการ)",
+    openEn:
+      "A delicate pencil sketch collage with soft watercolor washes, hand-drawn artistic portrait study, " +
+      "gentle graphite lines and light watercolor tinting, dreamlike storybook illustration style",
+    tailEn: "soft hand-drawn shading, elegant sketchbook art",
+  },
   // จิตรกรรมสีไม้ (default 9 ก.ย. 2569) — ทดลองบน dev 2 รูป: หน้าคมชัด ผิวนุ่ม เห็นเนื้อกระดาษ ไม่มีลายเซ็นหลุด
   pencil: {
     th: "จิตรกรรมสีไม้ (แนวจินตนาการ)",
@@ -441,25 +449,23 @@ export const ART_STYLES = {
       "layered soft pencil strokes with visible paper grain, gentle blended colors, realistic colored pencil portrait art",
     tailEn: "delicate colored pencil shading and cross-hatching, fine art colored pencil rendering",
   },
-  sketch: {
-    th: "สเก็ตช์สีน้ำ (แนวจินตนาการ)",
+  // สีน้ำมันแนวเอ็กซ์เพรสชันนิสม์ (9 ก.ย. 2569 ผู้ใช้เคาะ — แทน "สีน้ำมันคลาสสิก" เดิม) · ใบหน้าต้องยังอ่านโครงได้
+  // (นรลักษณ์ ค.1 ต้องไม่หายไปในฝีแปรง — บังคับใน openEn)
+  expressionist: {
+    th: "สีน้ำมันเอ็กซ์เพรสชันนิสม์ (จิตรกรรม)",
     openEn:
-      "A delicate pencil sketch collage with soft watercolor washes, hand-drawn artistic portrait study, " +
-      "gentle graphite lines and light watercolor tinting, dreamlike storybook illustration style",
-    tailEn: "soft hand-drawn shading, elegant sketchbook art",
+      "An expressionist oil painting collage, heavy unblended visible brushstrokes, thick impasto oil paint on rough canvas, " +
+      "exaggerated vivid emotionally charged colors, bold dark outlines, loosely painted expressive background, " +
+      "early 20th-century German expressionism portrait painting style, painted by hand not photographic, " +
+      "the face stays clearly recognizable and well-proportioned within the expressive brushwork, museum fine art",
+    // ⚠️ ทดลอง 3 รอบบน FLUX dev (9 ก.ย. 2569): ถ้อยคำเข้มกว่านี้ ("no smooth blending on the face / palette-knife")
+    //   ไม่ได้เพิ่มฝีแปรงบนใบหน้า แต่ทำให้เสื้อหลุดมิดชิด 1 ช่อง → คงเวอร์ชันนี้ (พื้นสีจัด+ฝีแปรงพื้นหลัง ใบหน้ายังเนียน)
+    tailEn: "raw expressive painterly strokes with visible brush texture everywhere, thick impasto oil paint, gallery-quality expressionist painting",
   },
   photo: {
-    th: "ภาพถ่ายสมจริง",
+    th: "ภาพสมจริง",
     openEn: "A professional photo collage",
     tailEn: "highly detailed natural skin texture with visible pores, photorealistic",
-  },
-  // สีน้ำมันคลาสสิก (9 ก.ย. 2569 ผู้ใช้ขอเทียบ — บน FLUX dev ออกมาเป็นจิตรกรรมจริง ต่างจาก schnell ที่เหมือนภาพถ่าย)
-  oil: {
-    th: "สีน้ำมันคลาสสิก (จิตรกรรม)",
-    openEn:
-      "A classical oil painting collage in the style of old master portraiture, rich visible impasto brushstrokes " +
-      "on linen canvas texture, warm chiaroscuro lighting, Baroque and Renaissance portrait painting style, museum fine art",
-    tailEn: "glazed oil paint layers, painterly edges, gallery-quality classical oil painting",
   },
 } as const;
 export type ArtStyleKey = keyof typeof ART_STYLES;
@@ -630,7 +636,7 @@ export function soulmateCollagePrompt(opts: {
     `modest fully-covering ${om.outfitEn} with sleeves, ${om.moodEn}, genuine warm smile, ` +
     `${art.tailEn}, ` +
     `every panel shows the person's full head, the head is never cropped by the frame, ` +
-    `no text, no words, no letters, no watermark`
+    `no text, no words, no letters, no watermark, no artist signature`
   );
 }
 

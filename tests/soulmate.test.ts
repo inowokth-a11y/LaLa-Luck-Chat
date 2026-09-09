@@ -369,9 +369,9 @@ test("คำบรรยายภาพตามเส้นทางที่�
 });
 
 // --- สไตล์ภาพ (ART_STYLES) — ผู้ใช้เคาะ 9 ก.ย. 2569: จิตรกรรมสีไม้เป็น default (เดิมสเก็ตช์สีน้ำ 2 ก.ย.) ---
-test("ART_STYLES — default สีไม้ · สเก็ตช์/สีน้ำมัน/photo เลือกกลับได้ · ค่านอก enum ตกเป็น default", async () => {
+test("ART_STYLES — 4 สไตล์ตามลำดับ dropdown (สีน้ำ/สีไม้/เอ็กซ์เพรสชันนิสม์/สมจริง) · default สีไม้ · ค่านอก enum ตกเป็น default", async () => {
   const { ART_STYLES, DEFAULT_ART_STYLE, soulmateCollagePrompt } = await import("../lib/engine/soulmate");
-  assert.deepEqual(Object.keys(ART_STYLES), ["pencil", "sketch", "photo", "oil"]);
+  assert.deepEqual(Object.keys(ART_STYLES), ["sketch", "pencil", "expressionist", "photo"]);
   assert.equal(DEFAULT_ART_STYLE, "pencil");
   const def = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai" });
   assert.ok(def.includes("colored pencil") && def.includes("paper grain"), "default ต้องเป็นจิตรกรรมสีไม้");
@@ -382,8 +382,10 @@ test("ART_STYLES — default สีไม้ · สเก็ตช์/สีน�
   assert.ok(photo.includes("photo collage") && photo.includes("photorealistic"));
   // injection-safe: ค่านอก enum = default เป๊ะ
   assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "van gogh style" }), def);
-  const oil = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "oil" });
-  assert.ok(oil.includes("oil painting") && !oil.includes("photorealistic") && !oil.includes("pencil sketch"));
+  const oil = soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "expressionist" });
+  assert.ok(oil.includes("expressionist oil painting") && oil.includes("clearly recognizable") && !oil.includes("photorealistic") && !oil.includes("pencil sketch"));
+  // key เก่า "oil" ถูกถอด (9 ก.ย. 2569) → client เก่าที่ส่งมาตกเป็น default ไม่พัง
+  assert.equal(soulmateCollagePrompt({ gender: "female", element: "Fire", look: "thai", style: "oil" }), def);
   // ข้อจำกัดตัวตนต้องคงอยู่ทุกสไตล์ (มิดชิด/ท่าครบ/หัวไม่โดนครอป/no-text)
   for (const p of [def, sketch, photo, oil]) {
     assert.ok(p.includes("modest") && p.includes("no text") && p.includes("never cropped"));

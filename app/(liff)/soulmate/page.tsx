@@ -11,11 +11,10 @@ import ModeFeedback from "../_components/ModeFeedback";
 import MascotLogo from "@/app/_components/MascotLogo";
 import FunctionChat from "../_components/FunctionChat";
 import { useStoredProfile } from "../_components/useStoredProfile";
-import { BODY_PREF, FACE_PREF, PERSONA_PREF } from "@/lib/engine/preference-match";
 import { provincesByRegion } from "@/lib/provinces";
 import { syncAuthStatus } from "@/app/_components/AuthStatus";
 import { shareLinks } from "@/lib/share";
-import { LOOK_STYLES, ART_STYLES, DEFAULT_ART_STYLE, SKIN_TONES, SOULMATE_LOOK_NOTE } from "@/lib/engine/soulmate";
+import { ART_STYLES, DEFAULT_ART_STYLE } from "@/lib/engine/soulmate";
 import styles from "./soulmate.module.css";
 
 interface JyotishLayer {
@@ -125,15 +124,10 @@ export default function SoulmatePage() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [imgError, setImgError] = useState<string | null>(null);
-  // สัญชาติ/สไตล์ลุคของภาพ (preset เท่านั้น — ไม่ใช่คำทำนาย · โครงหน้า/วัยให้ AI จัดตามเหมาะสม)
-  const [look, setLook] = useState("thai");
-  // แท็กความชอบ (preset enum — Preference Overlap · 24 ส.ค. 2569)
-  const [prefBody, setPrefBody] = useState("");
-  const [prefFace, setPrefFace] = useState("");
-  const [prefPersona, setPrefPersona] = useState("");
+  // 9 ก.ย. 2569 ผู้ใช้เคาะ "เหลือแค่เลือกสไตล์ภาพ": ตัดตัวเลือกลุค/โทนผิว/สเปกที่ชอบ (รูปร่าง/โครงหน้า/บุคลิก)
+  // ออกจาก UI — engine/API ยังรับ param เดิม (ค่าว่าง = ลุคไทย default · ไม่มี preference layer)
   // เลือกเส้นทางภาพ แบบ ก (ทางตำรา) / แบบ ข (ทางที่ใจเลือก) — เมื่อมีทางแยกจริง
   const [pathChoice, setPathChoice] = useState<"a" | "b">("a");
-  const [prefSkin, setPrefSkin] = useState("");
   const [artStyle, setArtStyle] = useState<string>(DEFAULT_ART_STYLE);
 
   // เช็คกับคนที่คุณสนใจ (ผู้ใช้เคาะ 23 ส.ค. 2569) — ข้อมูลอีกฝ่ายไม่ถูกจัดเก็บ
@@ -184,9 +178,6 @@ export default function SoulmatePage() {
           partnerGender,
           name: ownName.trim() || undefined,
           userGender: profile?.gender || undefined,
-          prefBody: prefBody || undefined,
-          prefFace: prefFace || undefined,
-          prefPersona: prefPersona ? [prefPersona] : undefined,
         }),
       });
       const data = (await r.json()) as ReadingResponse;
@@ -233,16 +224,11 @@ export default function SoulmatePage() {
         body: JSON.stringify({
           mode: "images",
           pathChoice: res?.dualPath ? (choice ?? pathChoice) : undefined,
-          prefSkin: prefSkin || undefined,
           artStyle,
-          prefBody: prefBody || undefined,
-          prefFace: prefFace || undefined,
-          prefPersona: prefPersona ? [prefPersona] : undefined,
           birthDate,
           birthTime: birthTime || undefined,
           province: birthTime ? province : undefined,
           partnerGender: partnerGender || undefined,
-          look: look || undefined,
         }),
       });
       const data = (await r.json()) as { images?: { url: string; caption: string }[]; captions?: string[]; shareUrl?: string | null; disclaimer?: string; error?: string; message?: string };
@@ -360,33 +346,6 @@ export default function SoulmatePage() {
               <option value="any">ไม่ระบุ</option>
             </select>
           </label>
-          {/* แท็กความชอบ (ไม่บังคับ — Preference Overlap: เทียบความชอบกับแนวโน้มดวง + ปรับภาพ) */}
-          <details style={{ marginTop: "0.2rem" }}>
-            <summary style={{ cursor: "pointer", fontSize: "0.88rem", fontWeight: 600 }}>💗 สเปกที่คุณชอบ (ไม่บังคับ — ระบบจะเทียบกับแนวโน้มดวงให้ และใช้ปรับภาพ)</summary>
-            <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
-              <label className={styles.field} style={{ flex: 1, minWidth: 150 }}>
-                <span>รูปร่างที่ชอบ</span>
-                <select className={styles.input} value={prefBody} onChange={(e) => setPrefBody(e.target.value)}>
-                  <option value="">— ไม่ระบุ —</option>
-                  {Object.entries(BODY_PREF).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
-                </select>
-              </label>
-              <label className={styles.field} style={{ flex: 1, minWidth: 150 }}>
-                <span>โครงหน้าที่ชอบ</span>
-                <select className={styles.input} value={prefFace} onChange={(e) => setPrefFace(e.target.value)}>
-                  <option value="">— ไม่ระบุ —</option>
-                  {Object.entries(FACE_PREF).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
-                </select>
-              </label>
-              <label className={styles.field} style={{ flex: 1, minWidth: 150 }}>
-                <span>บุคลิกที่ชอบ</span>
-                <select className={styles.input} value={prefPersona} onChange={(e) => setPrefPersona(e.target.value)}>
-                  <option value="">— ไม่ระบุ —</option>
-                  {Object.entries(PERSONA_PREF).map(([k, v]) => <option key={k} value={k}>{v.th}</option>)}
-                </select>
-              </label>
-            </div>
-          </details>
           {error && <p className={styles.error}>{error}</p>}
           {needsLogin && (
             <div className={styles.ctaRow}>
@@ -398,9 +357,26 @@ export default function SoulmatePage() {
               <a className={styles.ctaBtn} href="/account">⭐ เติมเครดิต →</a>
             </div>
           )}
-          <button type="submit" className={styles.btn} disabled={loading}>
-            {loading ? "กำลังคำนวณ..." : "🔮 ดูคำทำนายเนื้อคู่"}
-          </button>
+          {/* หลังคำทำนายขึ้น ปุ่มหลักเปลี่ยนเป็น "ดูคำทำนายด้านล่าง" (ผู้ใช้เคาะ 9 ก.ย. 2569 — ให้รู้ว่าผลออกแล้ว)
+              เลื่อนไปที่ผล ไม่ยิงซ้ำ · คำนวณใหม่แยกเป็นปุ่มรอง (ครั้งต่อไปหักเครดิตตามกติกาเดิม) */}
+          {res?.reply && !loading ? (
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+              <button
+                type="button"
+                className={styles.btn}
+                onClick={() => document.getElementById("soulmate-reading")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              >
+                ⬇️ ดูคำทำนายด้านล่าง
+              </button>
+              <button type="submit" className={styles.btn} style={{ opacity: 0.75 }} disabled={loading}>
+                🔁 คำนวณใหม่
+              </button>
+            </div>
+          ) : (
+            <button type="submit" className={styles.btn} disabled={loading}>
+              {loading ? "กำลังคำนวณ..." : "🔮 ดูคำทำนายเนื้อคู่"}
+            </button>
+          )}
           <p className={styles.note}>
             ฟรีครั้งแรก · ครั้งต่อไปใช้ 20 เครดิต — หัวข้อ รูปลักษณ์ / พื้นเพ / ฐานะ / อายุ /
             ช่วงเวลาที่จะพบ ยังไม่เปิด (รอข้อมูลจากตำราต้นทาง)
@@ -409,7 +385,7 @@ export default function SoulmatePage() {
       </section>
 
       {res?.reply && (
-        <section className={styles.panel}>
+        <section className={styles.panel} id="soulmate-reading">
           <h2 className={styles.h2}>คำทำนายเนื้อคู่ของคุณ</h2>
           {reading?.mode === "lagna" && reading.partner && (
             <div style={{ marginBottom: "1rem" }}>
@@ -598,38 +574,16 @@ export default function SoulmatePage() {
               {res?.dualPath ? ` — กำลังใช้ "ภาพเนื้อคู่ตามดวงแบบ ${pathChoice === "a" ? "ก" : "ข"}"` : ""} — เป็นภาพจินตนาการเท่านั้น
               ไม่ใช่บุคคลจริง และไม่ได้มาจากตำรา
             </p>
-            {/* สัญชาติ/สไตล์ลุค (preset — ไม่มีช่องพิมพ์อิสระ กันอ้างชื่อบุคคลจริง ·
-                โครงหน้า/วัยให้ AI จัดตามความเหมาะสม — ผู้ใช้เคาะ 23 ส.ค. 2569) */}
+            {/* ตัวเลือกภาพเหลือ "สไตล์" อย่างเดียว (ผู้ใช้เคาะ 9 ก.ย. 2569) — ลุค/โทนผิว/สเปกถอดออกจาก UI */}
             {!images.length && (
-              <details style={{ margin: "0.6rem 0" }}>
-                <summary style={{ cursor: "pointer", fontSize: "0.85rem" }}>🎛 ปรับแต่งภาพ (ไม่บังคับ — สไตล์/ลุค/โทนผิว)</summary>
-                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0, marginTop: "0.5rem" }}>
-                  <span>สัญชาติ/สไตล์ลุคของภาพ</span>
-                  <select className={styles.input} value={look} onChange={(e) => setLook(e.target.value)}>
-                    {Object.entries(LOOK_STYLES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.th}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0, marginTop: "0.5rem" }}>
-                  <span>สไตล์ภาพ</span>
-                  <select className={styles.input} value={artStyle} onChange={(e) => setArtStyle(e.target.value)}>
-                    {Object.entries(ART_STYLES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.th}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.field} style={{ maxWidth: 280, marginBottom: 0, marginTop: "0.5rem" }}>
-                  <span>โทนผิวของภาพ (ตัวเลือกการวาด — ไม่ใช่คำทำนาย)</span>
-                  <select className={styles.input} value={prefSkin} onChange={(e) => setPrefSkin(e.target.value)}>
-                    <option value="">— ตามลุคที่เลือก —</option>
-                    {Object.entries(SKIN_TONES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.th}</option>
-                    ))}
-                  </select>
-                </label>
-                <p className={styles.note} style={{ marginTop: "0.4rem" }}>💡 {SOULMATE_LOOK_NOTE}</p>
-              </details>
+              <label className={styles.field} style={{ maxWidth: 320, marginBottom: 0, marginTop: "0.5rem" }}>
+                <span>สไตล์ภาพ</span>
+                <select className={styles.input} value={artStyle} onChange={(e) => setArtStyle(e.target.value)}>
+                  {Object.entries(ART_STYLES).map(([k, v]) => (
+                    <option key={k} value={k}>{v.th}</option>
+                  ))}
+                </select>
+              </label>
             )}
             {imgError && <p className={styles.error}>{imgError}</p>}
             {!images.length && (res?.dualPath ? (
