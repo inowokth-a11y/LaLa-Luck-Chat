@@ -18,7 +18,15 @@ import {
   questionPoolExhaustedMessage,
   questionNeedsLoginMessage,
 } from "@/lib/chat/questions";
-import { runPlanChat, buildProfileContext } from "@/lib/chat/plan-run";
+import { runPlanChat, buildProfileContext, parsePlannerJson } from "@/lib/chat/plan-run";
+import {
+  buildFactIndex,
+  buildStructurerSystem,
+  buildStructurerInput,
+  validateStructure,
+  structureDirective,
+  structurerEnabledFor,
+} from "@/lib/chat/answer-structure";
 import { FIRST_READING_SYSTEM, buildFirstReadingInput } from "@/lib/chat/first-reading-prompt";
 import { lifeDasha } from "@/lib/engine/life-dasha";
 import { moonEclipticLongitude } from "@/lib/engine/daily";
@@ -297,6 +305,31 @@ export async function POST(req: Request) {
       // needs_input/unclear → ไม่หักอะไร ตกไปให้เส้น context ตอบตามข้อมูลบนหน้า (พฤติกรรมเดิม)
     }
 
+    // ---- ขั้นจัดโครงคำตอบ (25 ก.ย. 2569) — Haiku เลือก "ข้อเท็จจริงที่ยึด + รูปแบบคำตอบ" จาก id/enum
+    //      ที่ระบบให้เท่านั้น (lib/chat/answer-structure.ts) · ผลใช้ไม่ได้/AI ล้ม = เส้นเดิมเป๊ะ
+    //      สวิตช์ ANSWER_STRUCTURER: on/off/ab (ค่าเริ่มต้น ab = ครึ่งหนึ่งของผู้ใช้ตามกลุ่มคงที่จาก uid)
+    let directive = "";
+    if (structurerEnabledFor(userId)) {
+      const facts = buildFactIndex(body.context);
+      if (facts.length >= 2) {
+        try {
+          const st = await generate({
+            role: "router",
+            logicId,
+            channel: "web",
+            userId,
+            system: buildStructurerSystem(),
+            input: buildStructurerInput(question, facts),
+            maxTokens: 120,
+          });
+          const structure = validateStructure(parsePlannerJson(st.text), facts);
+          if (structure) directive = `\n\n${structureDirective(structure)}`;
+        } catch (e) {
+          console.warn("[chat/structurer] จัดโครงไม่สำเร็จ — ใช้เส้นเดิม", e);
+        }
+      }
+    }
+
     const ai = await generate({
       role: "ai2",
       logicId,
@@ -309,7 +342,7 @@ ${memory ? `\n${memory}\n` : ""}
 ${contextJson}
 </ผลที่ผู้ใช้เห็นอยู่>
 
-คำถามของผู้ใช้: ${question}`,
+คำถามของผู้ใช้: ${question}${directive}`,
       maxTokens: 700, // ตอบสั้น 2-4 ประโยค — กันร่ายยาวเสียเงินฟรี
     });
 
@@ -320,6 +353,7 @@ ${contextJson}
     return NextResponse.json({
       reply: ai.text,
       via: `${ai.provider}/${ai.model}${ai.usedFallback ? " (สำรอง)" : ""}`,
+      structured: directive !== "",
       questions: settled.questions,
       credits: settled.credits,
       paidWithCredits: settled.paidWithCredits,
