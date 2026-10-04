@@ -52,6 +52,7 @@ import { lotteryIntercept } from "@/lib/chat/lottery";
 import { chatRedirectIntercept } from "@/lib/chat/redirects";
 import { logQuestion } from "@/lib/chat/question-log";
 import { getMemoryBlock, rememberEvent } from "@/lib/memory";
+import { sanitizeHistory, historyBlock, type ChatTurn } from "@/lib/chat/history";
 
 export const runtime = "nodejs";
 
@@ -70,6 +71,10 @@ const CHAT_SYSTEM = `${LALA_PERSONA}
 4. ห้ามให้คำแนะนำทางการแพทย์หรือจิตเวช
 5. ตอบสั้น 2-4 ประโยค เข้าเรื่องเลย ไม่ต้องทวนคำถาม
 6. ถ้าผู้ใช้ถามเรื่องที่ไม่เกี่ยวกับผลบนหน้าจอเลย ให้ตอบสั้นๆ แล้วชวนกลับมาที่เรื่องดวง
+7. ประโยคแรกต้องตอบสิ่งที่ถามตรงๆ — ห้ามเปิดด้วยการชมผู้ถามหรือเล่าผลบนหน้าจอซ้ำก่อนตอบ
+8. ถ้ามี <บทสนทนาก่อนหน้า> = คำถามต่อเนื่อง → **ห้ามทักทาย ห้ามขึ้นต้นด้วย "ลาลา~"** ตอบต่อจากเรื่องเดิม
+   และตีความคำที่อ้างถึงก่อนหน้า ("แล้ว…" "อันนั้น") จากบทสนทนานั้น
+9. ห้ามใช้ศัพท์ภายในระบบ ("Productive Clash" "engine" "Logic" ฯลฯ) — พูดภาษาคนทั่วไป เรียกผู้ใช้ว่า "คุณ"
 
 ${FIGURE_TONE_PROMPT}`;
 
@@ -80,6 +85,8 @@ interface ChatBody {
   question?: string;
   /** ผลที่หน้าจอคำนวณได้ — ส่งมาเพื่อให้ AI ตอบโดยอิงของจริง ไม่ใช่เดา */
   context?: unknown;
+  /** บทสนทนาก่อนหน้า ≤3 รอบ (4 ต.ค. 2569) — ให้ตีความคำถามต่อเนื่อง · sanitize ฝั่ง server เสมอ */
+  history?: unknown;
 }
 
 interface PoolState {
@@ -250,9 +257,11 @@ export async function POST(req: Request) {
     const pool = await resolvePool(userId);
     if (pool.charge.mode === "denied") return deniedResponse(pool);
 
+    const history = sanitizeHistory(body.history);
+
     // ---- 4. เส้นทาง "แผน" (วิเคราะห์อิสระ §16) ----
     if (body.mode === "plan") {
-      return await handlePlanMode(question, pool);
+      return await handlePlanMode(question, pool, history);
     }
 
     // ---- เส้นทาง context (ถามต่อจากผลบนจอ) ----
@@ -286,7 +295,7 @@ export async function POST(req: Request) {
       } catch (e) {
         console.warn("[chat/hybrid] อ่านโปรไฟล์ไม่สำเร็จ — ทำงานต่อแบบไม่มีธาตุประจำตัว", e);
       }
-      const planned = await runPlanChat(question, profileCtx, memory, contextJson);
+      const planned = await runPlanChat(question, profileCtx, memory, contextJson, history);
       if (planned.status === "answered") {
         logQuestion({ question, status: "answered", fns: [...new Set(planned.results.map((r) => r.fn))], userId });
         void rememberEvent(userId, "chat", { q: question, a: planned.reply, tag: logicName });
@@ -338,7 +347,7 @@ export async function POST(req: Request) {
       system: CHAT_SYSTEM,
       input: `ฟังก์ชันที่ผู้ใช้กำลังดู: ${logicName}
 ${memory ? `\n${memory}\n` : ""}
-<ผลที่ผู้ใช้เห็นอยู่>
+${historyBlock(history)}<ผลที่ผู้ใช้เห็นอยู่>
 ${contextJson}
 </ผลที่ผู้ใช้เห็นอยู่>
 
@@ -370,7 +379,7 @@ ${contextJson}
 }
 
 /** โหมด "แผน" — AI เลือกฟังก์ชัน → engine คำนวณ → AI เล่า (Safety Gate/gate ผ่านมาแล้ว) */
-async function handlePlanMode(question: string, pool: PoolState): Promise<NextResponse> {
+async function handlePlanMode(question: string, pool: PoolState, history: ChatTurn[] = []): Promise<NextResponse> {
   // โปรไฟล์ (ธาตุประจำตัว) — วันเกิดไม่เคยถูกส่งให้ AI (§16.3)
   let profileCtx = null;
   try {
@@ -390,7 +399,7 @@ async function handlePlanMode(question: string, pool: PoolState): Promise<NextRe
 
   // ความจำแม่หมอ (เฟส 3) — แนบให้ narrator
   const memory = await getMemoryBlock(pool.userId);
-  const result = await runPlanChat(question, profileCtx, memory);
+  const result = await runPlanChat(question, profileCtx, memory, null, history);
 
   // ถามข้อมูลเพิ่ม / นอกขอบเขต → ไม่หัก (ยังไม่ได้คำตอบจริง)
   if (result.status === "needs_input") {

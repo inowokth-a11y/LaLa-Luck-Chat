@@ -21,6 +21,7 @@ import ChartPanel, { type ChartData } from "@/app/(liff)/_components/ChartPanel"
 import { onChatContext, type ChatContextPayload } from "@/lib/chat/float-bus";
 import { suggestQuestions } from "@/lib/chat/suggest";
 import styles from "./LalaFloat.module.css";
+import { pairTurns } from "@/lib/chat/history";
 
 const HIDE_ON = ["/dream", "/chat", "/login", "/onboarding", "/auth", "/consent", "/welcome", "/admin", "/privacy", "/card"];
 
@@ -170,13 +171,15 @@ export default function LalaFloat() {
     setNotice(null);
     setTopup(false);
     setReplySuggest(null);
+    // บทสนทนาก่อนหน้า ≤3 รอบ (คำนวณจากข้อความก่อนเพิ่มคำถามนี้) — ให้ตีความคำถามต่อเนื่องได้
+    const history = pairTurns(msgs);
     setMsgs((m) => [...m, { role: "user", text: question }]);
     setInput("");
 
     try {
       const body = ctx
-        ? { logicId: ctx.logicId, question, context: ctx.context }
-        : { mode: "plan", question };
+        ? { logicId: ctx.logicId, question, context: ctx.context, history }
+        : { mode: "plan", question, history };
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },

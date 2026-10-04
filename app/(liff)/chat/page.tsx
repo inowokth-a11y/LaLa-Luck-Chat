@@ -17,6 +17,7 @@ import FeedbackBox from "../_components/FeedbackBox";
 import { MascotAvatar, MascotPerch } from "@/app/_components/MascotLogo";
 import { calculateElementSeed } from "@/lib/engine/element";
 import { thaiDayOfWeek } from "@/lib/engine/card-id";
+import { pairTurns } from "@/lib/chat/history";
 import styles from "./chat.module.css";
 
 // โหมดในช่องแชทเดียว — เพิ่มฟังก์ชันใหม่ได้ด้วยการเติมในลิสต์นี้ (extensible ตามที่ออกแบบ)
@@ -128,6 +129,14 @@ export default function FlexibleChatPage() {
     if (!question.trim() || busy) return;
     setBusy(true);
     setError(null);
+    // บทสนทนาก่อนหน้า ≤3 รอบ — คำถามที่แม่หมอถามกลับ (note) นับเป็นคำตอบ · ข้อความวิกฤตไม่ส่งต่อ
+    const history = pairTurns(
+      entries
+        .filter((x) => x.kind !== "crisis")
+        .map((x) =>
+          x.kind === "user" ? { role: "user" as const, text: x.text } : { role: "ai" as const, text: x.kind === "ai" ? x.reply : x.text }
+        )
+    );
     setEntries((e) => [...e, { kind: "user", text: question }]);
     setInput("");
 
@@ -135,7 +144,7 @@ export default function FlexibleChatPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mode: "plan", question }),
+        body: JSON.stringify({ mode: "plan", question, history }),
       });
       const d = await res.json();
 

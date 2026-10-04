@@ -195,7 +195,8 @@ test("prompt เฟส 1: planner รู้จัก consultTopic · narrator �
   const planner = buildPlannerSystem();
   assert.ok(planner.includes("consultTopic"), "planner ต้องรู้วิธีถามกลับ");
   assert.ok(planner.includes("ห้ามเดาด้านเอง"));
-  const narrator = buildNarratorSystem();
+  // 4 ต.ค. 2569: กฎจิตวิทยาย้ายไปอยู่เฉพาะคำตอบสายปรึกษา (เดิมแนบทุกคำตอบ → คำทำนายวกวน)
+  const narrator = buildNarratorSystem("consult");
   assert.ok(narrator.includes("normalize"), "ต้องมีกฎ normalize ความรู้สึก");
   assert.ok(narrator.includes("ก้าวเล็กๆ 1 อย่าง"), "ต้องปิดด้วยก้าวที่ทำได้จริง");
   assert.ok(narrator.includes("self-efficacy"));
