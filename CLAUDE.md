@@ -1858,6 +1858,20 @@ log จริงต้องดูใน Vercel dashboard (ผู้ใช้ส
 - ⏳ ต่อได้ถ้าสั่ง: หน้า "ตั้งชื่อแมวมงคล" (nameElement มีอยู่แล้ว) · ส่ง sitemap ใหม่ใน GSC (ผู้ใช้ทำ) · วัดผลใน GSC
   ~2-4 สัปดาห์ (คีย์เวิร์ดเป้า: แมวมงคล 17 ชนิด · สีแมวถูกโฉลกตามวันเกิด · แมวหาย ทำไงดี)
 
+### 🔴 กติกา GRANT ตารางใหม่ — Supabase เลิกให้สิทธิ์อัตโนมัติ 30 ต.ค. 2569 (20 ต.ค. 2569 ผู้ใช้อนุมัติ)
+
+**อีเมล Supabase:** ตั้งแต่ 30 ต.ค. 2569 ตารางที่ **สร้างใหม่** ใน `public` ไม่ได้สิทธิ์ Data API อัตโนมัติ → supabase-js/
+PostgREST/GraphQL ตอบ "permission denied" (**รวม service role** — BYPASSRLS ข้ามแค่ RLS ไม่ข้ามสิทธิ์ตาราง) · ตารางเดิมไม่กระทบ
+- ตรวจแล้ว: migration 000-046 (สร้างตาราง 32 ไฟล์) **ไม่มี GRANT ตารางสักไฟล์** — prod มีสิทธิ์ครบเพราะค่าอัตโนมัติเดิม
+  (อ่าน role_table_grants จริง: 48 ตารางให้ 7 สิทธิ์ครบ anon/authenticated/service_role · sequence 8 ตัว USAGE/SELECT/UPDATE ครบ)
+  → ถ้าสร้างฐานใหม่จาก migration (โปรเจกต์ใหม่/branch/db reset — เคยเกือบต้องทำตอน auto-pause 1 ก.ย.) จะพังทั้งระบบ
+- `migration 047_explicit_table_grants.sql`: ประกาศสิทธิ์ซ้ำตามของจริงเป๊ะ (ระบุสิทธิ์รายตัว ไม่ใช้ ALL — PG17 ALL ให้ MAINTAIN เกิน) ·
+  **จงใจไม่ตั้ง ALTER DEFAULT PRIVILEGES** (ไม่ย้อนการเปลี่ยนแปลงของ Supabase) · GRANT ไม่เปิดข้อมูล RLS ยังคุมแถวเหมือนเดิม
+  ⏳ **ยังไม่ได้รันบน prod** — ระบบสิทธิ์ของเครื่องมือบล็อกการรันกับฐาน prod (รันบน prod = no-op ไม่เปลี่ยนพฤติกรรม)
+- 🔴 **กติกาใหม่: ทุก migration 048+ ที่สร้างตาราง ต้อง GRANT ให้ anon/authenticated/service_role ในไฟล์เดียวกัน**
+  (มี identity/serial → grant usage, select on sequence ด้วย) · ล็อกด้วย `tests/migration-grants.test.ts` (3 เทสต์ → รวม 606)
+  แบบที่แนะนำ: anon = select · authenticated/service_role = select/insert/update/delete — RLS เป็นด่านจริงเสมอ
+
 ### ✅ แชท "วิเคราะห์คำถามงง คำทำนายวกวน" — ตรวจแล้วแก้ 4 จุด (4 ต.ค. 2569 ผู้ใช้รายงาน → อนุมัติ "เริ่ม")
 
 **การตรวจ (ยิง AI จริง 6 คำถาม โปรไฟล์ไฟเด่นขาดน้ำ):** ต้นเหตุเชิงโครงสร้าง ไม่ใช่ AI สุ่ม —
@@ -2384,7 +2398,7 @@ convergence) · สูตรสำเร็จ: ค้นกฎ cross-check ≥2
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"   # Node v24 ไม่อยู่ใน PATH ถาวร
 cd /Users/freeman/Desktop/kruth-element
-npx tsc --noEmit && npm test && npm run build   # ควรได้ 603/603 (4 ต.ค. 2569)
+npx tsc --noEmit && npm test && npm run build   # ควรได้ 606/606 (20 ต.ค. 2569)
 ```
 ⚠️ ถ้า tsc พังด้วย `.next/types/*d 2.ts Duplicate identifier` = `.next` เสีย → `rm -rf .next` ก่อน
 🔴 **บทเรียน pipeline 6 ก.ย. 2569:** ห้าม `npm run build | grep ...; echo DONE` — ต้องเช็ค exit code จริง
