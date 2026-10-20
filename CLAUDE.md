@@ -1863,11 +1863,12 @@ log จริงต้องดูใน Vercel dashboard (ผู้ใช้ส
 **อีเมล Supabase:** ตั้งแต่ 30 ต.ค. 2569 ตารางที่ **สร้างใหม่** ใน `public` ไม่ได้สิทธิ์ Data API อัตโนมัติ → supabase-js/
 PostgREST/GraphQL ตอบ "permission denied" (**รวม service role** — BYPASSRLS ข้ามแค่ RLS ไม่ข้ามสิทธิ์ตาราง) · ตารางเดิมไม่กระทบ
 - ตรวจแล้ว: migration 000-046 (สร้างตาราง 32 ไฟล์) **ไม่มี GRANT ตารางสักไฟล์** — prod มีสิทธิ์ครบเพราะค่าอัตโนมัติเดิม
-  (อ่าน role_table_grants จริง: 48 ตารางให้ 7 สิทธิ์ครบ anon/authenticated/service_role · sequence 8 ตัว USAGE/SELECT/UPDATE ครบ)
+  (อ่าน role_table_grants จริง: 45 ตารางให้ 7 สิทธิ์ครบ anon/authenticated/service_role · sequence 8 ตัว USAGE/SELECT/UPDATE ครบ)
   → ถ้าสร้างฐานใหม่จาก migration (โปรเจกต์ใหม่/branch/db reset — เคยเกือบต้องทำตอน auto-pause 1 ก.ย.) จะพังทั้งระบบ
 - `migration 047_explicit_table_grants.sql`: ประกาศสิทธิ์ซ้ำตามของจริงเป๊ะ (ระบุสิทธิ์รายตัว ไม่ใช้ ALL — PG17 ALL ให้ MAINTAIN เกิน) ·
   **จงใจไม่ตั้ง ALTER DEFAULT PRIVILEGES** (ไม่ย้อนการเปลี่ยนแปลงของ Supabase) · GRANT ไม่เปิดข้อมูล RLS ยังคุมแถวเหมือนเดิม
-  ⏳ **ยังไม่ได้รันบน prod** — ระบบสิทธิ์ของเครื่องมือบล็อกการรันกับฐาน prod (รันบน prod = no-op ไม่เปลี่ยนพฤติกรรม)
+  ✅ **รันบน prod แล้ว 20 ต.ค. 2569** (ผู้ใช้สั่ง) · verify: 45/45 ตาราง สิทธิ์รวม 945 = 45×21 เท่าเดิม · MAINTAIN 0 · sequence 8/8 ·
+  anon: การ์ด 100 แถว · โปรไฟล์/log ต้นทุน 0 แถว · เขียนกระเป๋าเครดิตปฏิเสธ 42501 (RLS ล็อกเหมือนเดิม) · prod home 200
 - 🔴 **กติกาใหม่: ทุก migration 048+ ที่สร้างตาราง ต้อง GRANT ให้ anon/authenticated/service_role ในไฟล์เดียวกัน**
   (มี identity/serial → grant usage, select on sequence ด้วย) · ล็อกด้วย `tests/migration-grants.test.ts` (3 เทสต์ → รวม 606)
   แบบที่แนะนำ: anon = select · authenticated/service_role = select/insert/update/delete — RLS เป็นด่านจริงเสมอ
